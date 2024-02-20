@@ -1,7 +1,17 @@
-.inputfield {
+.form {
+    margin: 10px;
+}
+
+.select {
+    display: flex;
+    margin-top: 10px;
     margin-bottom: 10px;
 }
 
-.form {
-    margin: 10px;
+.input {
+    flex: 2;
+}
+
+.selector {
+    flex: 3;
 }

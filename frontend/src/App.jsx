@@ -1,21 +1,19 @@
-import { useState } from 'react'
 import './App.css'
 import ConfigureTab from './ConfigureTab'
 
 function App() {
-  const [count, setCount] = useState(0)
 
   return (
     <>
-    <div className='container'>
-      <div className='video'>
-        <p>Hello</p>
+      <div className='container'>
+        <div className='video'>
+          <img src="stream.mjpg" width="640" height="480" />
+        </div>
+        <div className='menu'>
+          <ConfigureTab />
+        </div>
       </div>
-      <div className='menu'>
-        <ConfigureTab/>
-      </div>
-    </div>
-        
+
     </>
   )
 }
