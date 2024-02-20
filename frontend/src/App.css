@@ -1,0 +1,24 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.container {
+  display: flex;
+}
+
+.video {
+  height: 480px;
+  width: 640px;
+  background-color: aqua;
+  margin-right: 10px;
+}
+
+.menu {
+  min-height: 480px;
+  min-width: 240px;
+}
+
+
