@@ -14,6 +14,8 @@ from picamera2 import Picamera2
 from picamera2.encoders import MJPEGEncoder, H264Encoder, Quality
 from picamera2.outputs import FileOutput
 
+logging.basicConfig(level=logging.INFO)
+
 class StreamingOutput(io.BufferedIOBase):
     def __init__(self):
         self.frame = None
@@ -29,20 +31,27 @@ class StreamingOutput(io.BufferedIOBase):
 camera_running = False
 camera = Picamera2()
 
+# stream
+
+stream_clients = set()
+stream_output = StreamingOutput()
+STREAM_RESOLUTION = (320,240)
+RECORD_RESOLUTION = (1280, 720)
+
 # Main configuration for captured videos, lores configuration for stream
 
-video_config = camera.create_video_configuration(main={"size": (1280, 720)}, lores={"size": (160, 120)})
-still_config = camera.create_still_configuration()
+video_config = camera.create_video_configuration(
+    main={"size": RECORD_RESOLUTION}, 
+    lores={"size": STREAM_RESOLUTION})
+
+still_config = camera.create_still_configuration(
+    lores={"size": STREAM_RESOLUTION})
+
 camera.configure(video_config)
 
 # minio
 
 bucket = "raspberry"
-
-# stream
-
-stream_counter = 0
-stream_output = StreamingOutput()
 
 # encoders
 
@@ -60,69 +69,88 @@ def stop_camera():
     if (len(camera.encoders) < 1):
         camera.stop()
         camera_running = False
+        logging.info("Camera stopped.")
 
 def capture_still():
+        
+    # Start camera, if not started yet
     
-        start_camera()
+    start_camera()
     
-        # Configure for high-quality still picture, take picture and switch back to streaming config
-        
-        camera.switch_mode(still_config)
-        data = io.BytesIO()
-        camera.capture_file(data, format='jpeg')
-        camera.switch_mode(video_config)
-        
-        stop_camera()
+    # If recording, pause recording.
+    
+    video_capture_paused = False
+    
+    if video_capture.encoder in camera.encoders:
+        camera.stop_encoder(encoders=[video_capture.encoder])
+        video_capture_paused = True
+        logging.info("Recording paused.")
+    
 
-        # Change the stream position to start for Minio to get correct bytes
+    # Configure for high-quality still picture, 
+    # take picture and switch back to streaming config
+    
+    camera.switch_mode(still_config)
+    logging.info("Configurated for high quality still image")
+    
+    data = io.BytesIO()
+    camera.capture_file(data, format='jpeg')
+    logging.info("Image captured")
+    camera.switch_mode(video_config)
+    logging.info("Configuration changed: format: %s, resolution: %s",
+        video_capture.encoder.format, video_capture.encoder.size)
+    
+    
+    # Resume paused recording
+    
+    if video_capture_paused:
+        video_capture.start()
+    
+    stop_camera()
 
-        data.seek(0)
-        
-        # Upload to Minio
+    # Change the stream position to start for Minio to get correct bytes
 
-        result = client().put_object(
-            bucket, "capture.jpg", data, len(data.getvalue()),
-            content_type="image/jpg")
+    data.seek(0)
+    
+    # Upload to Minio
 
-
-        print(
-            "created {0} object; etag: {1}".format(
-                result.object_name, result.etag,
-            ))
-
-
-
-
+    result = client().put_object(
+        bucket, "capture.jpg", data, len(data.getvalue()),
+        content_type="image/jpg")
+    
+    logging.info("created %s object; etag: %s",
+        result.object_name, result.etag)   
 
 class VideoCapture():
     data = io.BytesIO()
     encoder = H264Encoder()    
     
     def start(self):
-        camera.start_encoder(encoder=self.encoder, output = FileOutput(self.data), quality=Quality.MEDIUM, name="main")
+        camera.start_encoder(
+        encoder=self.encoder, 
+        output = FileOutput(self.data), 
+        quality=Quality.MEDIUM, name="main")
         start_camera()
+        logging.info("Recording started/resumed.")
     
     def stop(self):
         camera.stop_encoder(encoders=[self.encoder])
         stop_camera()
+        logging.info("Recording stopped.")
         
     
     def upload(self, file_name):
     
         self.data.seek(0)
+        logging.info("Uploading video...")
         result = client().put_object(
         bucket, file_name + ".h264", self.data, len(self.data.getvalue()),
         content_type="video/h264")
         self.data.seek(0)
         self.data.truncate()
-        print(
-            "created {0} object; etag: {1}".format(
-                result.object_name, result.etag,
-            ))
-
-
-
-
+        logging.info("created %s object; etag %s",
+            result.object_name, result.etag)
+        
 video_capture = VideoCapture()
 
 
@@ -181,10 +209,17 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.send_header('Content-Type', 'multipart/x-mixed-replace; boundary=FRAME')
             self.end_headers()
             try:
-                #global stream_counter
-                #if not video_stream.streaming:
-                #    video_stream.start()
-                #stream_counter+=1
+                if (len(stream_clients) < 1):
+                    camera.start_encoder(
+                        encoder=stream_encoder, 
+                        quality=Quality.LOW, 
+                        output=FileOutput(stream_output), 
+                        name="lores")
+                    start_camera()
+                    logging.info("Streaming started.")
+                    
+                stream_clients.add(self.client_address)
+                                
                 while True:
                     with stream_output.condition:
                         stream_output.condition.wait()
@@ -196,10 +231,11 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                     self.wfile.write(frame)
                     self.wfile.write(b'\r\n')
             except Exception as e:
-                #stream_counter-=1
-                #if (stream_counter < 1):
-                #    stop_camera()
-                logging.warning(
+                stream_clients.remove(self.client_address)
+                if (len(stream_clients) < 1):
+                    camera.stop_encoder()
+                    stop_camera()
+                logging.info(
                     'Removed streaming client %s: %s',
                     self.client_address, str(e))
         else:
@@ -215,9 +251,7 @@ class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
 
 
 def run_server():  
-    
-    camera.start_encoder(encoder=stream_encoder, quality=Quality.LOW, output=FileOutput(stream_output), name="lores")
-    camera.start()
+        
        
     try:
         address = ('', 8000)
