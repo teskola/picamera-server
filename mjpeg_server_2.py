@@ -11,21 +11,43 @@ from threading import Condition
 
 from client import client
 from picamera2 import Picamera2
-from picamera2.encoders import MJPEGEncoder, H264Encoder
+from picamera2.encoders import MJPEGEncoder, H264Encoder, Quality
 from picamera2.outputs import FileOutput
 
+class StreamingOutput(io.BufferedIOBase):
+    def __init__(self):
+        self.frame = None
+        self.condition = Condition()
+
+    def write(self, buf):
+        with self.condition:
+            self.frame = buf
+            self.condition.notify_all()
+
+
+
 camera_running = False
-stream_counter = 0
 camera = Picamera2()
 
 # Main configuration for captured videos, lores configuration for stream
 
 video_config = camera.create_video_configuration(main={"size": (1280, 720)}, lores={"size": (160, 120)})
 still_config = camera.create_still_configuration()
+camera.configure(video_config)
+
+# minio
+
 bucket = "raspberry"
 
-camera.configure(video_config)
-    
+# stream
+
+stream_counter = 0
+stream_output = StreamingOutput()
+
+# encoders
+
+stream_encoder = MJPEGEncoder()
+
 
 def start_camera():
     global camera_running
@@ -35,7 +57,7 @@ def start_camera():
 
 def stop_camera():
     global camera_running
-    if not (video_capture.recording or video_stream.streaming):
+    if (len(camera.encoders) < 1):
         camera.stop()
         camera_running = False
 
@@ -69,35 +91,19 @@ def capture_still():
             ))
 
 
-class StreamingOutput(io.BufferedIOBase):
-    def __init__(self):
-        self.frame = None
-        self.condition = Condition()
-
-    def write(self, buf):
-        with self.condition:
-            self.frame = buf
-            self.condition.notify_all()
-
 
 
 
 class VideoCapture():
-    recording = False
     data = io.BytesIO()
-    encoder = H264Encoder()
-    encoder.size = video_config["main"]["size"]
-    encoder.format = video_config["main"]["format"]
-    encoder.output = FileOutput(data)
+    encoder = H264Encoder()    
     
     def start(self):
-        self.recording = True        
-        camera.start_encoder(self.encoder)
+        camera.start_encoder(encoder=self.encoder, output = FileOutput(self.data), quality=Quality.MEDIUM, name="main")
         start_camera()
     
     def stop(self):
-        self.recording = False
-        self.encoder.stop()
+        camera.stop_encoder(encoders=[self.encoder])
         stop_camera()
         
     
@@ -116,32 +122,8 @@ class VideoCapture():
 
 
 
-class VideoStream():
-    
-    def __init__(self):
-        self.streaming = False    
-        self.output = StreamingOutput()
-        self.encoder = MJPEGEncoder()
-        self.encoder.framerate = 30
-        self.encoder.size = video_config["lores"]["size"]
-        self.encoder.format = video_config["lores"]["format"]
-        self.encoder.bitrate = 5000000    
-        self.encoder.output = FileOutput(self.output) 
-        
-
-    def start(self):
-        self.streaming = True
-        camera.start_encoder(self.encoder) 
-        start_camera()       
-    
-    def stop(self):
-        self.streaming = False
-        self.encoder.stop()
-        stop_camera()
-            
 
 video_capture = VideoCapture()
-video_stream = VideoStream()
 
 
 class StreamingHandler(server.BaseHTTPRequestHandler):
@@ -204,9 +186,9 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                 #    video_stream.start()
                 #stream_counter+=1
                 while True:
-                    with video_stream.output.condition:
-                        video_stream.output.condition.wait()
-                        frame = video_stream.output.frame
+                    with stream_output.condition:
+                        stream_output.condition.wait()
+                        frame = stream_output.frame
                     self.wfile.write(b'--FRAME\r\n')
                     self.send_header('Content-Type', 'image/jpeg')
                     self.send_header('Content-Length', len(frame))
@@ -234,7 +216,7 @@ class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
 
 def run_server():  
     
-    camera.start_encoder(encoder=video_stream.encoder, output=video_stream.encoder.output, name="lores")
+    camera.start_encoder(encoder=stream_encoder, quality=Quality.LOW, output=FileOutput(stream_output), name="lores")
     camera.start()
        
     try:
@@ -243,10 +225,7 @@ def run_server():
         server.serve_forever()
         
     finally:    
-        if video_stream.streaming:
-            video_stream.stop()
-        if video_capture.recording:
-            video_capture.stop()
+        camera.stop_encoder()
         camera.stop()
         
 
