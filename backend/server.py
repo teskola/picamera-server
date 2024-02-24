@@ -160,7 +160,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == '/':
             self.send_response(301)
-            self.send_header('Location', '/index.html')
+            self.send_header('Location', '/stream.mjpg')
             self.end_headers()
         elif self.path == '/video_start':            
             self.send_response(200)
@@ -174,16 +174,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
         elif self.path == '/still':  
             capture_still()          
             self.send_response(200)            
-            self.end_headers()
-        elif self.path == '/index.html':
-            with open('index.html', 'r') as f:
-                html_string = f.read()
-            content = html_string.encode('utf-8')
-            self.send_response(200)
-            self.send_header('Content-Type', 'text/html')
-            self.send_header('Content-Length', len(content))
-            self.end_headers()
-            self.wfile.write(content)
+            self.end_headers()        
         elif self.path == '/stream.mjpg':
             
             if not encoders_running():

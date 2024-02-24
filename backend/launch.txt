@@ -1,0 +1,1 @@
+LIBCAMERA_LOG_LEVELS=WARN python3 mjpeg_server_2.py
