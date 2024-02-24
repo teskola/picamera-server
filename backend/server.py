@@ -8,7 +8,7 @@ from picamera2 import Picamera2
 from picamera2.encoders import MJPEGEncoder, H264Encoder, Quality
 from picamera2.outputs import FileOutput
 
-from backend.minio_client import MinioClient
+from minio_client import MinioClient
 
 logging.basicConfig(level=logging.INFO)
 

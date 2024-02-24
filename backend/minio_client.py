@@ -12,7 +12,7 @@ class MinioClient():
         self.client = Minio(
             os.getenv("MINIO_IP"),
             access_key=os.getenv("ACCESS_KEY"),
-            secret_key=os.getenv("SERCRET_KEY"),
+            secret_key=os.getenv("SECRET_KEY"),
             secure=False
         )
         self.bucket = os.getenv("BUCKET")
