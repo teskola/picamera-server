@@ -14,18 +14,28 @@ const StillPage = (props) => {
     };
 
     return (
-        <form className="form">
-            <TextField margin="normal" id="path" ref={pathRef} variant="outlined" value="/[HH:mm:ss].jpg" label="Path" fullWidth />
-            <div className="select">
-                <TextField className="input" id="interval" ref={intervalRef} variant="outlined" label="Interval" fullWidth />
-                <Select className="selector" value={unit} onChange={handleChange} fullWidth>
-                    <MenuItem value="ms">milliseconds</MenuItem>
-                    <MenuItem value="s">seconds</MenuItem>
-                    <MenuItem value="m">minutes</MenuItem>
-                    <MenuItem value="h">hours</MenuItem>
-                </Select>
+        <div className="page">
+            <form className="form">
+                <TextField margin="normal" id="path" ref={pathRef} variant="outlined" value="/[HH:mm:ss].jpg" label="Path" fullWidth />
+                <div className="select">
+                    <TextField className="input" id="interval" ref={intervalRef} variant="outlined" label="Interval" fullWidth />
+                    <Select className="selector" value={unit} onChange={handleChange} fullWidth>
+                        <MenuItem value="ms">milliseconds</MenuItem>
+                        <MenuItem value="s">seconds</MenuItem>
+                        <MenuItem value="m">minutes</MenuItem>
+                        <MenuItem value="h">hours</MenuItem>
+                    </Select>
+                </div>
+            </form>
+            <div>
+                <div className="startbutton">
+                    <button>Start</button>
+                </div>
+                <div>
+                    <button>Stop</button>
+                </div>
             </div>
-        </form>        
+        </div>
     )
 }
 

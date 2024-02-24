@@ -9,7 +9,7 @@ function App() {
         <div className='video'>
           <img src="stream.mjpg" width="640" height="480" />
         </div>
-        <div className='menu'>
+        <div className='menu'>          
           <ConfigureTab />
         </div>
       </div>

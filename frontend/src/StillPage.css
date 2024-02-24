@@ -1,3 +1,15 @@
+.page {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.startbutton {
+    margin-bottom: 10px;
+}
+
+
 .form {
     margin: 10px;
 }
