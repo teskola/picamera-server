@@ -1,20 +1,18 @@
-#!/usr/bin/python3
-
-# This is the same as mjpeg_server.py, but uses the h/w MJPEG encoder.
-
 import io
 import logging
 import socketserver
-
 from http import server
 from threading import Condition
 
-from client import client
 from picamera2 import Picamera2
 from picamera2.encoders import MJPEGEncoder, H264Encoder, Quality
 from picamera2.outputs import FileOutput
 
+from backend.minio_client import MinioClient
+
 logging.basicConfig(level=logging.INFO)
+
+# https://github.com/raspberrypi/picamera2/blob/main/examples/mjpeg_server_2.py
 
 class StreamingOutput(io.BufferedIOBase):
     def __init__(self):
@@ -52,7 +50,7 @@ camera.configure(still_config)
 
 # minio
 
-bucket = "raspberry"
+minio = MinioClient()
 
 # encoders
 
@@ -107,6 +105,7 @@ def capture_still():
             video_capture.start()
     else:
         camera.stop()
+        global camera_running
         camera_running = False   
 
     # Change the stream position to start for Minio to get correct bytes
@@ -115,12 +114,7 @@ def capture_still():
     
     # Upload to Minio
 
-    result = client().put_object(
-        bucket, "capture.jpg", data, len(data.getvalue()),
-        content_type="image/jpg")
-    
-    logging.info("created %s object; etag: %s",
-        result.object_name, result.etag)   
+    minio.upload_image(data, "capture")      
 
 class VideoCapture():
     data = io.BytesIO()
@@ -144,14 +138,10 @@ class VideoCapture():
     
         self.data.seek(0)
         logging.info("Uploading video...")
-        result = client().put_object(
-        bucket, file_name + ".h264", self.data, len(self.data.getvalue()),
-        content_type="video/h264")
+        minio.upload_video(self.data, file_name)        
         self.data.seek(0)
         self.data.truncate()
-        logging.info("created %s object; etag %s",
-            result.object_name, result.etag)
-        
+                
 video_capture = VideoCapture()
 
 
@@ -223,14 +213,12 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
 
 
 class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
-    
-    
+        
     allow_reuse_address = True
     daemon_threads = True
 
 
-def run_server():  
-        
+def run_server():          
        
     try:
         address = ('', 8000)
