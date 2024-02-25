@@ -34,5 +34,6 @@ class MinioClient:
                 content_type="video/h264")
             logging.info("created %s object; etag: %s",
             result.object_name, result.etag)
+            return result
         except S3Error as e:
             logging.error("Video upload failed: %s", str(e))
