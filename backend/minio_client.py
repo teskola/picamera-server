@@ -6,7 +6,7 @@ from minio import Minio
 from minio.error import S3Error
 from dotenv import load_dotenv
 
-class MinioClient():
+class MinioClient:
     def __init__(self) -> None:
         load_dotenv()
         self.client = Minio(
