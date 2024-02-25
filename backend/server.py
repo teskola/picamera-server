@@ -26,14 +26,14 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
         elif self.path == '/video_stop':            
             self.send_response(200)            
             self.end_headers()
-            minio.upload_video(camera.recording_stop, 'video')
+            minio.upload_video(camera.recording_stop(), 'video')
         elif self.path == '/still':                 
             response = minio.upload_image(camera.capture_still(), 'capture')
             json_string = json.dumps(response)
+            self.send_response(200)
             self.send_header('Content-Type', 'application/json')
+            self.end_headers()
             self.wfile.write(json_string.encode(encoding='utf_8'))
-            self.send_response(200)            
-            self.end_headers()        
         elif self.path == '/stream.mjpg':            
             if (len(stream_clients) == 0):
                 camera.preview_start()

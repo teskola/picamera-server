@@ -6,7 +6,7 @@ from picamera2.encoders import MJPEGEncoder, H264Encoder, Quality
 from picamera2.outputs import FileOutput
 
 class Resolutions:
-    STREAM_4_3 = (320,240)
+    P240 = (320,240)
     STREAM_16_9 = (426,240)
     P480 = (640, 480)
     P720 = (1280, 720)
@@ -42,21 +42,21 @@ class Camera:
             '480p': 
                 self.picam2.create_video_configuration(
                     main={"size": Resolutions.P480}, 
-                    lores={"size": Resolutions.STREAM_4_3}
+                    lores={"size": Resolutios.P240}
                 ),
             '720p':
                 self.picam2.create_video_configuration(
                     main={"size": Resolutions.P720},
-                    lores={"size": Resolutions.STREAM_16_9}
+                    lores={"size": Resolutions.P240}
                 ),
             '1080p':
                 self.picam2.create_video_configuration(
                     main={"size": Resolutions.P1080},
-                    lores={"size": Resolutions.STREAM_16_9}
+                    lores={"size": Resolutions.P240}
                 ),
             'preview':
                 self.picam2.create_still_configuration(
-                    lores={"size": Resolutions.STREAM_4_3},
+                    lores={"size": Resolutions.P240},
                     buffer_count=4
                 ),
             'still':
@@ -86,23 +86,25 @@ class Camera:
         self.picam2.stop()
     
     def recording_start(self, resolution, quality):
+        if self.running:
+            self.picam2.stop()
         logging.info("Configure to %s", resolution)
         self.picam2.configure(self.configurations[resolution])
         self.recording = Recording(resolution=resolution, quality=quality)
         self.picam2.start_encoder(
-            encoder=self.encoders('record'),
+            encoder=self.encoders['record'],
             output=FileOutput(self.recording.data),
             quality=self.recording.quality,
             name="main"
         )
-        self._start()
+        self.picam2.start()
         logging.info("Recording started.")
     
     def recording_resume(self):
         logging.info("Configure to %s", self.recording.resolution)
         self.picam2.switch_mode(self.configurations[self.recording.resolution])
         self.picam2.start_encoder(
-            encoder=self.encoders('record'),
+            encoder=self.encoders['record'],
             output=FileOutput(self.recording.data),
             quality=self.recording.quality,
             name="main"
@@ -152,6 +154,8 @@ class Camera:
         return data
     
     def preview_start(self):
+        if self.running:
+            self.picam2.stop()
         if not self._encoders_running():
             logging.info("Configure to stream.")
             self.picam2.configure(self.configurations['preview'])
