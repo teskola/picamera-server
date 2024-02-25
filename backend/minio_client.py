@@ -24,6 +24,7 @@ class MinioClient:
                 content_type="image/jpg")    
             logging.info("created %s object; etag: %s",
             result.object_name, result.etag)
+            return result.etag
         except S3Error as e:
             logging.error("Image upload failed: %s", str(e))
     
@@ -34,6 +35,6 @@ class MinioClient:
                 content_type="video/h264")
             logging.info("created %s object; etag: %s",
             result.object_name, result.etag)
-            return result
+            return result.etag
         except S3Error as e:
             logging.error("Video upload failed: %s", str(e))

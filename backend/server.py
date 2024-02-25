@@ -1,5 +1,6 @@
 import logging
 import socketserver
+import json
 from http import server
 from picamera2.encoders import Quality
 
@@ -32,7 +33,8 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                 self.send_header('Content-Type', 'application/json')
                 self.wfile.write()     """        
             response = minio.upload_image(camera.capture_still(), 'capture')
-            print(str(response))
+            json_string = json.dumps({"etag": response})
+            print(json_string)
             self.send_response(200)            
             self.end_headers()        
         elif self.path == '/stream.mjpg':            
@@ -48,9 +50,9 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             
             try:               
                 while True:
-                    with camera.stream_output.condition:
-                        camera.stream_output.condition.wait()
-                        frame = camera.stream_output.frame
+                    with camera.streaming_output.condition:
+                        camera.streaming_output.condition.wait()
+                        frame = camera.streaming_output.frame
                     self.wfile.write(b'--FRAME\r\n')
                     self.send_header('Content-Type', 'image/jpeg')
                     self.send_header('Content-Length', len(frame))
