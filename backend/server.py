@@ -27,14 +27,11 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.send_response(200)            
             self.end_headers()
             minio.upload_video(camera.recording_stop, 'video')
-        elif self.path == '/still':
-            """ try:
-                response = minio.upload_image(camera.capture_still(), 'capture')
-                self.send_header('Content-Type', 'application/json')
-                self.wfile.write()     """        
+        elif self.path == '/still':                 
             response = minio.upload_image(camera.capture_still(), 'capture')
-            json_string = json.dumps({"etag": response})
-            print(json_string)
+            json_string = json.dumps(response)
+            self.send_header('Content-Type', 'application/json')
+            self.wfile.write(json_string.encode(encoding='utf_8'))
             self.send_response(200)            
             self.end_headers()        
         elif self.path == '/stream.mjpg':            
