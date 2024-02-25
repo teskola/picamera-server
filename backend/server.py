@@ -83,7 +83,7 @@ def run_server():
         server.serve_forever()
         
     finally:    
-        camera.close()        
+        camera.stop()        
 
 if __name__ == "__main__":
     run_server()
