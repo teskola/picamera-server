@@ -81,7 +81,7 @@ class Camera:
     def _start_stream_encoder(self, lores=False):
         self.picam2.start_encoder(
             encoder=self.encoders["stream"],
-            quality=Quality.MEDIUM,
+            quality=Quality.LOW,
             output=FileOutput(self.streaming_output),
             name="lores" if lores else "main"
         )
