@@ -51,7 +51,10 @@ class Camera:
                     lores={"size": Resolutions.STREAM_16_9}
                 ),
             'preview':
-                self.picam2.create_preview_configuration(),
+                self.picam2.create_video_configuration(
+                    main={"size": Resolutions.P480,
+                          "format": "YUV420"}
+                ),
             'still':
                 self.picam2.create_still_configuration()
             }
