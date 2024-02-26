@@ -27,7 +27,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.send_response(200)            
             self.end_headers()
             minio.upload_video(camera.recording_stop(), 'video')
-        elif self.path == '/still':                 
+        elif self.path == '/still':
             response = minio.upload_image(camera.capture_still(), 'capture')
             json_string = json.dumps(response)
             self.send_response(200)

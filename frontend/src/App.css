@@ -10,10 +10,12 @@
 }
 
 .video {
+  display: flex;
   height: 480px;
   width: 640px;
-  background-color: aqua;
+  background-color: black;
   margin-right: 10px;
+  align-items: center;
 }
 
 .menu {
@@ -21,8 +23,4 @@
   flex-direction: column;
   min-height: 480px;
   min-width: 420px;
-}
-
-.img {
-  object-fit: cover;
 }

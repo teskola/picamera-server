@@ -67,7 +67,7 @@ class Camera:
         self.picam2.configure(self.configurations["still"])
         self.video = None
 
-    def _encoders_running(self):
+    def encoders_running(self):
         return len(self.picam2.encoders) > 0
 
     def _start_record_encoder(self):
@@ -91,7 +91,7 @@ class Camera:
 
     def recording_start(self, resolution, quality):
         stream_paused = False
-        if self._encoders_running():
+        if self.encoders_running():
             self.picam2.stop_encoder()
             logging.info("Stream paused.")
             stream_paused = True
@@ -146,7 +146,7 @@ class Camera:
 
         paused_encoders = self.picam2.encoders.copy()
 
-        if self._encoders_running():
+        if self.encoders_running():
             self.picam2.stop_encoder()
             logging.info("Recording/streaming paused.")
             logging.info("Configure to still.")
@@ -169,7 +169,11 @@ class Camera:
         return data
 
     def preview_start(self):
-        if not self._encoders_running():
+        if self.encoders["stream"] in self.picam2.encoders:
+            logging.warn("Stream already running.")
+            return
+        
+        if not self.encoders_running():
             logging.info("Configure to stream.")
             self.picam2.configure(self.configurations['preview'])
             self._start_stream_encoder()
@@ -180,7 +184,7 @@ class Camera:
             logging.info("Streaming started.")
 
     def preview_resume(self):
-        if not self._encoders_running():
+        if not self.encoders_running():
             logging.info("Configure to stream.")
             self.picam2.configure(self.configurations['preview'])
 
@@ -191,7 +195,7 @@ class Camera:
     def preview_stop(self):
         self.picam2.stop_encoder(encoders=[self.encoders["stream"]])
         logging.info("Streaming stopped.")
-        if not self._encoders_running():
+        if not self.encoders_running():
             self.picam2.stop()
             logging.info("Configure to still.")
             self.picam2.configure(self.configurations['still'])
