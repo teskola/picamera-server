@@ -51,9 +51,9 @@ class Camera:
                     lores={"size": Resolutions.STREAM_16_9}
                 ),
             'preview':
-                self.picam2.create_video_configuration(
-                    main={"size": Resolutions.P480,
-                          "format": "YUV420"}
+                self.picam2.create_still_configuration(
+                    lores={"size": Resolutions.P480},
+                    buffer_count=5
                 ),
             'still':
                 self.picam2.create_still_configuration()
@@ -82,9 +82,9 @@ class Camera:
     def _start_stream_encoder(self, lores=False):
         self.picam2.start_encoder(
             encoder=self.encoders["stream"],
-            quality=Quality.MEDIUM,
+            quality=Quality.LOW,
             output=FileOutput(self.streaming_output),
-            name="lores" if lores else "main"
+            name="lores"
         )
     
     def stop(self):
