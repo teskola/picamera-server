@@ -52,7 +52,7 @@ class Camera:
                 ),
             'preview':
                 self.picam2.create_video_configuration(
-                    lores={"size": Resolutions.STREAM_4_3,
+                    main={"size": Resolutions.STREAM_4_3,
                            "format": "YUV420"},
                     buffer_count=5
                 ),
