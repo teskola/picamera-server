@@ -61,7 +61,7 @@ class Camera:
     def __init__(self) -> None:
         self.picam2 = Picamera2()
         self.configurations = self._create_configurations()
-        self.encoders = {'stream': MJPEGEncoder(), 'record': H264Encoder()}
+        self.encoders = {'stream': MJPEGEncoder(bitrate=2400000), 'record': H264Encoder()}
         self.streaming_output = StreamingOutput()
         logging.info("Configure to still.")
         self.picam2.configure(self.configurations["still"])
@@ -81,7 +81,6 @@ class Camera:
     def _start_stream_encoder(self, lores=False):
         self.picam2.start_encoder(
             encoder=self.encoders["stream"],
-            quality=Quality.LOW,
             output=FileOutput(self.streaming_output),
             name="lores" if lores else "main"
         )
@@ -186,7 +185,7 @@ class Camera:
             self.picam2.configure(self.configurations['preview'])
 
         self._start_stream_encoder()
-        logging.info("Streaming resumed.")  
+        logging.info("Streaming resumed.")
 
 
     def preview_stop(self):
