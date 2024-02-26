@@ -3,7 +3,7 @@ import ProfilePage from "./ProfilePage"
 import StillPage from "./StillPage"
 import VideoPage from "./VideoPage"
 
-import { Route, Switch, Redirect } from 'react-router-dom/cjs/react-router-dom'
+import { Route, Switch, Redirect } from 'react-router-dom'
 
 
 const ConfigureTab = (props) => {

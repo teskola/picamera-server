@@ -1,6 +1,6 @@
 import NavigationIcon from './NavigationIcon';
 import './MainNavigation.css'
-import { Link } from 'react-router-dom/cjs/react-router-dom';
+import { Link } from 'react-router-dom';
 
 const MainNavigation = (props) => {
     return (
