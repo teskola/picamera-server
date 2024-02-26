@@ -31,11 +31,7 @@ class StreamingOutput(io.BufferedIOBase):
             self.condition.notify_all()
 
 
-class Camera:
-    def StreamEncoder(self):
-        encoder = MJPEGEncoder()
-        encoder.framerate = 30
-        return encoder
+class Camera:    
     
     def _create_configurations(self):
         return {
@@ -55,10 +51,7 @@ class Camera:
                     lores={"size": Resolutions.STREAM_16_9}
                 ),
             'preview':
-                self.picam2.create_preview_configuration(
-                    main={"size": Resolutions.P480},
-                    lores={"size": Resolutions.STREAM_4_3},
-                ),
+                self.picam2.create_preview_configuration(),
             'still':
                 self.picam2.create_still_configuration()
             }
@@ -83,12 +76,12 @@ class Camera:
             name="main"
         )
     
-    def _start_stream_encoder(self):
+    def _start_stream_encoder(self, lores=False):
         self.picam2.start_encoder(
             encoder=self.encoders["stream"],
             quality=Quality.MEDIUM,
             output=FileOutput(self.streaming_output),
-            name="lores"
+            name="lores" if lores else "main"
         )
     
     def stop(self):
@@ -109,7 +102,7 @@ class Camera:
         self._start_record_encoder()
         logging.info("Recording started.")
         if stream_paused:
-            self._start_stream_encoder()
+            self._start_stream_encoder(lores=True)
             logging.info("Stream resumed.")
         self.picam2.start()
     
@@ -178,10 +171,12 @@ class Camera:
         if not self._encoders_running():
             logging.info("Configure to stream.")
             self.picam2.configure(self.configurations['preview'])
-        
-        self._start_stream_encoder()
-        self.picam2.start()
-        logging.info("Streaming started.")    
+            self._start_stream_encoder()
+            logging.info("Streaming started.")    
+            self.picam2.start()
+        else:
+            self._start_stream_encoder(lores=True)           
+            logging.info("Streaming started.")    
     
     def preview_resume(self):
         if not self._encoders_running():
