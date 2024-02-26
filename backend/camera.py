@@ -31,13 +31,13 @@ class StreamingOutput(io.BufferedIOBase):
             self.condition.notify_all()
 
 
-class Camera:    
-    
+class Camera:
+
     def _create_configurations(self):
         return {
-            '480p': 
+            '480p':
                 self.picam2.create_video_configuration(
-                    main={"size": Resolutions.P480}, 
+                    main={"size": Resolutions.P480},
                     lores={"size": Resolutions.STREAM_4_3}
                 ),
             '720p':
@@ -52,9 +52,7 @@ class Camera:
                 ),
             'preview':
                 self.picam2.create_video_configuration(
-                    main={"size": Resolutions.STREAM_4_3,
-                           "format": "YUV420"},
-                    buffer_count=5
+                    main={"size": Resolutions.STREAM_4_3}
                 ),
             'still':
                 self.picam2.create_still_configuration()
@@ -67,11 +65,11 @@ class Camera:
         self.streaming_output = StreamingOutput()
         logging.info("Configure to still.")
         self.picam2.configure(self.configurations["still"])
-        self.video = None        
-    
+        self.video = None
+
     def _encoders_running(self):
         return len(self.picam2.encoders) > 0
-    
+
     def _start_record_encoder(self):
         self.picam2.start_encoder(
             encoder=self.encoders['record'],
@@ -79,19 +77,19 @@ class Camera:
             quality=self.video.quality,
             name="main"
         )
-    
+
     def _start_stream_encoder(self, lores=False):
         self.picam2.start_encoder(
             encoder=self.encoders["stream"],
-            quality=Quality.LOW,
+            quality=Quality.MEDIUM,
             output=FileOutput(self.streaming_output),
             name="lores" if lores else "main"
         )
-    
+
     def stop(self):
         self.picam2.stop_encoder()
         self.picam2.stop()
-    
+
     def recording_start(self, resolution, quality):
         stream_paused = False
         if self._encoders_running():
@@ -99,7 +97,7 @@ class Camera:
             logging.info("Stream paused.")
             stream_paused = True
             self.picam2.stop()
-                
+
         logging.info("Configure to %s", resolution)
         self.picam2.configure(self.configurations[resolution])
         self.video = Video(resolution=resolution, quality=quality)
@@ -109,13 +107,13 @@ class Camera:
             self._start_stream_encoder(lores=True)
             logging.info("Stream resumed.")
         self.picam2.start()
-    
+
     def recording_resume(self):
         logging.info("Configure to %s", self.video.resolution)
         self.picam2.configure(self.configurations[self.video.resolution])
         self._start_record_encoder()
         logging.info("Recording resumed.")
-    
+
     # Stops recording and returns recorded data.
 
     def recording_stop(self):
@@ -142,11 +140,11 @@ class Camera:
         self.video = None
         data.seek(0)
         return data
-    
+
     def capture_still(self):
-    
+
         # If recording, pause recording and configure for still image.
-        
+
         paused_encoders = self.picam2.encoders.copy()
 
         if self._encoders_running():
@@ -156,40 +154,40 @@ class Camera:
             self.picam2.switch_mode(self.configurations['still'])
         else:
             self.picam2.start()
-                  
+
         data = io.BytesIO()
         self.picam2.capture_file(data, format='jpeg')
         self.picam2.stop()
-        
+
         if len(paused_encoders) > 0:
             if self.encoders['record'] in paused_encoders:
                 self.recording_resume()
             if self.encoders['stream'] in paused_encoders:
-                self.preview_resume()    
-            self.picam2.start() 
+                self.preview_resume()
+            self.picam2.start()
 
         data.seek(0)
         return data
-    
-    def preview_start(self):        
+
+    def preview_start(self):
         if not self._encoders_running():
             logging.info("Configure to stream.")
             self.picam2.configure(self.configurations['preview'])
             self._start_stream_encoder()
-            logging.info("Streaming started.")    
+            logging.info("Streaming started.")
             self.picam2.start()
         else:
-            self._start_stream_encoder(lores=True)           
-            logging.info("Streaming started.")    
-    
+            self._start_stream_encoder(lores=True)
+            logging.info("Streaming started.")
+
     def preview_resume(self):
         if not self._encoders_running():
             logging.info("Configure to stream.")
             self.picam2.configure(self.configurations['preview'])
-        
+
         self._start_stream_encoder()
         logging.info("Streaming resumed.")  
-    
+
 
     def preview_stop(self):
         self.picam2.stop_encoder(encoders=[self.encoders["stream"]])
@@ -197,5 +195,4 @@ class Camera:
         if not self._encoders_running():
             self.picam2.stop()
             logging.info("Configure to still.")
-            self.picam2.configure(self.configurations['still'])        
-        
+            self.picam2.configure(self.configurations['still'])
