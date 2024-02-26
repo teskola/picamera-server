@@ -6,7 +6,8 @@ from picamera2.encoders import MJPEGEncoder, H264Encoder, Quality
 from picamera2.outputs import FileOutput
 
 class Resolutions:
-    P240 = (320,240)
+    STREAM_16_9 = (426, 240)
+    STREAM_4_3 = (320, 240)
     P480 = (640, 480)
     P720 = (1280, 720)
     P1080 = (1920, 1080)
@@ -41,22 +42,22 @@ class Camera:
             '480p': 
                 self.picam2.create_video_configuration(
                     main={"size": Resolutions.P480}, 
-                    lores={"size": Resolutions.P240}
+                    lores={"size": Resolutions.STREAM_4_3}
                 ),
             '720p':
                 self.picam2.create_video_configuration(
                     main={"size": Resolutions.P720},
-                    lores={"size": Resolutions.P240}
+                    lores={"size": Resolutions.STREAM_16_9}
                 ),
             '1080p':
                 self.picam2.create_video_configuration(
                     main={"size": Resolutions.P1080},
-                    lores={"size": Resolutions.P240}
+                    lores={"size": Resolutions.STREAM_16_9}
                 ),
             'preview':
-                self.picam2.create_video_configuration(
+                self.picam2.create_preview_configuration(
                     main={"size": Resolutions.P480},
-                    lores={"size": Resolutions.P240}
+                    lores={"size": Resolutions.STREAM_4_3},
                 ),
             'still':
                 self.picam2.create_still_configuration()
@@ -65,7 +66,7 @@ class Camera:
     def __init__(self) -> None:
         self.picam2 = Picamera2()
         self.configurations = self._create_configurations()
-        self.encoders = {'stream': self.StreamEncoder(), 'record': H264Encoder()}
+        self.encoders = {'stream': MJPEGEncoder(), 'record': H264Encoder()}
         self.streaming_output = StreamingOutput()
         logging.info("Configure to still.")
         self.picam2.configure(self.configurations["still"])
@@ -121,15 +122,25 @@ class Camera:
     # Stops recording and returns recorded data.
 
     def recording_stop(self):
-        self.picam2.stop_encoder(encoders=[self.encoders['record']])
+        stream_running = False
+        if self.encoders['stream'] in self.picam2.encoders:
+            stream_running = True
+        self.picam2.stop_encoder()
+        self.picam2.stop()
+
         logging.info("Recording stopped.")
-        if not self._encoders_running():
-            self.picam2.stop()
+        if stream_running:
+            logging.info("Stream paused.")
+
+        if not stream_running:
             logging.info("Configure to still.")
             self.picam2.configure(self.configurations['still'])
         else:
             logging.info("Configure to preview.")
-            self.picam2.switch_mode(self.configurations['preview'])
+            self.picam2.configure(self.configurations['preview'])
+            self._start_stream_encoder()
+            logging.info("Streaming resumed.")
+            self.picam2.start()
         data = self.video.data
         self.video = None
         data.seek(0)
@@ -157,7 +168,7 @@ class Camera:
             if self.encoders['record'] in paused_encoders:
                 self.recording_resume()
             if self.encoders['stream'] in paused_encoders:
-                self.preview_start()    
+                self.preview_resume()    
             self.picam2.start() 
 
         data.seek(0)
