@@ -46,11 +46,13 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(json_string.encode(encoding='utf_8'))
         elif self.path == '/stream.mjpg':            
-            if not camera.preview_running:
+            if not camera.preview_running():
                 camera.lock.acquire()
                 camera.preview_start()
                 camera.lock.release()
-            stream_clients.add(self.client_address)            
+            stream_clients.add(self.client_address)
+            logging.info("Added streaming client %s", self.client_address)
+
             self.send_response(200)
             self.send_header('Age', 0)
             self.send_header('Cache-Control', 'no-cache, private')
