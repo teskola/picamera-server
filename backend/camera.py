@@ -15,10 +15,10 @@ class Resolutions:
     P1080 = (1920, 1080)
 
 class Video:
-    def __init__(self, resolution, quality) -> None:
+    def __init__(self) -> None:
         self.data = io.BytesIO()
-        self.resolution = resolution
-        self.quality = quality
+        self.resolution = None
+        self.quality = None
 
     def release(self) -> io.BytesIO:
         self.data.seek(0)
