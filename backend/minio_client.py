@@ -28,6 +28,7 @@ class MinioClient:
         self.bucket = os.getenv("BUCKET")
     
     def upload_image(self, data : io.BytesIO, filename : str):
+        logging.info("Uploading image...")
         try:
             result = self.client.put_object(
                 self.bucket, filename + ".jpg", data, len(data.getvalue()),
@@ -39,6 +40,7 @@ class MinioClient:
             logging.error("Image upload failed: %s", str(e))
     
     def upload_video(self, data : io.BytesIO, filename : str):
+        logging.info("Uploading video...")
         try:
             result = self.client.put_object(
                 self.bucket, filename + ".h264", data, len(data.getvalue()),

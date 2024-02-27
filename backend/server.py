@@ -22,21 +22,34 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
         elif self.path == '/video_start':            
             self.send_response(200)
             self.end_headers()
+            camera.lock.acquire()
             camera.recording_start(resolution='720p', quality=Quality.MEDIUM)
-        elif self.path == '/video_stop':            
-            self.send_response(200)            
-            self.end_headers()
-            minio.upload_video(camera.recording_stop(), 'video')
+            camera.lock.release()
+        elif self.path == '/video_stop':                       
+            camera.lock.acquire()
+            stopped = camera.recording_stop()
+            camera.lock.release()
+            if stopped:
+                self.send_response(200)
+                minio.upload_video(camera.recording_data(), 'video') 
+            else:
+                self.send_response(409)
+            self.end_headers()           
         elif self.path == '/still':
-            response = minio.upload_image(camera.capture_still(), 'capture')
+            camera.lock.acquire()
+            data = camera.capture_still()
+            camera.lock.release()
+            response = minio.upload_image(data, 'capture')
             json_string = json.dumps(response)
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
             self.wfile.write(json_string.encode(encoding='utf_8'))
         elif self.path == '/stream.mjpg':            
-            if (len(stream_clients) == 0):
+            if not camera.preview_running:
+                camera.lock.acquire()
                 camera.preview_start()
+                camera.lock.release()
             stream_clients.add(self.client_address)            
             self.send_response(200)
             self.send_header('Age', 0)
