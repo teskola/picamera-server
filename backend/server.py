@@ -8,7 +8,7 @@ from minio_client import MinioClient
 from camera import Camera
 
 logging.basicConfig(
-    format='%(asctime)s %(levelname)-8s %(message)s',
+    format='%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s',
     level=logging.INFO,
     datefmt='%Y-%m-%d %H:%M:%S')
 camera = Camera()
@@ -43,6 +43,18 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             data = camera.capture_still()
             camera.lock.release()
             response = minio.upload_image(data, 'capture')
+            json_string = json.dumps(response)
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json_string.encode(encoding='utf_8'))
+        elif self.path == '/timelapse':
+            camera.lock.acquire()
+            data = camera.caputure_timelapse()
+            camera.lock.release()
+            response = []
+            for i in range(0, len(data)):
+                response.append(minio.upload_image(data[i], 'timelapse/capture{}'.format(i)))
             json_string = json.dumps(response)
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')

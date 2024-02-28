@@ -1,5 +1,6 @@
 import logging
 import io
+import time
 from threading import Condition, Lock
 from picamera2 import Picamera2
 from picamera2.encoders import MJPEGEncoder, H264Encoder, Quality
@@ -62,7 +63,9 @@ class Camera:
                     main={"size": Resolutions.STREAM_4_3}
                 ),
             'still':
-                self.picam2.create_still_configuration()
+                self.picam2.create_still_configuration(
+                    lores={"size": Resolutions.STREAM_4_3}
+                )
             }
 
     def __init__(self) -> None:
@@ -157,7 +160,7 @@ class Camera:
     def recording_data(self) -> io.BytesIO:
         return self.video.release()    
 
-    def capture_still(self):
+    def capture_still(self) -> io.BytesIO:
 
         # If recording, pause recording and configure for still image.
 
@@ -184,6 +187,58 @@ class Camera:
 
         data.seek(0)
         return data
+    
+    def caputure_timelapse(self, framerate : 1.0, count : 10):
+
+        paused_encoders = self.picam2.encoders.copy()
+
+        #Streaming and recording
+
+        if len(paused_encoders) > 1:
+            self.picam2.stop_encoder()
+            logging.info("Recording/streaming paused.")
+            self.picam2.stop()
+            logging.info("Configure to still.")
+            self.picam2.configure(self.configurations['still'])
+            if self.encoders["stream"] in paused_encoders:                
+                self._start_stream_encoder(lores=True)
+                logging.info("Streaming resumed.")
+        
+        #Only streaming
+
+        elif self.encoders["stream"] in paused_encoders:
+            self.picam2.stop_encoder()
+            logging.info("Stream paused.")
+            self._start_stream_encoder(lores=True)
+            logging.info("Stream reconfigured and started.")
+        
+        self.picam2.start()
+
+        # https://github.com/raspberrypi/picamera2/blob/main/examples/capture_timelapse.py
+
+        # Give time for Aec and Awb to settle, before disabling them
+        time.sleep(1)
+        self.picam2.set_controls({"AeEnable": False, "AwbEnable": False, "FrameRate": framerate})
+        # And wait for those settings to take effect
+        time.sleep(1)
+
+        data = []
+        for i in range(0, count):
+            bytes = io.BytesIO()
+            self.picam2.capture_file(bytes, format='jpeg')
+            bytes.seek(0)
+            data.append(bytes)
+        
+        self.picam2.stop()
+
+        if len(paused_encoders) > 0:
+            if self.encoders['record'] in paused_encoders:
+                self._recording_resume()
+            if self.encoders['stream'] in paused_encoders:
+                self._preview_resume()
+            self.picam2.start()
+
+        return data       
 
     def preview_start(self) -> bool:
         if self.encoders["stream"] in self.picam2.encoders:
@@ -221,3 +276,5 @@ class Camera:
             logging.info("Configure to still.")
             self.picam2.configure(self.configurations['still'])
         return True
+    
+
