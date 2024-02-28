@@ -96,7 +96,7 @@ class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
 def run_server():          
        
     try:
-        address = ('', 8000)
+        address = ('', 5000)
         server = StreamingServer(address, StreamingHandler)
         server.serve_forever()
         

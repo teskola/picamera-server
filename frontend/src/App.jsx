@@ -3,11 +3,13 @@ import ConfigureTab from './ConfigureTab'
 
 function App() {
 
+const STREAM_URL = `http://${import.meta.env.VITE_RASPBERRY_URL}:5000/stream.mjpg`
+
   return (
     <>
       <div className='container'>
         <div className='video'>
-          <img src="http://192.168.1.129:8000/stream.mjpg" width="640"/>
+          <img src={STREAM_URL} width="640"/>
         </div>
         <div className='menu'>          
           <ConfigureTab />
