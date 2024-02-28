@@ -3,6 +3,7 @@ import io
 import time
 from pprint import pformat
 from threading import Condition, Lock, Timer
+from libcamera import controls
 from picamera2 import Picamera2
 from picamera2.encoders import MJPEGEncoder, H264Encoder
 from picamera2.outputs import FileOutput
@@ -70,33 +71,11 @@ class Camera:
 
             ,
             'still': 
-            [
-                self.picam2.create_still_configuration(                    
-                    sensor={
-                        "output_size": (1332, 990),
-                        "bit_depth": 10
-                    },
-                    lores={"size": Resolutions.STREAM_4_3}
-                ),
-                self.picam2.create_still_configuration(
-                    sensor={
-                        "output_size": (2028, 1080),
-                        "bit_depth": 12
-                    },
-                    lores={"size": Resolutions.STREAM_4_3}
-                ),
-                self.picam2.create_still_configuration(
-                    sensor={
-                        "output_size": (2028, 1520),
-                        "bit_depth": 12
-                    },
-                    lores={"size": Resolutions.STREAM_4_3}
-                ),
-                self.picam2.create_still_configuration(
-                    sensor={
-                        "output_size": (4056, 3040),
-                        "bit_depth": 12
-                    },
+            [                
+                self.picam2.create_still_configuration(                   
+                    
+                    raw={"size": (1332, 990),
+                         "format": "SRGGB10"},
                     lores={"size": Resolutions.STREAM_4_3}
                 )
             ]
@@ -107,7 +86,7 @@ class Camera:
         self.configurations = self._create_configurations()
         self.encoders = {'stream': MJPEGEncoder(bitrate=STREAM_BITRATE), 'record': H264Encoder()}
         self.streaming_output = StreamingOutput()
-        self.picam2.configure(self.configurations["still"][3])
+        self.picam2.configure(self.configurations["still"][0])
         logging.info(pformat(self.picam2.camera_configuration))
         self.video = Video()
         self.lock = Lock()
@@ -183,7 +162,7 @@ class Camera:
 
         if not stream_running:
             logging.info("Configure to still.")
-            self.picam2.configure(self.configurations['still'][3])
+            self.picam2.configure(self.configurations['still'][0])
             logging.info(pformat(self.picam2.camera_configuration))
 
         else:
@@ -208,7 +187,7 @@ class Camera:
             self.picam2.stop_encoder()
             logging.info("Recording/streaming paused.")
             logging.info("Configure to still.")
-            self.picam2.switch_mode(self.configurations['still'][3])
+            self.picam2.switch_mode(self.configurations['still'][0])
             logging.info(pformat(self.picam2.camera_configuration))
 
         else:
@@ -251,7 +230,7 @@ class Camera:
             logging.info("Recording/streaming paused.")
             self.picam2.stop()
             logging.info("Configure to timelapse.")
-            self.picam2.configure(self.select_config(interval))
+            self.picam2.configure(self.configurations["still"][0])
             logging.info(pformat(self.picam2.camera_configuration))
             if self.encoders["stream"] in paused_encoders:                
                 self._start_stream_encoder(lores=True)
@@ -264,14 +243,14 @@ class Camera:
             logging.info("Stream paused.")
             self.picam2.stop()
             logging.info("Configure to timelapse")
-            self.picam2.configure(self.select_config(interval))
+            self.picam2.configure(self.configurations["still"][0])
             logging.info(pformat(self.picam2.camera_configuration))
             self._start_stream_encoder(lores=True)
             logging.info("Stream started.")
         
         else:
             self.picam2.stop()
-            self.picam2.configure(self.select_config(interval))
+            self.picam2.configure(self.configurations["still"][0])
             logging.info(pformat(self.picam2.camera_configuration))
 
 
@@ -282,7 +261,10 @@ class Camera:
         # Give time for Aec and Awb to settle, before disabling them
         time.sleep(1)
         logging.info("Disable aec and awb.")
-        self.picam2.set_controls({"AeEnable": False, "AwbEnable": False, "FrameRate": float(1000/interval)})
+        self.picam2.set_controls({"NoiseReductionMode": controls.draft.NoiseReductionModeEnum.Fast, 
+                                  "AeEnable": False, 
+                                  "AwbEnable": False, 
+                                  "FrameDurationLimits": (interval * 1000, interval * 1000)})
         # And wait for those settings to take effect
         time.sleep(1)  
         logging.info("Timelapse started.")
@@ -290,9 +272,9 @@ class Camera:
         start_time = time.time()
         for i in range(0, count ):
             bytes = io.BytesIO()
-            self.picam2.capture_file(bytes, format="jpg")
-            logging.info(f"Captured image {i+1} of {count} at {time.time() - start_time:.2f}s")
-            data.append(bytes)        
+            array = self.picam2.capture_array("raw")            
+            data.append(array[1])        
+        logging.info(f"Captured images {time.time() - start_time:.2f}s")
         self.picam2.stop()
 
         if len(paused_encoders) > 0:
