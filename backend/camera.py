@@ -188,7 +188,7 @@ class Camera:
         data.seek(0)
         return data
     
-    def caputure_timelapse(self, framerate : 1.0, count : 10):
+    def caputure_timelapse(self, framerate=1.0, count=10):
 
         paused_encoders = self.picam2.encoders.copy()
 
@@ -209,6 +209,9 @@ class Camera:
         elif self.encoders["stream"] in paused_encoders:
             self.picam2.stop_encoder()
             logging.info("Stream paused.")
+            self.picam2.stop()
+            logging.info("Configure to still")
+            self.picam2.configure(self.configurations["still"])
             self._start_stream_encoder(lores=True)
             logging.info("Stream reconfigured and started.")
         
@@ -235,7 +238,9 @@ class Camera:
             if self.encoders['record'] in paused_encoders:
                 self._recording_resume()
             if self.encoders['stream'] in paused_encoders:
-                self._preview_resume()
+                self.picam2.stop_encoder()
+                self._start_stream_encoder()
+                logging.info("Stream resumed.")
             self.picam2.start()
 
         return data       
