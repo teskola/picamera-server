@@ -40,12 +40,15 @@ class StreamingOutput(io.BufferedIOBase):
             self.frame = buf
             self.condition.notify_all()
 
-class Camera:
-
+class Camera:    
+    
     def _create_configurations(self):
         
-        modes = self.picam2.sensor_modes
-
+        mode0 = self.picam2.sensor_modes[0]
+        mode1 = self.picam2.sensor_modes[1]
+        mode2 = self.picam2.sensor_modes[2]
+        mode3 = self.picam2.sensor_modes[3]
+        
         return {
             'video': 
             {
@@ -74,30 +77,34 @@ class Camera:
             'still': 
             [
                 self.picam2.create_still_configuration(
+                    main={"size": mode0["size"]},
                     sensor={
-                        "output_size": modes[0]["size"],
-                        "bit_depth": modes[0]["bit_depth"]
+                        "output_size": mode0["size"],
+                        "bit_depth": mode0["bit_depth"]
                     },
                     lores={"size": Resolutions.STREAM_4_3}
                 ),
                 self.picam2.create_still_configuration(
+                    main={"size": mode1["size"]},
                     sensor={
-                        "output_size": modes[1]["size"],
-                        "bit_depth": modes[1]["bit_depth"]
+                        "output_size": mode1["size"],
+                        "bit_depth": mode1["bit_depth"]
                     },
                     lores={"size": Resolutions.STREAM_4_3}
                 ),
                 self.picam2.create_still_configuration(
+                    main={"size": mode2["size"]},
                     sensor={
-                        "output_size": modes[2]["size"],
-                        "bit_depth": modes[2]["bit_depth"]
+                        "output_size": mode2["size"],
+                        "bit_depth": mode2["bit_depth"]
                     },
                     lores={"size": Resolutions.STREAM_4_3}
                 ),
                 self.picam2.create_still_configuration(
+                    main={"size": mode3["size"]},
                     sensor={
-                        "output_size": modes[3]["size"],
-                        "bit_depth": modes[3]["bit_depth"]
+                        "output_size": mode3["size"],
+                        "bit_depth": mode3["bit_depth"]
                     },
                     lores={"size": Resolutions.STREAM_4_3}
                 )
