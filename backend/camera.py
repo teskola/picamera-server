@@ -42,13 +42,8 @@ class StreamingOutput(io.BufferedIOBase):
 
 class Camera:    
     
-    def _create_configurations(self):
-        
-        mode0 = self.picam2.sensor_modes[0]
-        mode1 = self.picam2.sensor_modes[1]
-        mode2 = self.picam2.sensor_modes[2]
-        mode3 = self.picam2.sensor_modes[3]
-        
+    def _create_configurations(self):       
+       
         return {
             'video': 
             {
@@ -76,35 +71,31 @@ class Camera:
             ,
             'still': 
             [
-                self.picam2.create_still_configuration(
-                    main={"size": mode0["size"]},
+                self.picam2.create_still_configuration(                    
                     sensor={
-                        "output_size": mode0["size"],
-                        "bit_depth": mode0["bit_depth"]
+                        "output_size": (1332, 990),
+                        "bit_depth": 10
                     },
                     lores={"size": Resolutions.STREAM_4_3}
                 ),
                 self.picam2.create_still_configuration(
-                    main={"size": mode1["size"]},
                     sensor={
-                        "output_size": mode1["size"],
-                        "bit_depth": mode1["bit_depth"]
+                        "output_size": (2028, 1080),
+                        "bit_depth": 12
                     },
                     lores={"size": Resolutions.STREAM_4_3}
                 ),
                 self.picam2.create_still_configuration(
-                    main={"size": mode2["size"]},
                     sensor={
-                        "output_size": mode2["size"],
-                        "bit_depth": mode2["bit_depth"]
+                        "output_size": (2028, 1520),
+                        "bit_depth": 12
                     },
                     lores={"size": Resolutions.STREAM_4_3}
                 ),
                 self.picam2.create_still_configuration(
-                    main={"size": mode3["size"]},
                     sensor={
-                        "output_size": mode3["size"],
-                        "bit_depth": mode3["bit_depth"]
+                        "output_size": (4056, 3040),
+                        "bit_depth": 12
                     },
                     lores={"size": Resolutions.STREAM_4_3}
                 )
