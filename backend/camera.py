@@ -63,7 +63,10 @@ class Camera:
                     main={"size": Resolutions.STREAM_4_3}
                 ),
             'still':
+                self.picam2.create_still_configuration(),
+            'timelapse':
                 self.picam2.create_still_configuration(
+                    main={"size": Resolutions.P480},
                     lores={"size": Resolutions.STREAM_4_3}
                 )
             }
@@ -188,7 +191,7 @@ class Camera:
         data.seek(0)
         return data
     
-    def caputure_timelapse(self, framerate=10.0, count=10):
+    def caputure_timelapse(self, framerate=1.0, count=10):
 
         paused_encoders = self.picam2.encoders.copy()
 
@@ -198,8 +201,8 @@ class Camera:
             self.picam2.stop_encoder()
             logging.info("Recording/streaming paused.")
             self.picam2.stop()
-            logging.info("Configure to still.")
-            self.picam2.configure(self.configurations['still'])
+            logging.info("Configure to timelapse.")
+            self.picam2.configure(self.configurations['timelapse'])
             if self.encoders["stream"] in paused_encoders:                
                 self._start_stream_encoder(lores=True)
                 logging.info("Streaming resumed.")
@@ -210,26 +213,33 @@ class Camera:
             self.picam2.stop_encoder()
             logging.info("Stream paused.")
             self.picam2.stop()
-            logging.info("Configure to still")
-            self.picam2.configure(self.configurations["still"])
+            logging.info("Configure to timelapse")
+            self.picam2.configure(self.configurations["timelapse"])
             self._start_stream_encoder(lores=True)
             logging.info("Stream reconfigured and started.")
         
+        else:
+            self.picam2.stop()
+            self.picam2.configure(self.configurations['timelapse'])
+            logging.info("Configure to timelapse.")
+
+
         self.picam2.start()
 
         # https://github.com/raspberrypi/picamera2/blob/main/examples/capture_timelapse.py
 
         # Give time for Aec and Awb to settle, before disabling them
         time.sleep(1)
+        logging.info("Disable aec and awb.")
         self.picam2.set_controls({"AeEnable": False, "AwbEnable": False, "FrameRate": framerate})
         # And wait for those settings to take effect
-        time.sleep(1)        
-
+        time.sleep(1)  
+        logging.ifno("Timelapse started.")
         data = []
         start_time = time.time()
         for i in range(0, count ):
             bytes = io.BytesIO()
-            self.picam2.capture_file(bytes, name="raw")
+            self.picam2.capture_file(bytes, format="jpg")
             logging.info(f"Captured image {i} of {count - 1} at {time.time() - start_time:.2f}s")
             bytes.seek(0)
             data.append(bytes)
@@ -241,10 +251,14 @@ class Camera:
                 self._recording_resume()
             if self.encoders['stream'] in paused_encoders:
                 self.picam2.stop_encoder()
+                logging.info("Configure to stream.")
                 self.picam2.configure(self.configurations["preview"])
                 self._start_stream_encoder()
                 logging.info("Stream resumed.")
             self.picam2.start()
+        else:
+            logging.info("Configure to still.")
+            self.picam2.configure(self.configurations["still"])
 
         return data       
 
