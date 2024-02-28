@@ -188,7 +188,7 @@ class Camera:
         data.seek(0)
         return data
     
-    def caputure_timelapse(self, framerate=1.0, count=10):
+    def caputure_timelapse(self, framerate=10.0, count=10):
 
         paused_encoders = self.picam2.encoders.copy()
 
@@ -229,9 +229,7 @@ class Camera:
         start_time = time.time()
         for i in range(0, count ):
             bytes = io.BytesIO()
-            r = self.picam2.capture_request()
-            r.save("main", f"image{i}.jpg")
-            r.release()
+            self.picam2.capture_file(bytes, format="jpg")
             logging.info(f"Captured image {i} of {count - 1} at {time.time() - start_time:.2f}s")
             bytes.seek(0)
             data.append(bytes)
