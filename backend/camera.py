@@ -223,12 +223,16 @@ class Camera:
         time.sleep(1)
         self.picam2.set_controls({"AeEnable": False, "AwbEnable": False, "FrameRate": framerate})
         # And wait for those settings to take effect
-        time.sleep(1)
+        time.sleep(1)        
 
         data = []
-        for i in range(0, count):
+        start_time = time.time()
+        for i in range(0, count - 1):
             bytes = io.BytesIO()
-            self.picam2.capture_file(bytes, format='jpeg')
+            r = self.picam2.capture_request()
+            r.save("main", bytes)
+            r.release()
+            logging.ifo(f"Captured image {i} of {count - 1} at {time.time() - start_time:.2f}s")
             bytes.seek(0)
             data.append(bytes)
         
@@ -239,6 +243,7 @@ class Camera:
                 self._recording_resume()
             if self.encoders['stream'] in paused_encoders:
                 self.picam2.stop_encoder()
+                self.picam2.configure(self.configurations["preview"])
                 self._start_stream_encoder()
                 logging.info("Stream resumed.")
             self.picam2.start()
