@@ -229,7 +229,7 @@ class Camera:
         start_time = time.time()
         for i in range(0, count ):
             bytes = io.BytesIO()
-            self.picam2.capture_file(bytes, format="jpg")
+            self.picam2.capture_file(bytes, name="raw")
             logging.info(f"Captured image {i} of {count - 1} at {time.time() - start_time:.2f}s")
             bytes.seek(0)
             data.append(bytes)
