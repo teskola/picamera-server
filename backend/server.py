@@ -7,7 +7,10 @@ from picamera2.encoders import Quality
 from minio_client import MinioClient
 from camera import Camera
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    format='%(asctime)s %(levelname)-8s %(message)s',
+    level=logging.INFO,
+    datefmt='%Y-%m-%d %H:%M:%S')
 camera = Camera()
 minio = MinioClient()
 stream_clients = set()
