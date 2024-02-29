@@ -1,7 +1,7 @@
 import unittest
 import threading
 import time
-from ..camera import Camera
+from camera import Camera
 
 class FrameRateTests(unittest.TestCase):
 
