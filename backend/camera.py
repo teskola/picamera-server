@@ -223,9 +223,7 @@ class Camera:
         
         if self.encoders["record"] in self.picam2.encoders:
             logging.warn("Timelapse cancelled: Recording running")
-            return
-        
-        config = self.configurations['still']['full']
+            return       
         
         if interval < 30:
             config = self.configurations['still']['half']
