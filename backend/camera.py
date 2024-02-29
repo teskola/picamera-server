@@ -80,6 +80,10 @@ class Camera:
                 )
             ]
         } 
+    def _increase_frame_count(self):
+        self.framecount += 1
+        logging.info(f"Frame count: {self.framecount}")
+
 
     def __init__(self) -> None:
         self.picam2 = Picamera2()
@@ -93,10 +97,6 @@ class Camera:
         self.lock = Lock()
         self.framecount = 0
     
-    def _increase_frame_count(self):
-        self.framecount += 1
-        logging.info(f"Frame count: {self.framecount}")
-
     def _encoders_running(self) -> bool:
         return len(self.picam2.encoders) > 0
     
