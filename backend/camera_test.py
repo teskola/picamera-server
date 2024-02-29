@@ -21,6 +21,7 @@ class FrameRateTests(unittest.TestCase):
         data = io.BytesIO()
         self.picam2.capture_file(data, format='jpeg')
         self.captured_images += 1
+        return
         
     def test_fast_capture(self):
         self.picam2 = Picamera2()
@@ -28,6 +29,7 @@ class FrameRateTests(unittest.TestCase):
         self.picam2.start()
         for i in range(10):
             Thread(target=self._capture_jpg).start()
+            print(i)
             sleep(1)                      
         self.picam2.close()
         self.assertEqual(self.captured_images, 10)
