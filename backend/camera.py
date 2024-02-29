@@ -78,6 +78,7 @@ class Camera:
             'still': 
             [                
                 self.picam2.create_still_configuration(
+                    main={"size": (2028, 1520)}
                 )
             ]
         }    
