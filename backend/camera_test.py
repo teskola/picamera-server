@@ -1,6 +1,6 @@
 import unittest
-from threading import Thread, sleep
-import time
+from threading import Thread
+from time import sleep
 import io
 from camera import Camera
 from picamera2 import Picamera2
