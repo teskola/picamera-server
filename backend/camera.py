@@ -74,8 +74,8 @@ class Camera:
             [                
                 self.picam2.create_still_configuration(                   
                     
-                    raw={"size": (1332, 990),
-                         "format": "SRGGB10"},
+                    main={"size": (1332, 990)
+                         },
                     lores={"size": Resolutions.STREAM_4_3}
                 )
             ]
@@ -280,11 +280,13 @@ class Camera:
         start_time = time.time()
         for i in range(0, count ):
             bytes = io.BytesIO()
-            array = self.picam2.capture_array("raw")
-            #logging.info(f"Captured image {i+1} of {count} at {time.time() - start_time:.2f}s")            
-            data.append(array[1])        
-        logging.info(f"Captured images {time.time() - start_time:.2f}s")
+            self.picam2.capture_file(bytes, format="jpeg")
+            #logging.info(f"Captured image {i+1} of {count} at {time.time() - start_time:.2f}s")                        
+            data.append(bytes)        
+        logging.info(f"Captured images {time.time() - start_time:.2f}s")        
         self.picam2.stop()
+        for bytes in data:
+            bytes.seek(0)
 
         if len(paused_encoders) > 0:
             if self.encoders['record'] in paused_encoders:
