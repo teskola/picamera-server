@@ -72,7 +72,8 @@ class Camera:
             ,
             'still': 
             [                
-                self.picam2.create_still_configuration(                   
+                self.picam2.create_video_configuration(      
+                    buffer_count=1,            
                     
                     main={"size": (1332, 990)
                          },
