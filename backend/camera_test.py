@@ -1,30 +1,40 @@
 import unittest
 import threading
 import time
+import io
+import sched
 from camera import Camera
 from picamera2 import Picamera2
 from libcamera import controls
-
+from apscheduler.scheduler import Scheduler
 
 class FrameRateTests(unittest.TestCase):
 
     def __init__(self, methodName: str = "runTest") -> None:
         self.framecount = 0
+        self.captured_images = 0
         super().__init__(methodName)    
 
     def _increase_frame_count(self, request):        
         self.framecount += 1   
+    
+    def _capture_jpg(self):
+        data = io.BytesIO()
+        self.picam2.capture_file(data, format='jpeg')
+        self.captured_images += 1
         
-    def test_framerate_50(self):
+    def test_fast_capture(self):
         picam2 = Picamera2()
-        picam2.pre_callback = self._increase_frame_count
-        picam2.video_configuration.controls.FrameRate = 1.0        
+        picam2.configure(picam2.create_still_configuration())
         picam2.start()
-        time.sleep(10)
-        picam2.stop()
-        print(f"{self.framecount} frames in 10 seconds")
+        sched = Scheduler()
+        sched.start()
+        sched.add_interval_job(self._capture_jpg, seconds = 1)  
+        time.sleep(10)      
+        sched.shutdown()        
+        picam2.close()
         self.assertEqual(self.framecount, 10)
-        self.framecount = 0
+        self.captured_images = 0
         picam2.close()
     
     def test_framerate_30(self):
