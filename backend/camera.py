@@ -85,7 +85,7 @@ class Camera:
                         main={"size": (1332, 990)},
                         raw={"size": (1332, 990), "format": "SRGGB10_CSI2P"},
                         controls={'NoiseReductionMode': controls.draft.NoiseReductionModeEnum.Fast,                                  
-                                  'FrameDurationLimits': (250000, 250000)}
+                                  'FrameDurationLimits': (125000, 125000)}
                     )
             }           
         }    
