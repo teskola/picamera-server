@@ -12,7 +12,8 @@ class FrameRateTests(unittest.TestCase):
         self.framecount = 0
         self.captured_images = 0
         super().__init__(methodName)
-        self.camera=Camera()    
+        self.camera=Camera()
+        sleep(1)
 
     def _increase_frame_count(self, request):        
         self.framecount += 1   
