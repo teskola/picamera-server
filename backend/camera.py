@@ -89,6 +89,7 @@ class Camera:
                 'fast':
                     self.picam2.create_still_configuration(
                         main={"size": (1332, 990)},
+                        raw={"size": (1332, 990), "format": "SRGGB10_CSI2P"}
                         controls={'NoiseReductionMode': controls.draft.NoiseReductionModeEnum.Fast,
                                   'AwbEnable': False,
                                   'AeEnable': False}
