@@ -26,7 +26,7 @@ class FrameRateTests(unittest.TestCase):
         
     def test_fast_capture(self):        
         self.camera = Camera()
-        result = self.camera.capture_timelapse(4, 5)
+        result = self.camera.capture_timelapse(3, 5)
         self.assertEqual(len(result), 5)
         for image in result:
             self.assertGreater(len(image.getvalue()), 0)        
