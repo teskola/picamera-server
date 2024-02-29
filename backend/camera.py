@@ -77,12 +77,7 @@ class Camera:
             ,
             'still': 
             [                
-                self.picam2.create_still_configuration(                   
-                    
-                    main={"size": (1332, 990)
-                         },
-                    lores={},
-                    raw={}
+                self.picam2.create_still_configuration(
                 )
             ]
         }    
