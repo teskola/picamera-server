@@ -16,7 +16,7 @@ class FrameRateTests(unittest.TestCase):
         camera = Camera()
         camera.picam2.pre_callback = self._increase_frame_count
 
-        t1 = threading.Thread(target=camera.preview_start())
+        t1 = threading.Thread(target=camera.preview_start)
         t1.start()
         time.sleep(10)
         self.camera.preview_stop()
