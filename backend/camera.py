@@ -78,10 +78,7 @@ class Camera:
                 'half':
                     self.picam2.create_still_configuration(
                         main={"size": (2028, 1520)},
-                        lores={},
-                        buffer_count=2,
-                        queue=True,
-                        controls={'FrameDurationLimits': (1000000, 1000000)}
+                        controls={'FrameDurationLimits': (250000, 250000)}
                     ),
                 'fast':
                     self.picam2.create_still_configuration(
