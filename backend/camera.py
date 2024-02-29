@@ -239,10 +239,13 @@ class Camera:
                 self.picam2.configure(config)            
             self.picam2.start()
         data = [io.BytesIO()] * count
+        threads = [None] * count
         for i in range(count):
-            Thread(target=self.capture_fast, args=(data, i))             
-            time.sleep(interval)  
-        for i in range(count):
+            threads[i] = Thread(target=self.capture_fast, args=(data[i]))             
+            time.sleep(interval)
+        for i in range(len(threads)):
+            threads[i].join()
+        for i in range(count):            
             data[i].seek(0)
         if stream_paused:
             self._preview_resume()
@@ -252,8 +255,8 @@ class Camera:
              
 
 
-    def capture_fast(self, data, index) -> io.BytesIO:        
-        self.picam2.capture_file(data[index], format='jpeg')
+    def capture_fast(self, data) -> io.BytesIO:        
+        self.picam2.capture_file(data, format='jpeg')
 
     def preview_start(self) -> bool:
         if self.encoders["stream"] in self.picam2.encoders:
