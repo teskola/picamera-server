@@ -81,9 +81,10 @@ class Camera:
             ]
         } 
     def _increase_frame_count(self, request):
+        limits = self.picam2.camera_configuration()["controls"]["FrameDurationLimits"]
         self.framecount += 1
         logging.info(f"Frame count: {self.framecount}")
-        logging.info(f"Frame duration: {self.picam2.camera_configuration()["controls"]["FrameDurationLimits"]}")
+        logging.info(f"Frame duration: {limits}")
 
 
     def __init__(self) -> None:
