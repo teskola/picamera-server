@@ -11,7 +11,7 @@ class FrameRateTests(unittest.TestCase):
     def __init__(self, methodName: str = "runTest") -> None:
         self.framecount = 0
         self.captured_images = 0
-        self.picam2 = Picamera2()
+        self.picam2 = None
         super().__init__(methodName)    
 
     def _increase_frame_count(self, request):        
@@ -23,6 +23,7 @@ class FrameRateTests(unittest.TestCase):
         self.captured_images += 1
         
     def test_fast_capture(self):
+        self.picam2 = Picamera2()
         self.picam2.configure(self.picam2.create_still_configuration())
         self.picam2.start()
         for i in range(10):
@@ -36,9 +37,9 @@ class FrameRateTests(unittest.TestCase):
         camera = Camera()
         camera.picam2.pre_callback = self._increase_frame_count
         
-        t1 = threading.Thread(target=camera.preview_start)
+        t1 = Thread(target=camera.preview_start)
         t1.start()
-        time.sleep(10)
+        sleep(10)
         camera.preview_stop()
         camera.picam2.close()
         t1.join()
