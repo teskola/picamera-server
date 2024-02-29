@@ -25,7 +25,7 @@ class Video:
 
     def release(self) -> io.BytesIO:
         self.data.seek(0)
-        result = self.data
+        result = self.data.copy()
         self.data.truncate()
         return result
    
