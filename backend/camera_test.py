@@ -33,6 +33,7 @@ class FrameRateTests(unittest.TestCase):
         self.captured_images = 0
     
     def test_framerate_30(self):
+        self.camera = Camera()
         self.camera.picam2.pre_callback = self._increase_frame_count        
         t1 = Thread(target=self.camera.preview_start)
         t1.start()
