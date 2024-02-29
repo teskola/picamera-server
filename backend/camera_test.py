@@ -18,13 +18,16 @@ class FrameRateTests(unittest.TestCase):
         self.framecount += 1   
     
     def _capture_jpg(self):
-        self.camera.capture_still()
+        #self.camera.capture_still()
+        data = io.BytesIO()
+        self.camera.picam2.capture_file(data, format='jpeg')
         self.captured_images += 1
         
         
     def test_fast_capture(self):        
         self.camera = Camera()
         interval = 1
+        self.camera.picam2.start()
         for i in range(10):
             Thread(target=self._capture_jpg).start()
             sleep(interval) 
