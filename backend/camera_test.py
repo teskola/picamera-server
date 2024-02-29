@@ -6,7 +6,7 @@ import sched
 from camera import Camera
 from picamera2 import Picamera2
 from libcamera import controls
-from apscheduler.scheduler import Scheduler
+from apscheduler.schedulers import Scheduler
 
 class FrameRateTests(unittest.TestCase):
 
