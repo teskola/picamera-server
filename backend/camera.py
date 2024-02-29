@@ -78,7 +78,8 @@ class Camera:
                 'half':
                     self.picam2.create_still_configuration(
                         main={"size": (2028, 1520)},
-                        queue=False
+                        queue=False,
+                        controls={'FrameDurationLimits': (1000000, 1000000)}
                     ),
                 'fast':
                     self.picam2.create_still_configuration(
@@ -242,11 +243,9 @@ class Camera:
                 self.picam2.configure(config)            
             self.picam2.start()
         data = []
+        time.sleep(10)
         for i in range(count):
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                future = executor.submit(self.capture_fast)
-                data.append(future.result())          
-                time.sleep(interval) 
+            data.append(self.capture_fast())
         self.picam2.stop() 
         
         if stream_paused:
