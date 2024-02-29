@@ -51,26 +51,21 @@ class Camera:
                 '240p':
                     self.picam2.create_video_configuration(
                         main={"size": Resolutions.STREAM_4_3},
-                        lores={},
-                        raw={}
                     ),
                 '480p':
                     self.picam2.create_video_configuration(
                         main={"size": Resolutions.P480},
                         lores={"size": Resolutions.STREAM_4_3},
-                        raw={}
                     ),
                 '720p':
                     self.picam2.create_video_configuration(
                         main={"size": Resolutions.P720},
                         lores={"size": Resolutions.STREAM_16_9},
-                        raw={}
                     ),
                 '1080p':
                     self.picam2.create_video_configuration(
                         main={"size": Resolutions.P1080},
                         lores={"size": Resolutions.STREAM_16_9},
-                        raw={}
                     ),
             }
 
@@ -84,15 +79,17 @@ class Camera:
                         main={"size": (2028, 1520)},
                         controls={'NoiseReductionMode': controls.draft.NoiseReductionModeEnum.Fast,
                                   'AwbEnable': False,
-                                  'AeEnable': False}
+                                  'AeEnable': False,
+                                  }
                     ),
                 'fast':
                     self.picam2.create_still_configuration(
                         main={"size": (1332, 990)},
-                        raw={"size": (1332, 990), "format": "SRGGB10_CSI2P"}
-                        controls={'NoiseReductionMode': controls.draft.NoiseReductionModeEnum.Fast,
+                        raw={"size": (1332, 990), "format": "SRGGB10_CSI2P"},
+                        controls={'NoiseReductionMode': controls.draft.NoiseReductionModeEnum.Off,
                                   'AwbEnable': False,
-                                  'AeEnable': False}
+                                  'AeEnable': False,
+                                  'FrameDurationLimits': (20000, 20000)}
                     )
             }           
         }    
