@@ -83,6 +83,7 @@ class Camera:
     def _increase_frame_count(self, request):
         self.framecount += 1
         logging.info(f"Frame count: {self.framecount}")
+        logging.info(f"Frame duration: {self.picam2.camera_configuration()["controls"]["FrameDurationLimits"]}")
 
 
     def __init__(self) -> None:
@@ -93,7 +94,7 @@ class Camera:
         self.framecount = 0
         self.picam2.configure(self.configurations["still"][0])
         self.picam2.pre_callback = self._increase_frame_count
-        logging.info(pformat(self.picam2.camera_configuration))
+        logging.info(pformat(self.picam2.camera_configuration()))
         self.video = Video()
         self.lock = Lock()
     
@@ -136,7 +137,7 @@ class Camera:
 
         logging.info(f"Configure to {resolution}")
         self.picam2.configure(self.configurations["video"][resolution])
-        logging.info(pformat(self.picam2.camera_configuration))
+        logging.info(pformat(self.picam2.camera_configuration()))
         self.video.resolution = resolution
         self.video.quality = quality
         self._start_record_encoder()
@@ -169,12 +170,12 @@ class Camera:
         if not stream_running:
             logging.info("Configure to still.")
             self.picam2.configure(self.configurations['still'][0])
-            logging.info(pformat(self.picam2.camera_configuration))
+            logging.info(pformat(self.picam2.camera_configuration()))
 
         else:
             logging.info("Configure to preview.")
             self.picam2.configure(self.configurations['video']['240p'])
-            logging.info(pformat(self.picam2.camera_configuration))
+            logging.info(pformat(self.picam2.camera_configuration()))
             self._start_stream_encoder()
             logging.info("Streaming resumed.")
             self.picam2.start()
@@ -194,7 +195,7 @@ class Camera:
             logging.info("Recording/streaming paused.")
             logging.info("Configure to still.")
             self.picam2.switch_mode(self.configurations['still'][0])
-            logging.info(pformat(self.picam2.camera_configuration))
+            logging.info(pformat(self.picam2.camera_configuration()))
 
         else:
             self.picam2.start()
@@ -237,7 +238,7 @@ class Camera:
             self.picam2.stop()
             logging.info("Configure to timelapse.")
             self.picam2.configure(self.configurations["still"][0])
-            logging.info(pformat(self.picam2.camera_configuration))
+            logging.info(pformat(self.picam2.camera_configuration()))
             if self.encoders["stream"] in paused_encoders:                
                 self._start_stream_encoder(lores=True)
                 logging.info("Streaming resumed.")
@@ -250,14 +251,14 @@ class Camera:
             self.picam2.stop()
             logging.info("Configure to timelapse")
             self.picam2.configure(self.configurations["still"][0])
-            logging.info(pformat(self.picam2.camera_configuration))
+            logging.info(pformat(self.picam2.camera_configuration()))
             self._start_stream_encoder(lores=True)
             logging.info("Stream started.")
         
         else:
             self.picam2.stop()
             self.picam2.configure(self.configurations["still"][0])
-            logging.info(pformat(self.picam2.camera_configuration))
+            logging.info(pformat(self.picam2.camera_configuration()))
 
 
         self.picam2.start()
@@ -292,7 +293,7 @@ class Camera:
                 self.picam2.stop_encoder()
                 logging.info("Configure to stream.")
                 self.picam2.configure(self.configurations["video"]["240p"])
-                logging.info(pformat(self.picam2.camera_configuration))
+                logging.info(pformat(self.picam2.camera_configuration()))
                 self._start_stream_encoder()
                 logging.info("Stream resumed.")
             self.picam2.start()
@@ -309,7 +310,7 @@ class Camera:
         if not self._encoders_running():
             logging.info("Configure to stream.")
             self.picam2.configure(self.configurations['video']['240p'])
-            logging.info(pformat(self.picam2.camera_configuration))
+            logging.info(pformat(self.picam2.camera_configuration()))
             self._start_stream_encoder()
             logging.info("Streaming started.")
             self.picam2.start()
@@ -322,7 +323,7 @@ class Camera:
         if not self._encoders_running():
             logging.info("Configure to stream.")
             self.picam2.configure(self.configurations['video']['240p'])
-            logging.info(pformat(self.picam2.camera_configuration))
+            logging.info(pformat(self.picam2.camera_configuration()))
         self._start_stream_encoder()
         logging.info("Streaming resumed.")
 
