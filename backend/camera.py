@@ -78,11 +78,7 @@ class Camera:
                 'half':
                     self.picam2.create_still_configuration(
                         main={"size": (2028, 1520)},
-                        queue=False,
-                        controls={'NoiseReductionMode': controls.draft.NoiseReductionModeEnum.Fast,
-                                  'AwbEnable': False,
-                                  'AeEnable': False,
-                                  }
+                        queue=False
                     ),
                 'fast':
                     self.picam2.create_still_configuration(
@@ -230,12 +226,12 @@ class Camera:
             return
         
         config = self.configurations['still']['full']
-        """ 
-        if interval < 3:
-            config = self.configurations['still']['fast']
+        
+        if interval < 30:
+            config = self.configurations['still']['half']
         else:
             config = self.configurations['still']['full']
-        """
+       
         stream_paused = False
         if self.encoders["stream"] in self.picam2.encoders:
             self.picam2.stop_encoder()
@@ -257,12 +253,10 @@ class Camera:
         
         if stream_paused:
             self._preview_resume()
-        """ else:
-
-            
+        else:            
             if interval < 3:
                 self.picam2.configure(self.configurations['still']['full']) 
-        """       
+            
         return data
              
 
