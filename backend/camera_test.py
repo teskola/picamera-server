@@ -27,12 +27,14 @@ class FrameRateTests(unittest.TestCase):
         self.picam2 = Picamera2()
         self.picam2.configure(self.picam2.create_still_configuration())
         self.picam2.start()
-        for i in range(10):
+        interval = 0.5
+
+        for i in range(int(1/interval)):
             Thread(target=self._capture_jpg).start()
-            sleep(1) 
-        sleep(1)                     
+            sleep(interval) 
+        sleep(interval)                     
         self.picam2.close()
-        self.assertEqual(self.captured_images, 10)
+        self.assertEqual(self.captured_images, int(1/interval))
         self.captured_images = 0
     
     def test_framerate_30(self):
