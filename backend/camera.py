@@ -1,6 +1,7 @@
 import logging
 import io
 import time
+import copy
 from pprint import pformat
 from threading import Condition, Lock
 from libcamera import controls
@@ -25,9 +26,9 @@ class Video:
 
     def release(self) -> io.BytesIO:
         self.data.seek(0)
-        #result = self.data
-        #self.data.truncate()
-        return self.data
+        result = copy.deepcopy(self.data)
+        self.data.truncate()
+        return result
    
 # https://github.com/raspberrypi/picamera2/blob/main/examples/mjpeg_server_2.py
 
