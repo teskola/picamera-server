@@ -94,6 +94,9 @@ class Camera:
             }           
         }    
 
+    def _increase_frame_count(self, request):        
+        self.framecount += 1   
+
     def __init__(self) -> None:
         self.picam2 = Picamera2()
         self.configurations = self._create_configurations()
@@ -103,6 +106,8 @@ class Camera:
         logging.info(pformat(self.picam2.camera_configuration()))
         self.video = Video()
         self.lock = Lock()
+        self.framecount = 0
+        self.camera.picam2.pre_callback = self._increase_frame_count
     
     def _encoders_running(self) -> bool:
         return len(self.picam2.encoders) > 0
@@ -243,10 +248,13 @@ class Camera:
                 self.picam2.configure(config)            
             self.picam2.start()
         data = []
-        time.sleep(10)
+        time.sleep(5)
+        self.framecount = 0
         for i in range(count):
             data.append(self.capture_fast())
+            print(f"Frame: {self.framecount}")
         self.picam2.stop() 
+        self.framecount = 0
         
         if stream_paused:
             self._preview_resume()
