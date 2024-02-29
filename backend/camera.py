@@ -232,6 +232,7 @@ class Camera:
         self.picam2.stop() 
         if stream_paused:
             self._preview_resume()
+            self.picam2.start()
         else:            
             self.picam2.configure(self.configurations['still']) 
             
