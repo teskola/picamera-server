@@ -28,7 +28,7 @@ class FrameRateTests(unittest.TestCase):
         time.sleep(10)
         picam2.stop()
         print(f"{self.framecount} frames in 10 seconds")
-        self.assertTrue(self.framecount == 10)
+        self.assertEquals(self.framecount, 10)
         self.framecount = 0
         picam2.close()
     
@@ -43,8 +43,8 @@ class FrameRateTests(unittest.TestCase):
         camera.picam2.close()
         t1.join()
         print(f"{self.framecount} frames in 10 seconds")
-        self.assertTrue(self.framecount > 275)
-        self.assertTrue(self.framecount < 300)
+        self.assertGreater(self.framecount, 275)
+        self.assertLess(self.framecount < 300)
         self.framecount = 0
 
     
