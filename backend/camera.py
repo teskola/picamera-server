@@ -85,6 +85,13 @@ class Camera:
                         controls={'NoiseReductionMode': controls.draft.NoiseReductionModeEnum.Fast,
                                   'AwbEnable': False,
                                   'AeEnable': False}
+                    ),
+                'fast':
+                    self.picam2.create_still_configuration(
+                        main={"size": (1332, 990)},
+                        controls={'NoiseReductionMode': controls.draft.NoiseReductionModeEnum.Fast,
+                                  'AwbEnable': False,
+                                  'AeEnable': False}
                     )
             }           
         }    
@@ -223,7 +230,7 @@ class Camera:
         
         config = None
         if interval < 3:
-            config = self.configurations['still']['half']
+            config = self.configurations['still']['fast']
         else:
             config = self.configurations['still']['full']
         
@@ -241,7 +248,7 @@ class Camera:
         data = [io.BytesIO()] * count
         for i in range(count):
             Thread(target=self.capture_fast, args=[data[i]]).start()            
-            time.sleep(interval)  
+            #time.sleep(interval)  
         for i in range(count):
             data[i].seek(0)
         if stream_paused:
