@@ -228,12 +228,13 @@ class Camera:
             logging.warn("Timelapse cancelled: Recording running")
             return
         
-        config = None
+        config = self.configurations['still']['full']
+        """ 
         if interval < 3:
             config = self.configurations['still']['fast']
         else:
             config = self.configurations['still']['full']
-        
+        """
         stream_paused = False
         if self.encoders["stream"] in self.picam2.encoders:
             self.picam2.stop_encoder()
@@ -247,14 +248,17 @@ class Camera:
             self.picam2.start()
         data = [io.BytesIO()] * count
         for i in range(count):
-            self.capture_fast(data[i])
+            Thread(target=self.capture_fast, args=[data[i]]).start()
             time.sleep(interval) 
         self.picam2.stop()
         if stream_paused:
             self._preview_resume()
-        else:
+        """ else:
+
+            
             if interval < 3:
                 self.picam2.configure(self.configurations['still']['full']) 
+        """       
         return data
              
 
