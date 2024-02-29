@@ -268,10 +268,11 @@ class Camera:
         time.sleep(1)
         logging.info("Disable aec and awb.")
         # Framerate is doubled, no idea why. So multiply with 500 instead of 1000.
-        self.picam2.set_controls({"NoiseReductionMode": controls.draft.NoiseReductionModeEnum.Fast, 
+        self.picam2.video_configuration.controls.FrameRate = 50.0
+        """ self.picam2.set_controls({"NoiseReductionMode": controls.draft.NoiseReductionModeEnum.Fast, 
                                   "AeEnable": False, 
                                   "AwbEnable": False, 
-                                  "FrameDurationLimits": (interval * 500, interval * 500)})
+                                  "FrameDurationLimits": (interval * 500, interval * 500)}) """
         # And wait for those settings to take effect
         time.sleep(1)  
         logging.info(self.picam2.camera_configuration())
