@@ -78,17 +78,14 @@ class Camera:
                 'half':
                     self.picam2.create_still_configuration(
                         main={"size": (2028, 1520)},
-                        controls={'FrameDurationLimits': (250000, 250000)}
+                        controls={'FrameDurationLimits': (500000, 500000)}
                     ),
                 'fast':
                     self.picam2.create_still_configuration(
                         main={"size": (1332, 990)},
-                        queue=False,
                         raw={"size": (1332, 990), "format": "SRGGB10_CSI2P"},
-                        controls={'NoiseReductionMode': controls.draft.NoiseReductionModeEnum.Off,
-                                  'AwbEnable': False,
-                                  'AeEnable': False,
-                                  'FrameDurationLimits': (20000, 20000)}
+                        controls={'NoiseReductionMode': controls.draft.NoiseReductionModeEnum.Fast,                                  
+                                  'FrameDurationLimits': (250000, 250000)}
                     )
             }           
         }    
@@ -231,7 +228,7 @@ class Camera:
             return       
         
         if interval < 30:
-            config = self.configurations['still']['half']
+            config = self.configurations['still']['fast']
         else:
             config = self.configurations['still']['full']
        
