@@ -22,14 +22,13 @@ class FrameRateTests(unittest.TestCase):
         picam2.set_controls({"NoiseReductionMode": controls.draft.NoiseReductionModeEnum.Fast, 
                                   "AeEnable": False, 
                                   "AwbEnable": False, 
-                                  "FrameDurationLimits": (20000, 20000)})
+                                  "FrameDurationLimits": (100000, 100000)})
         picam2.configure(config)
         picam2.start()
         time.sleep(10)
         picam2.stop()
         print(f"{self.framecount} frames in 10 seconds")
-        self.assertTrue(self.framecount > 400)
-        self.assertTrue(self.framecount < 500)
+        self.assertTrue(self.framecount == 10)
         self.framecount = 0
         picam2.close()
     
