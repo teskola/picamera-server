@@ -81,10 +81,8 @@ class Camera:
             ]
         } 
     def _increase_frame_count(self, request):
-        limits = self.picam2.camera_configuration()["controls"]["FrameDurationLimits"]
         self.framecount += 1
         logging.info(f"Frame count: {self.framecount}")
-        logging.info(f"Frame duration: {limits}")
 
 
     def __init__(self) -> None:
@@ -227,7 +225,7 @@ class Camera:
             return configs[3]
     
     
-    def capture_timelapse(self, interval=2000, count=10):
+    def capture_timelapse(self, interval=1000, count=10):
 
         paused_encoders = self.picam2.encoders.copy()
 
