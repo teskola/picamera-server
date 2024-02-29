@@ -79,8 +79,9 @@ class Camera:
                     self.picam2.create_still_configuration(
                         main={"size": (2028, 1520)},
                         lores={},
-                        queue=False,
-                        controls={'FrameDurationLimits': (500000, 500000)}
+                        buffer_count=2,
+                        queue=True,
+                        controls={'FrameDurationLimits': (1000000, 1000000)}
                     ),
                 'fast':
                     self.picam2.create_still_configuration(
@@ -253,7 +254,8 @@ class Camera:
         self.framecount = 0
         for i in range(count):
             data.append(self.capture_fast())
-            print(f"Frame: {self.framecount}")
+            meta_data = self.picam2.capture_metadata()
+            pformat(meta_data)
         self.picam2.stop() 
         self.framecount = 0
         
