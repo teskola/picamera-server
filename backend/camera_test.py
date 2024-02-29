@@ -16,9 +16,9 @@ class FrameRateTests(unittest.TestCase):
     def _increase_frame_count(self, request):        
         self.framecount += 1   
     
-    def _capture_jpg(self):
+    def _capture_jpg(self, picam2):
         data = io.BytesIO()
-        self.picam2.capture_file(data, format='jpeg')
+        picam2.capture_file(data, format='jpeg')
         self.captured_images += 1
         
     def test_fast_capture(self):
@@ -26,7 +26,7 @@ class FrameRateTests(unittest.TestCase):
         picam2.configure(picam2.create_still_configuration())
         picam2.start()
         for i in range(10):
-            Thread(target=self._capture_jpg).start()
+            Thread(target=self._capture_jpg, args=(picam2)).start()
             sleep(1)                      
         picam2.close()
         self.assertEqual(self.framecount, 10)
