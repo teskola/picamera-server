@@ -27,7 +27,7 @@ class FrameRateTests(unittest.TestCase):
         self.picam2 = Picamera2()
         self.picam2.configure(self.picam2.create_still_configuration())
         self.picam2.start()
-        for i in range(10):
+        for i in range(1, 10):
             Thread(target=self._capture_jpg).start()
             print(i)
             sleep(1)                      
