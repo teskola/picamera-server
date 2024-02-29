@@ -25,6 +25,8 @@ class FrameRateTests(unittest.TestCase):
         self.assertTrue(self.framecount > 275)
         self.assertTrue(self.framecount < 300)
         self.framecount = 0
+        camera.close()
+        time.sleep(1)
     
     def test_framerate_50(self):
         camera = Camera()
