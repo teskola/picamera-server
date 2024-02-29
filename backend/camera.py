@@ -225,7 +225,7 @@ class Camera:
             return configs[3]
     
     
-    def capture_timelapse(self, interval=500, count=10):
+    def capture_timelapse(self, interval=200, count=10):
 
         paused_encoders = self.picam2.encoders.copy()
 
