@@ -249,7 +249,7 @@ class Camera:
         data = [io.BytesIO()] * count
         threads = [None] * 10
         for i in range(count):
-            Thread(target=self.capture_fast, args=(data, i,)).start()
+            threads[i] = Thread(target=self.capture_fast, args=(data, i,)).start()
             time.sleep(interval) 
         self.picam2.stop()
         for i in range(len(threads)):
