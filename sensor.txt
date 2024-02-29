@@ -26,3 +26,20 @@
   'fps': 10.0,
   'size': (4056, 3040),
   'unpacked': 'SRGGB12'}]
+
+{
+                'full':
+                    self.picam2.create_still_configuration(),
+                'half':
+                    self.picam2.create_still_configuration(
+                        main={"size": (2028, 1520)},
+                        controls={'FrameDurationLimits': (500000, 500000)}
+                    ),
+                'fast':
+                    self.picam2.create_still_configuration(
+                        main={"size": (1332, 990)},
+                        raw={"size": (1332, 990), "format": "SRGGB10_CSI2P"},
+                        controls={'NoiseReductionMode': controls.draft.NoiseReductionModeEnum.Fast,                                  
+                                  'FrameDurationLimits': (125000, 125000)}
+                    )
+            }           

@@ -3,7 +3,6 @@ import io
 import time
 from pprint import pformat
 from threading import Condition, Lock
-import concurrent.futures
 from libcamera import controls
 from picamera2 import Picamera2
 from picamera2.encoders import MJPEGEncoder, H264Encoder
@@ -69,48 +68,27 @@ class Camera:
                         lores={"size": Resolutions.STREAM_16_9},
                     ),
             }
-
             ,
             'still': 
-            {
-                'full':
-                    self.picam2.create_still_configuration(),
-                'half':
-                    self.picam2.create_still_configuration(
-                        main={"size": (2028, 1520)},
-                        controls={'FrameDurationLimits': (500000, 500000)}
-                    ),
-                'fast':
-                    self.picam2.create_still_configuration(
-                        main={"size": (1332, 990)},
-                        raw={"size": (1332, 990), "format": "SRGGB10_CSI2P"},
-                        controls={'NoiseReductionMode': controls.draft.NoiseReductionModeEnum.Fast,                                  
-                                  'FrameDurationLimits': (125000, 125000)}
-                    )
-            }           
-        }    
-
-    def _increase_frame_count(self, request):        
-        self.framecount += 1   
-
+                self.picam2.create_still_configuration()
+        }          
+            
     def __init__(self) -> None:
         self.picam2 = Picamera2()
         self.configurations = self._create_configurations()
         self.encoders = {'stream': MJPEGEncoder(bitrate=STREAM_BITRATE), 'record': H264Encoder()}
         self.streaming_output = StreamingOutput()
-        self.picam2.configure(self.configurations["still"]['full'])
-        logging.info(pformat(self.picam2.camera_configuration()))
+        self.picam2.configure(self.configurations["still"])
         self.video = Video()
-        self.lock = Lock()
-        #self.framecount = 0
-        #self.picam2.pre_callback = self._increase_frame_count
+        self.lock = Lock()        
     
     def _encoders_running(self) -> bool:
         return len(self.picam2.encoders) > 0
     
     def preview_running(self) -> bool:
         return self.encoders["stream"] in self.picam2.encoders
-
+    def recording_running(self) -> bool:
+        return self.encoders["record"] in self.picam2.encoders
 
     def _start_record_encoder(self):
         self.picam2.start_encoder(
@@ -132,11 +110,11 @@ class Camera:
         self.picam2.stop()
 
     def recording_start(self, resolution, quality) -> bool:
-        if self.encoders["record"] in self.picam2.encoders:
+        if self.recording_running():
             logging.warn("Recording already running.")
             return False
         stream_paused = False
-        if self.encoders["stream"] in self.picam2.encoders:
+        if self.preview_running():
             self.picam2.stop_encoder()
             logging.info("Stream paused.")
             stream_paused = True
@@ -144,7 +122,6 @@ class Camera:
 
         logging.info(f"Configure to {resolution}")
         self.picam2.configure(self.configurations["video"][resolution])
-        logging.info(pformat(self.picam2.camera_configuration()))
         self.video.resolution = resolution
         self.video.quality = quality
         self._start_record_encoder()
@@ -161,28 +138,22 @@ class Camera:
         logging.info("Recording resumed.")
 
     def recording_stop(self) -> bool:
-        if not self.encoders["record"] in self.picam2.encoders:
+        if not self.recording_running():
             logging.warn("Recording not running.")
             return False
-        stream_running = False
-        if self.encoders['stream'] in self.picam2.encoders:
-            stream_running = True
+        stream_running = self.preview_running()
         self.picam2.stop_encoder()
         self.picam2.stop()
 
-        logging.info("Recording stopped.")
-        if stream_running:
-            logging.info("Stream paused.")
+        logging.info("Recording stopped.")        
 
         if not stream_running:
             logging.info("Configure to still.")
-            self.picam2.configure(self.configurations['still']['full'])
-            logging.info(pformat(self.picam2.camera_configuration()))
+            self.picam2.configure(self.configurations['still'])
 
         else:
             logging.info("Configure to preview.")
             self.picam2.configure(self.configurations['video']['240p'])
-            logging.info(pformat(self.picam2.camera_configuration()))
             self._start_stream_encoder()
             logging.info("Streaming resumed.")
             self.picam2.start()
@@ -201,7 +172,7 @@ class Camera:
             self.picam2.stop_encoder()
             logging.info("Recording/streaming paused.")
             logging.info("Configure to still.")
-            self.picam2.switch_mode(self.configurations['still']['full'])
+            self.picam2.switch_mode(self.configurations['still'])
             logging.info(pformat(self.picam2.camera_configuration()))
 
         else:
@@ -220,62 +191,65 @@ class Camera:
 
         data.seek(0)
         return data  
-    
+       
     def capture_timelapse(self, interval : int, count : int):
         
-        if self.encoders["record"] in self.picam2.encoders:
+        if self.recording_running():
             logging.warn("Timelapse cancelled: Recording running")
             return       
         
-        if interval < 30:
-            config = self.configurations['still']['fast']
+        # For some reason half framelimit length gives correct framerate. Dunno why.
+
+        limit = 500000 * interval
+
+        if interval < 1:
+            config = self.picam2.create_still_configuration(
+                main={"size": (1332, 990)},
+                raw={"size": (1332, 990), "format": "SRGGB10_CSI2P"},
+                controls={'NoiseReductionMode': controls.draft.NoiseReductionModeEnum.Fast,                                  
+                    'FrameDurationLimits': (limit, limit)}
+            )
         else:
-            config = self.configurations['still']['full']
+            config = self.picam2.create_still_configuration(
+                main={"size": (2028, 1520)},
+                controls={'FrameDurationLimits': (limit, limit)}
+            )
        
         stream_paused = False
-        if self.encoders["stream"] in self.picam2.encoders:
+        if self.preview_running():
             self.picam2.stop_encoder()
             stream_paused = True
             logging.info("Streaming paused.")
             logging.info("Configure to still.")
             self.picam2.switch_mode(config)
-        else:
-            if interval < 30:
-                self.picam2.configure(config)            
+        else:            
+            self.picam2.configure(config)            
             self.picam2.start()
         data = []
-        time.sleep(5)
-        #self.framecount = 0
+        time.sleep(2)
         for i in range(count):
             data.append(self.capture_fast())
-            #print(f'Frame : {self.framecount}')
         self.picam2.stop() 
-        #self.framecount = 0
         if stream_paused:
             self._preview_resume()
         else:            
-            if interval < 30:
-                self.picam2.configure(self.configurations['still']['full']) 
+            self.picam2.configure(self.configurations['still']) 
             
         return data
              
-
-
     def capture_fast(self) -> io.BytesIO:    
         data = io.BytesIO()    
         self.picam2.capture_file(data, format='jpeg')
-        data.seek(0)
         return data
 
 
     def preview_start(self) -> bool:
-        if self.encoders["stream"] in self.picam2.encoders:
+        if self.preview_running():
             logging.warn("Stream already running.")
             return False        
-        if not self._encoders_running():
+        if not self.recording_running():
             logging.info("Configure to stream.")
             self.picam2.configure(self.configurations['video']['240p'])
-            logging.info(pformat(self.picam2.camera_configuration()))
             self._start_stream_encoder()
             logging.info("Streaming started.")
             self.picam2.start()
@@ -303,7 +277,7 @@ class Camera:
         if not self._encoders_running():
             self.picam2.stop()            
             logging.info("Configure to still.")
-            self.picam2.configure(self.configurations['still']['full'])
+            self.picam2.configure(self.configurations['still'])
         return True
     
 
