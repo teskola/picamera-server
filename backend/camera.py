@@ -82,7 +82,7 @@ class Camera:
                 'half':
                     self.picam2.create_still_configuration(
                         main={"size": (2028, 1520)},
-                        controls={'NoiseReductionMode': {controls.draft.NoiseReductionModeEnum.Fast},
+                        controls={'NoiseReductionMode': controls.draft.NoiseReductionModeEnum.Fast,
                                   'AwbEnable': False,
                                   'AeEnable': False}
                     )
