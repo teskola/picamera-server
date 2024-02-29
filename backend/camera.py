@@ -267,12 +267,13 @@ class Camera:
         # Give time for Aec and Awb to settle, before disabling them
         time.sleep(1)
         logging.info("Disable aec and awb.")
-        self.picam2.set_controls({"NoiseReductionMode": controls.draft.NoiseReductionModeEnum.Off, 
+        self.picam2.set_controls({"NoiseReductionMode": controls.draft.NoiseReductionModeEnum.Fast, 
                                   "AeEnable": False, 
                                   "AwbEnable": False, 
                                   "FrameDurationLimits": (interval * 1000, interval * 1000)})
         # And wait for those settings to take effect
         time.sleep(1)  
+        logging.info(self.picam2.camera_configuration())
         logging.info("Timelapse started.")
         data = []
         start_time = time.time()
