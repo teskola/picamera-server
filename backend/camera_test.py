@@ -18,23 +18,23 @@ class FrameRateTests(unittest.TestCase):
         self.framecount += 1   
     
     def _capture_jpg(self):
-        #data = io.BytesIO()
-        #self.picam2.capture_array('raw')
+        data = io.BytesIO()
+        self.picam2.capture_file(data, format='jpeg')
         self.captured_images += 1
         return
         
     def test_fast_capture(self):
         self.picam2 = Picamera2()
-        self.picam2.configure(self.picam2.create_still_configuration(main={"size": (1332, 990)}, raw={"format": "SRGGB10", "size": (1332, 990)}))
+        self.picam2.configure(self.picam2.create_still_configuration())
         self.picam2.start()
-        interval = 0.1
+        interval = 1
 
-        for i in range(100):
+        for i in range(10):
             Thread(target=self._capture_jpg).start()
             sleep(interval) 
         sleep(interval)                     
         self.picam2.close()
-        self.assertEqual(self.captured_images, 100)
+        self.assertEqual(self.captured_images, 10)
         self.captured_images = 0
     
     def test_framerate_30(self):
