@@ -21,7 +21,7 @@ class FrameRateTests(unittest.TestCase):
         time.sleep(10)
         self.camera.preview_stop()
         t1.join()
-        self.assertTrue(framecount > 290)
+        self.assertTrue(self.framecount > 290)
 
     
 
