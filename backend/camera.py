@@ -82,7 +82,6 @@ class Camera:
         } 
     def _increase_frame_count(self, request):
         self.framecount += 1
-        logging.info(f"Frame count: {self.framecount}")
 
 
     def __init__(self) -> None:
@@ -91,6 +90,7 @@ class Camera:
         self.encoders = {'stream': MJPEGEncoder(bitrate=STREAM_BITRATE), 'record': H264Encoder()}
         self.streaming_output = StreamingOutput()
         self.framecount = 0
+        self.started = None
         self.picam2.configure(self.configurations["still"][0])
         self.picam2.pre_callback = self._increase_frame_count
         logging.info(pformat(self.picam2.camera_configuration()))
@@ -316,6 +316,7 @@ class Camera:
             self._start_stream_encoder()
             logging.info("Streaming started.")
             self.picam2.start()
+            self.started = time.time()
         else:
             self._start_stream_encoder(lores=True)
             logging.info("Streaming started.")
@@ -339,6 +340,10 @@ class Camera:
         logging.info("Streaming stopped.")
         if not self._encoders_running():
             self.picam2.stop()
+            elapsed = time.time() - self.started
+            framerate = self.framecount / elapsed
+            print(f"Frames: {self.framecount} Time: {elapsed} Framerate: {framerate}")
+            self.framecount = None
             logging.info("Configure to still.")
             self.picam2.configure(self.configurations['still'][0])
         return True
