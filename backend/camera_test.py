@@ -20,13 +20,13 @@ class FrameRateTests(unittest.TestCase):
         t1.start()
         time.sleep(10)
         camera.preview_stop()
+        camera.close()
         t1.join()
         print(f"{self.framecount} frames in 10 seconds")
         self.assertTrue(self.framecount > 275)
         self.assertTrue(self.framecount < 300)
         self.framecount = 0
-        camera.close()
-        time.sleep(1)
+        
     
     def test_framerate_50(self):
         camera = Camera()
