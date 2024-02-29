@@ -11,7 +11,7 @@ class FrameRateTests(unittest.TestCase):
         global framecount
         framecount += 1
 
-    def streamFrameRate(self):
+    def test_framerate(self):
         self.camera = Camera()
         self.camera.picam2.pre_callback = self._increase_frame_count
 
