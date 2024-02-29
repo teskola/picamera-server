@@ -18,7 +18,7 @@ class FrameRateTests(unittest.TestCase):
     def test_framerate_50(self):
         picam2 = Picamera2()
         picam2.pre_callback = self._increase_frame_count
-        picam2.video_configuration.controls.FrameRate = 25.0        
+        picam2.video_configuration.controls.FrameRate = 30.0        
         picam2.start()
         time.sleep(10)
         picam2.stop()
