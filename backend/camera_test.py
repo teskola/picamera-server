@@ -1,12 +1,10 @@
 import unittest
-import threading
+from threading import Thread, sleep
 import time
 import io
-import sched
 from camera import Camera
 from picamera2 import Picamera2
 from libcamera import controls
-from apscheduler.schedulers import BackgroundScheduler
 
 class FrameRateTests(unittest.TestCase):
 
@@ -27,11 +25,9 @@ class FrameRateTests(unittest.TestCase):
         picam2 = Picamera2()
         picam2.configure(picam2.create_still_configuration())
         picam2.start()
-        sched = BackgroundScheduler()
-        sched.start()
-        sched.add_interval_job(self._capture_jpg, seconds = 1)  
-        time.sleep(10)      
-        sched.shutdown()        
+        for i in range(10):
+            Thread(target=self._capture_jpg).start()
+            sleep(1)                      
         picam2.close()
         self.assertEqual(self.framecount, 10)
         self.captured_images = 0
