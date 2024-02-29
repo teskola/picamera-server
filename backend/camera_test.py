@@ -11,27 +11,26 @@ class FrameRateTests(unittest.TestCase):
     def __init__(self, methodName: str = "runTest") -> None:
         self.framecount = 0
         self.captured_images = 0
+        self.picam2 = Picamera2()
         super().__init__(methodName)    
 
     def _increase_frame_count(self, request):        
         self.framecount += 1   
     
-    def _capture_jpg(self, picam2):
+    def _capture_jpg(self):
         data = io.BytesIO()
-        picam2.capture_file(data, format='jpeg')
+        self.picam2.capture_file(data, format='jpeg')
         self.captured_images += 1
         
     def test_fast_capture(self):
-        picam2 = Picamera2()
-        picam2.configure(picam2.create_still_configuration())
-        picam2.start()
+        self.picam2.configure(self.picam2.create_still_configuration())
+        self.picam2.start()
         for i in range(10):
-            Thread(target=self._capture_jpg, args=(picam2)).start()
+            Thread(target=self._capture_jpg).start()
             sleep(1)                      
-        picam2.close()
+        self.picam2.close()
         self.assertEqual(self.framecount, 10)
         self.captured_images = 0
-        picam2.close()
     
     def test_framerate_30(self):
         camera = Camera()
