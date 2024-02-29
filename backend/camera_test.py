@@ -25,7 +25,7 @@ class FrameRateTests(unittest.TestCase):
         
     def test_fast_capture(self):
         self.picam2 = Picamera2()
-        self.picam2.configure(self.picam2.create_still_configuration(main={"size": (2028, 1520)}))
+        self.picam2.configure(self.picam2.create_still_configuration(main={"size": (1332, 990)}))
         self.picam2.start()
         interval = 0.2
 
