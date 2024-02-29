@@ -5,11 +5,12 @@ from camera import Camera
 
 class FrameRateTests(unittest.TestCase):
 
-    framecount = 0
+    def __init__(self, methodName: str = "runTest") -> None:
+        self.framecount = 0
+        super().__init__(methodName)    
 
-    def _increase_frame_count(self, request):
-        global framecount
-        framecount += 1
+    def _increase_frame_count(self, request):        
+        self.framecount += 1
 
     def test_framerate(self):
         self.camera = Camera()
