@@ -80,7 +80,7 @@ class Camera:
                         main={"size": (2028, 1520)},
                         lores={},
                         queue=False,
-                        controls={'FrameDurationLimits': (1000000, 1000000)}
+                        controls={'FrameDurationLimits': (500000, 500000)}
                     ),
                 'fast':
                     self.picam2.create_still_configuration(
