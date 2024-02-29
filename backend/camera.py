@@ -251,13 +251,11 @@ class Camera:
             self.picam2.start()
         data = []
         time.sleep(5)
-        self.framecount = 0
         for i in range(count):
             data.append(self.capture_fast())
             meta_data = self.picam2.capture_metadata()
-            pformat(meta_data)
+            logging.info(pformat(meta_data))
         self.picam2.stop() 
-        self.framecount = 0
         
         if stream_paused:
             self._preview_resume()
