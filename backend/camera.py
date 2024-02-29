@@ -107,7 +107,7 @@ class Camera:
         self.video = Video()
         self.lock = Lock()
         self.framecount = 0
-        self.camera.picam2.pre_callback = self._increase_frame_count
+        self.picam2.pre_callback = self._increase_frame_count
     
     def _encoders_running(self) -> bool:
         return len(self.picam2.encoders) > 0
