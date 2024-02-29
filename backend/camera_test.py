@@ -6,7 +6,7 @@ import sched
 from camera import Camera
 from picamera2 import Picamera2
 from libcamera import controls
-from apscheduler.schedulers import Scheduler
+from apscheduler.schedulers import BackgroundScheduler
 
 class FrameRateTests(unittest.TestCase):
 
@@ -27,7 +27,7 @@ class FrameRateTests(unittest.TestCase):
         picam2 = Picamera2()
         picam2.configure(picam2.create_still_configuration())
         picam2.start()
-        sched = Scheduler()
+        sched = BackgroundScheduler()
         sched.start()
         sched.add_interval_job(self._capture_jpg, seconds = 1)  
         time.sleep(10)      
