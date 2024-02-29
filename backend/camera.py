@@ -85,7 +85,7 @@ class Camera:
                         main={"size": (1332, 990)},
                         raw={"size": (1332, 990), "format": "SRGGB10_CSI2P"},
                         controls={'NoiseReductionMode': controls.draft.NoiseReductionModeEnum.Fast,                                  
-                                  'FrameDurationLimits': (62500, 62500)}
+                                  'FrameDurationLimits': (125000, 125000)}
                     )
             }           
         }    
@@ -102,8 +102,8 @@ class Camera:
         logging.info(pformat(self.picam2.camera_configuration()))
         self.video = Video()
         self.lock = Lock()
-        self.framecount = 0
-        self.picam2.pre_callback = self._increase_frame_count
+        #self.framecount = 0
+        #self.picam2.pre_callback = self._increase_frame_count
     
     def _encoders_running(self) -> bool:
         return len(self.picam2.encoders) > 0
@@ -245,12 +245,12 @@ class Camera:
             self.picam2.start()
         data = []
         time.sleep(5)
-        self.framecount = 0
+        #self.framecount = 0
         for i in range(count):
             data.append(self.capture_fast())
-            print(f'Frame : {self.framecount}')
+            #print(f'Frame : {self.framecount}')
         self.picam2.stop() 
-        self.framecount = 0
+        #self.framecount = 0
         if stream_paused:
             self._preview_resume()
         else:            
