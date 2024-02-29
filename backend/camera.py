@@ -25,9 +25,9 @@ class Video:
 
     def release(self) -> io.BytesIO:
         self.data.seek(0)
-        result = self.data.copy()
-        self.data.truncate()
-        return result
+        #result = self.data
+        #self.data.truncate()
+        return self.data
    
 # https://github.com/raspberrypi/picamera2/blob/main/examples/mjpeg_server_2.py
 
