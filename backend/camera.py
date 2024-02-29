@@ -225,7 +225,7 @@ class Camera:
             return configs[3]
     
     
-    def capture_timelapse(self, interval=1000, count=10):
+    def capture_timelapse(self, interval=500, count=10):
 
         paused_encoders = self.picam2.encoders.copy()
 
@@ -267,11 +267,11 @@ class Camera:
         # Give time for Aec and Awb to settle, before disabling them
         time.sleep(1)
         logging.info("Disable aec and awb.")
-        self.picam2.still_configuration.controls.NoiseReductionMode = controls.draft.NoiseReductionModeEnum.Fast
-        self.picam2.still_configuration.controls.AeEnable = False
-        self.picam2.still_configuration.controls.AwbEnable = False
-        self.picam2.still_configuration.controls.FrameDurationLimits = (interval * 1000, interval * 1000)
-        
+        # Framerate is doubled, no idea why. So multiply with 500 instead of 1000.
+        self.picam2.set_controls({"NoiseReductionMode": controls.draft.NoiseReductionModeEnum.Fast, 
+                                  "AeEnable": False, 
+                                  "AwbEnable": False, 
+                                  "FrameDurationLimits": (interval * 500, interval * 500)})
         # And wait for those settings to take effect
         time.sleep(1)  
         logging.info(self.picam2.camera_configuration())
