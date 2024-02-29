@@ -247,7 +247,7 @@ class Camera:
             self.picam2.start()
         data = [io.BytesIO()] * count
         for i in range(count):
-            Thread(target=self.capture_fast, args=[data[i]]).start()            
+            self.capture_fast(data[i])
             #time.sleep(interval)  
         for i in range(count):
             data[i].seek(0)
