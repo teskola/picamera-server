@@ -2,7 +2,8 @@ import logging
 import io
 import time
 from pprint import pformat
-from threading import Condition, Lock, Thread
+from threading import Condition, Lock
+import concurrent.futures
 from libcamera import controls
 from picamera2 import Picamera2
 from picamera2.encoders import MJPEGEncoder, H264Encoder
@@ -246,11 +247,14 @@ class Camera:
             if interval < 3:
                 self.picam2.configure(config)            
             self.picam2.start()
-        data = [io.BytesIO()] * count
+        data = []
         for i in range(count):
-            Thread(target=self.capture_fast, args=(data, i,)).start()
-            time.sleep(interval) 
-        self.picam2.stop()
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(self.capture_fast)
+                data.append(future.result())          
+                time.sleep(interval) 
+        self.picam2.stop() 
+        
         if stream_paused:
             self._preview_resume()
         """ else:
@@ -263,8 +267,12 @@ class Camera:
              
 
 
-    def capture_fast(self, data, index) -> io.BytesIO:        
-        self.picam2.capture_file(data[index], format='jpeg')
+    def capture_fast(self) -> io.BytesIO:    
+        data = io.BytesIO()    
+        self.picam2.capture_file(data, format='jpeg')
+        data.seek(0)
+        return data
+
 
     def preview_start(self) -> bool:
         if self.encoders["stream"] in self.picam2.encoders:
