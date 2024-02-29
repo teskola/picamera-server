@@ -18,7 +18,7 @@ class FrameRateTests(unittest.TestCase):
     def test_framerate_50(self):
         picam2 = Picamera2()
         picam2.pre_callback = self._increase_frame_count
-        config = picam2.create_preview_configuration(raw=picam2.sensor_modes[0])
+        config = picam2.create_still_configuration(raw=picam2.sensor_modes[0])
         picam2.set_controls({"NoiseReductionMode": controls.draft.NoiseReductionModeEnum.Fast, 
                                   "AeEnable": False, 
                                   "AwbEnable": False, 
@@ -44,7 +44,7 @@ class FrameRateTests(unittest.TestCase):
         t1.join()
         print(f"{self.framecount} frames in 10 seconds")
         self.assertGreater(self.framecount, 275)
-        self.assertLess(self.framecount < 300)
+        self.assertLess(self.framecount, 300)
         self.framecount = 0
 
     
