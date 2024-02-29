@@ -18,8 +18,7 @@ class FrameRateTests(unittest.TestCase):
         self.framecount += 1   
     
     def _capture_jpg(self):
-        data = io.BytesIO
-        self.camera.picam2.capture_file(data, format='jpeg')
+        self.camera.capture_still()
         self.captured_images += 1
         
         
