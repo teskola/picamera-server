@@ -90,12 +90,12 @@ class Camera:
         self.configurations = self._create_configurations()
         self.encoders = {'stream': MJPEGEncoder(bitrate=STREAM_BITRATE), 'record': H264Encoder()}
         self.streaming_output = StreamingOutput()
+        self.framecount = 0
         self.picam2.configure(self.configurations["still"][0])
         self.picam2.pre_callback(self._increase_frame_count())
         logging.info(pformat(self.picam2.camera_configuration))
         self.video = Video()
         self.lock = Lock()
-        self.framecount = 0
     
     def _encoders_running(self) -> bool:
         return len(self.picam2.encoders) > 0
