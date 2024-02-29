@@ -239,13 +239,10 @@ class Camera:
                 self.picam2.configure(config)            
             self.picam2.start()
         data = [io.BytesIO()] * count
-        threads = [None] * count
         for i in range(count):
-            threads[i] = Thread(target=self.capture_fast, args=(data[i]))             
-            time.sleep(interval)
-        for i in range(len(threads)):
-            threads[i].join()
-        for i in range(count):            
+            Thread(target=self.capture_fast, args=(data[i])).start()            
+            time.sleep(interval)  
+        for i in range(count):
             data[i].seek(0)
         if stream_paused:
             self._preview_resume()
