@@ -77,6 +77,7 @@ class Camera:
                 'half':
                     self.picam2.create_still_configuration(
                         main={"size": (2028, 1520)},
+                        queue=False,
                         controls={'NoiseReductionMode': controls.draft.NoiseReductionModeEnum.Fast,
                                   'AwbEnable': False,
                                   'AeEnable': False,
@@ -85,6 +86,7 @@ class Camera:
                 'fast':
                     self.picam2.create_still_configuration(
                         main={"size": (1332, 990)},
+                        queue=False,
                         raw={"size": (1332, 990), "format": "SRGGB10_CSI2P"},
                         controls={'NoiseReductionMode': controls.draft.NoiseReductionModeEnum.Off,
                                   'AwbEnable': False,
