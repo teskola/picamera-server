@@ -23,7 +23,7 @@ class FrameRateTests(unittest.TestCase):
         picam2.set_controls({"NoiseReductionMode": controls.draft.NoiseReductionModeEnum.Fast, 
                                   "AeEnable": False, 
                                   "AwbEnable": False, 
-                                  "FrameDurationLimits": (1000000, 1000000)})
+                                  "FrameRate": 1.0})
         picam2.configure(config)
         time.sleep(1)
         picam2.start()
