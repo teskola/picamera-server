@@ -53,8 +53,10 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             data = camera.capture_timelapse(1,10)
             camera.lock.release()
             response = []
-            for i in data:
+            i = 0
+            while i < len(data):
                 response.append(minio.upload_image(data[i], f'timelapse/capture{i}'))
+                i = i + 1                
             json_string = json.dumps(response)
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
