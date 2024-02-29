@@ -238,7 +238,7 @@ class Camera:
             logging.info("Configure to still.")
             self.picam2.switch_mode(config)
         else:
-            if interval < 3:
+            if interval < 30:
                 self.picam2.configure(config)            
             self.picam2.start()
         data = []
@@ -252,7 +252,7 @@ class Camera:
         if stream_paused:
             self._preview_resume()
         else:            
-            if interval < 3:
+            if interval < 30:
                 self.picam2.configure(self.configurations['still']['full']) 
             
         return data
