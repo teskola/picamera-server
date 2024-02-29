@@ -31,6 +31,7 @@ class FrameRateTests(unittest.TestCase):
         sleep(interval)                     
         self.assertEqual(self.captured_images, 10)
         self.captured_images = 0
+        self.camera.picam2.close()
     
     def test_framerate_30(self):
         self.camera = Camera()
