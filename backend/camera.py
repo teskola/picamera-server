@@ -219,7 +219,7 @@ class Camera:
             return configs[3]
     
     
-    def capture_timelapse(self, interval=45, count=50):
+    def capture_timelapse(self, interval=1, count=10):
 
         paused_encoders = self.picam2.encoders.copy()
 
@@ -261,7 +261,7 @@ class Camera:
         # Give time for Aec and Awb to settle, before disabling them
         time.sleep(1)
         logging.info("Disable aec and awb.")
-        self.picam2.set_controls({"NoiseReductionMode": controls.draft.NoiseReductionModeEnum.Fast, 
+        self.picam2.set_controls({"NoiseReductionMode": controls.draft.NoiseReductionModeEnum.Off, 
                                   "AeEnable": False, 
                                   "AwbEnable": False, 
                                   "FrameDurationLimits": (interval * 1000, interval * 1000)})
@@ -272,7 +272,8 @@ class Camera:
         start_time = time.time()
         for i in range(0, count ):
             bytes = io.BytesIO()
-            array = self.picam2.capture_array("raw")            
+            array = self.picam2.capture_array("raw")
+            #logging.info(f"Captured image {i+1} of {count} at {time.time() - start_time:.2f}s")            
             data.append(array[1])        
         logging.info(f"Captured images {time.time() - start_time:.2f}s")
         self.picam2.stop()
@@ -290,7 +291,7 @@ class Camera:
             self.picam2.start()
         else:
             logging.info("Configure to still.")
-            self.picam2.configure(self.configurations["still"][3])
+            self.picam2.configure(self.configurations["still"][0])
 
         return data       
 
@@ -329,7 +330,7 @@ class Camera:
         if not self._encoders_running():
             self.picam2.stop()
             logging.info("Configure to still.")
-            self.picam2.configure(self.configurations['still'][3])
+            self.picam2.configure(self.configurations['still'][0])
         return True
     
 
