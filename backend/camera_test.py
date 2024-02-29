@@ -26,14 +26,10 @@ class FrameRateTests(unittest.TestCase):
         
     def test_fast_capture(self):        
         self.camera = Camera()
-        interval = 1
-        self.camera.picam2.start()
-        for i in range(10):
-            Thread(target=self._capture_jpg).start()
-            sleep(interval) 
-        sleep(interval)                     
-        self.assertEqual(self.captured_images, 10)
-        self.captured_images = 0
+        result = self.camera.capture_timelapse(1, 10)
+        self.assertEqual(len(result), 10)
+        for image in result:
+            self.assertGreater(len(image.getvalue()), 0)        
         self.camera.picam2.close()
     
     def test_framerate_30(self):
