@@ -248,13 +248,15 @@ class Camera:
         data = [io.BytesIO()] * count
         for i in range(count):
             self.capture_fast(data[i])
-            #time.sleep(interval)  
+            time.sleep(interval)  
         for i in range(count):
             data[i].seek(0)
+        self.picam2.stop()
         if stream_paused:
             self._preview_resume()
         else:
-            self.picam2.stop()
+            if interval < 3:
+                self.picam2.configure(self.configurations['still']['full']) 
         return data
              
 
