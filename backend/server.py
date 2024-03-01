@@ -7,10 +7,10 @@ from picamera2.encoders import Quality
 from minio_client import MinioClient
 from camera import Camera
 
-""" logging.basicConfig(
+logging.basicConfig(
     format='%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s',
     level=logging.INFO,
-    datefmt='%Y-%m-%d %H:%M:%S') """
+    datefmt='%Y-%m-%d %H:%M:%S')
 
 camera = Camera()
 minio = MinioClient()
@@ -51,7 +51,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.wfile.write(json_string.encode(encoding='utf_8'))
         elif self.path == '/timelapse':
             camera.lock.acquire()
-            data = camera.capture_timelapse(0.20,100)
+            data = camera.capture_timelapse(0.25,100)
             camera.lock.release()
             response = []
             i = 0
