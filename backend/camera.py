@@ -225,12 +225,18 @@ class Camera:
             logging.info("Streaming paused.")            
                  
         logging.info("Configure to timelapse.") 
-        self.picam2.configure(config)            
+        self.picam2.configure(config)  
+        if stream_paused:
+            self._start_stream_encoder()
+            logging.info("Streaming resumed.")
         self.picam2.start()
         data = []
         time.sleep(2)
         for i in range(count):
             data.append(self.capture_fast())
+        if stream_paused:
+            self.picam2.stop_encoder()
+            logging.info("Streaming paused.")
         self.picam2.stop() 
         if stream_paused:
             self._preview_resume()
@@ -264,8 +270,7 @@ class Camera:
     def _preview_resume(self):
         if not self._encoders_running():
             logging.info("Configure to stream.")
-            self.picam2.configure(self.configurations['video']['240p'])
-            logging.info(pformat(self.picam2.camera_configuration()))
+            self.picam2.configure(self.configurations['video']['240p'])            
         self._start_stream_encoder()
         logging.info("Streaming resumed.")
 
