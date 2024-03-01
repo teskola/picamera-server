@@ -228,7 +228,7 @@ class Camera:
                  
         logging.info("Configure to timelapse.") 
         self.picam2.configure(config)  
-        if (stream_paused and interval < 1):
+        if stream_paused and (interval < 1):
             self._start_stream_encoder(lores=True)
             logging.info("Streaming resumed.")
         self.picam2.start()
@@ -236,7 +236,7 @@ class Camera:
         time.sleep(2)
         for i in range(count):
             data.append(self.capture_fast())
-        if (stream_paused and interval < 1):
+        if stream_paused and (interval < 1):
             self.picam2.stop_encoder()
             logging.info("Streaming paused.")
         self.picam2.stop() 
