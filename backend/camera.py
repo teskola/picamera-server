@@ -204,9 +204,10 @@ class Camera:
         limit = int(500000 * interval)
 
         if interval < 1:
-            config = self.picam2.create_still_configuration(
+            config = self.picam2.create_video_configuration(
                 main={"size": (1332, 990)},
                 raw={"size": (1332, 990), "format": "SRGGB10_CSI2P"},
+                lores={"size": Resolutions.STREAM_4_3}
                 buffer_count = 1,
                 controls={'NoiseReductionMode': controls.draft.NoiseReductionModeEnum.Fast,                                  
                     'FrameDurationLimits': (limit, limit)}
@@ -228,7 +229,7 @@ class Camera:
                  
         logging.info("Configure to timelapse.") 
         self.picam2.configure(config)  
-        if stream_paused and interval >= 1:
+        if stream_paused:
             self._start_stream_encoder(lores=True)
             logging.info("Streaming resumed.")
         self.picam2.start()
@@ -236,7 +237,7 @@ class Camera:
         time.sleep(2)
         for i in range(count):
             data.append(self.capture_fast())
-        if stream_paused and interval >= 1:
+        if stream_paused:
             self.picam2.stop_encoder()
             logging.info("Streaming paused.")
         self.picam2.stop() 
