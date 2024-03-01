@@ -207,7 +207,6 @@ class Camera:
             config = self.picam2.create_still_configuration(
                 main={"size": (1332, 990)},
                 raw={"size": (1332, 990), "format": "SRGGB10_CSI2P"},
-                buffer_count = 1,
                 controls={'NoiseReductionMode': controls.draft.NoiseReductionModeEnum.Fast,                                  
                     'FrameDurationLimits': (limit, limit)}
             )
