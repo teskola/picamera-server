@@ -204,7 +204,7 @@ class Camera:
         limit = 500000 * interval
 
         if interval < 1:
-            config = self.picam2.create_video_configuration(
+            config = self.picam2.create_still_configuration(
                 main={"size": (1332, 990)},
                 raw={"size": (1332, 990), "format": "SRGGB10_CSI2P"},
                 buffer_count = 1,
