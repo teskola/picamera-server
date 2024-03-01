@@ -201,7 +201,7 @@ class Camera:
         
         # For some reason half framelimit length gives correct framerate. Dunno why.
 
-        limit = int(500000 * interval)
+        limit = int(1000000 * interval)
 
         if interval < 1:
             config = self.picam2.create_video_configuration(
@@ -216,7 +216,7 @@ class Camera:
             config = self.picam2.create_video_configuration(
                 main={"size": (2028, 1520)},
                 lores={"size": Resolutions.STREAM_4_3},
-                buffer_count = 2,
+                buffer_count = 10,
                 controls={'FrameDurationLimits': (limit, limit)}
             )
        
