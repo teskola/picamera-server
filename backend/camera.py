@@ -212,8 +212,9 @@ class Camera:
                     'FrameDurationLimits': (limit, limit)}
             )
         else:
-            config = self.picam2.create_still_configuration(
+            config = self.picam2.create_video_configuration(
                 main={"size": (2028, 1520)},
+                buffer_count = 1,
                 controls={'FrameDurationLimits': (limit, limit)}
             )
        
