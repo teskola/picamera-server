@@ -197,9 +197,7 @@ class Camera:
         
         if self.recording_running():
             logging.warn("Timelapse cancelled: Recording running")
-            return       
-        
-        # For some reason half framelimit length gives correct framerate. Dunno why.
+            return
 
         limit = int(1000000 * interval)
 
@@ -208,7 +206,7 @@ class Camera:
                 main={"size": (1332, 990)},
                 raw={"size": (1332, 990), "format": "SRGGB10_CSI2P"},
                 lores={"size": Resolutions.STREAM_4_3},
-                buffer_count = 10,
+                buffer_count = 6,
                 controls={'NoiseReductionMode': controls.draft.NoiseReductionModeEnum.Fast,                                  
                     'FrameDurationLimits': (limit, limit)}
             )
@@ -216,7 +214,7 @@ class Camera:
             config = self.picam2.create_video_configuration(
                 main={"size": (2028, 1520)},
                 lores={"size": Resolutions.STREAM_4_3},
-                buffer_count = 10,
+                buffer_count = 6,
                 controls={'FrameDurationLimits': (limit, limit)}
             )
        
@@ -232,15 +230,16 @@ class Camera:
         if stream_paused:
             self._start_stream_encoder(lores=True)
             logging.info("Streaming resumed.")
+        #self.picam2.options["quality"]=80
         self.picam2.start()
         data = []
-        time.sleep(2)
         for i in range(count):
             data.append(self.capture_fast())
         if stream_paused:
             self.picam2.stop_encoder()
             logging.info("Streaming paused.")
         self.picam2.stop() 
+        self.picam2.options["quality"]=95
         if stream_paused:
             self._preview_resume()
             self.picam2.start()
