@@ -51,7 +51,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.wfile.write(json_string.encode(encoding='utf_8'))
         elif self.path == '/timelapse':
             camera.lock.acquire()
-            data = camera.capture_timelapse(0.25,100)
+            data = camera.capture_timelapse(0.20,100)
             camera.lock.release()
             response = []
             i = 0

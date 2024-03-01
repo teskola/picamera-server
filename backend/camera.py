@@ -208,7 +208,7 @@ class Camera:
                 main={"size": (1332, 990)},
                 raw={"size": (1332, 990), "format": "SRGGB10_CSI2P"},
                 lores={"size": Resolutions.STREAM_4_3},
-                buffer_count = 1,
+                buffer_count = 10,
                 controls={'NoiseReductionMode': controls.draft.NoiseReductionModeEnum.Fast,                                  
                     'FrameDurationLimits': (limit, limit)}
             )
@@ -216,7 +216,7 @@ class Camera:
             config = self.picam2.create_video_configuration(
                 main={"size": (2028, 1520)},
                 lores={"size": Resolutions.STREAM_4_3},
-                buffer_count = 1,
+                buffer_count = 2,
                 controls={'FrameDurationLimits': (limit, limit)}
             )
        
