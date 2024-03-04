@@ -59,7 +59,10 @@ class StreamingOutput(io.BufferedIOBase):
             self.condition.notify_all()
 
 class Camera:
-    
+
+    def _increase_framecount(self, request):
+        self.framecount +=1       
+        
     def _create_configurations(self):       
        
         return {
@@ -104,6 +107,7 @@ class Camera:
     def __init__(self) -> None:
         self.picam2 = Picamera2()
         self.framecount = 0
+        self.picam2.pre_callback = self._increase_framecount
         self.configurations = self._create_configurations()
         self.encoders = {'preview': MJPEGEncoder(bitrate=STREAM_BITRATE), 'video': H264Encoder()}
         self.streaming_output = StreamingOutput()
@@ -245,10 +249,11 @@ class Camera:
         metadata = Metadata(self.picam2.capture_metadata())
         logging.info(repr(metadata))
         data = [io.BytesIO()] * count
-        for i in range (count):
+        while i < count:
             frame += 1
             if ((frame % (interval * 10)) == 0):
-                data[i] = self.capture_fast()
+                self.picam2.capture_file(data[i], format='jpeg')
+                data.seek(0)
                 Thread(target=upload, args=(data[i], f'timelapse/capture{i}',)).start()
                 i += 1
         if stream_paused:
