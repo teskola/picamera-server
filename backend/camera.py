@@ -243,7 +243,6 @@ class Camera:
         data = [io.BytesIO()] * count
         while i < count:
             frame += 1
-            logging.info(f"Frame: {frame}")
             if ((frame % (interval * 10)) == 0):
                 data[i] = self.capture_fast()
                 Thread(target=upload, args=(data[i], f'timelapse/capture{i}',)).start()
