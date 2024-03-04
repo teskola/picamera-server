@@ -41,6 +41,7 @@ def set_capture_timer(interval : float, name : str, _limit : int = 0):
     limit = _limit
     if scheduler.empty():
         capture_timer = scheduler.enter(interval, 1, capture_and_upload, argument=(name))
+        scheduler.run()
 
 def stop_capture_timer():
     global capture_timer, count, limit
