@@ -90,14 +90,14 @@ class Camera:
                     self.picam2.create_still_configuration(
                     main={"size": Resolutions.HALF},
                     lores={"size": Resolutions.STREAM_4_3},
-                    controls={"FrameDurationLimits": (100000, 100000)},
+                    controls={"FrameDurationLimits": (1000000, 1000000)},
                     buffer_count = 6
                 ),
                 'full':
                    self.picam2.create_still_configuration(
                     main={"size": Resolutions.FULL},
                     lores={"size": Resolutions.STREAM_4_3},
-                    controls={"FrameDurationLimits": (100000, 100000)},
+                    controls={"FrameDurationLimits": (1000000, 1000000)},
                     buffer_count = 6
                    )               
                 
