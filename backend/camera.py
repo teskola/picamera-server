@@ -236,8 +236,7 @@ class Camera:
             stream_paused = True
             logging.info("Streaming paused.")            
                  
-        logging.info("Configure to timelapse.") 
-        self.picam2.configure(self.configurations["still"]["half"])
+        
         if stream_paused:
             self._start_preview_encoder()
             logging.info("Streaming resumed.")
@@ -258,9 +257,7 @@ class Camera:
         if stream_paused:
             self._preview_resume()
             self.picam2.start()
-        else:            
-            self.picam2.configure(self.configurations['still']) 
-            
+                    
              
     def capture_fast(self) -> io.BytesIO:    
         data = io.BytesIO()    
