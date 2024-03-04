@@ -34,7 +34,7 @@ def capture_and_upload(name):
         data = camera.capture_still()
         camera.lock.release()
         count += 1
-        Thread(target=minio.upload_image, args=(data, name,)).start()
+        #Thread(target=minio.upload_image, args=(data, name,)).start()
 
 def set_capture_timer(interval : float, name : str, _limit : int = 0):
     global limit, capture_timer
