@@ -1,7 +1,10 @@
 import logging
 import socketserver
 import json
+import sched
+import time
 from http import server
+from threading import Lock
 from picamera2.encoders import Quality
 
 from minio_client import MinioClient
@@ -12,18 +15,44 @@ logging.basicConfig(
     level=logging.INFO,
     datefmt='%Y-%m-%d %H:%M:%S')
 
+scheduler = sched.scheduler(time.time, time.sleep)
+capture_timer = None
+count = 0
+limit = 0
+lock = Lock()
 camera = Camera()
 minio = MinioClient()
 stream_clients = set()
 
+def capture_and_upload(name):
+    global count
+    if limit > 0 and count >= limit:
+        stop_capture_timer()
+
+    else:
+        camera.lock.acquire()
+        data = camera.capture_still()
+        camera.lock.release()
+        count += 1
+        return minio.upload_image(data, name)       
+
+def set_capture_timer(interval : float, name : str, _limit : int = 0):
+    global limit, capture_timer
+    limit = _limit
+    if scheduler.empty():
+        capture_timer = scheduler.enter(interval, 1, capture_and_upload, argument=(name))
+
+def stop_capture_timer():
+    global capture_timer, count, limit
+    scheduler.cancel(capture_timer)
+    capture_timer = None
+    count = 0
+    limit = 0
+
 class StreamingHandler(server.BaseHTTPRequestHandler):
     
-    def do_GET(self):
-        if self.path == '/':
-            self.send_response(301)
-            self.send_header('Location', '/stream.mjpg')
-            self.end_headers()
-        elif self.path == '/video_start':            
+    def do_GET(self):        
+        if self.path == '/video_start':            
             self.send_response(200)
             self.end_headers()
             camera.lock.acquire()
@@ -120,4 +149,5 @@ def run_server():
         camera.stop()        
 
 if __name__ == "__main__":
+    set_capture_timer(5.0, "testi", 5)
     run_server()
