@@ -253,7 +253,7 @@ class Camera:
             frame += 1
             if ((frame % (interval * 10)) == 0):
                 self.picam2.capture_file(data[i], format='jpeg')
-                data.seek(0)
+                data[i].seek(0)
                 Thread(target=upload, args=(data[i], f'timelapse/capture{i}',)).start()
                 i += 1
         if stream_paused:
