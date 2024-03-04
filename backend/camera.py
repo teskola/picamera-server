@@ -3,7 +3,7 @@ import io
 import time
 import copy
 from pprint import pformat
-from threading import Condition, Lock
+from threading import Condition, Lock, Thread
 from libcamera import controls
 from picamera2 import Picamera2
 from picamera2.encoders import MJPEGEncoder, H264Encoder
@@ -11,18 +11,34 @@ from picamera2.outputs import FileOutput
 
 STREAM_BITRATE = 2400000
 
+def interval_to_fps(interval):
+    pass 
+
 class Resolutions:
+    FULL = (4056, 3040)
+    HALF = (2028, 1520)
+    LOW = (1332, 990)
     STREAM_16_9 = (426, 240)
     STREAM_4_3 = (320, 240)
     P480 = (640, 480)
     P720 = (1280, 720)
     P1080 = (1920, 1080)
 
+class Timelapse:
+    def __init__(self, resolution : int, interval: int, count : int, start) -> None:
+        self.resolution = resolution
+        self.interval = interval
+        self.count = count
+        self.start = start
+    
+    def start(self):
+        self.start()
+
 class Video:
-    def __init__(self) -> None:
+    def __init__(self, resolution, quality) -> None:
+        self.resolution = resolution
+        self.quality = quality
         self.data = io.BytesIO()
-        self.resolution = None
-        self.quality = None
 
     def release(self) -> io.BytesIO:
         self.data.seek(0)
@@ -42,17 +58,16 @@ class StreamingOutput(io.BufferedIOBase):
             self.frame = buf
             self.condition.notify_all()
 
-class Camera:    
+class Camera:
+
+    def _increase_framecount(self, request):
+        self.framecount +=1       
     
     def _create_configurations(self):       
        
         return {
             'video': 
-            {
-                '240p':
-                    self.picam2.create_video_configuration(
-                        main={"size": Resolutions.STREAM_4_3},
-                    ),
+            {                
                 '480p':
                     self.picam2.create_video_configuration(
                         main={"size": Resolutions.P480},
@@ -70,45 +85,67 @@ class Camera:
                     ),
             }
             ,
-            'still': 
-                self.picam2.create_still_configuration()
+            'still': {
+                'half':
+                    self.picam2.create_still_configuration(
+                    main={"size": Resolutions.HALF},
+                    lores={"size": Resolutions.STREAM_4_3},
+                    buffer_count = 6
+                ),
+                'full':
+                   self.picam2.create_still_configuration(
+                    main={"size": Resolutions.FULL},
+                    lores={"size": Resolutions.STREAM_4_3},
+                    buffer_count = 6
+                   )               
+                
+            }                          
         }          
             
     def __init__(self) -> None:
         self.picam2 = Picamera2()
+        self.framecount = 0
+        self.picam2.pre_callback = self._increase_framecount
         self.configurations = self._create_configurations()
-        self.encoders = {'stream': MJPEGEncoder(bitrate=STREAM_BITRATE), 'record': H264Encoder()}
+        self.encoders = {'preview': MJPEGEncoder(bitrate=STREAM_BITRATE), 'video': H264Encoder()}
         self.streaming_output = StreamingOutput()
-        self.picam2.configure(self.configurations["still"])
-        self.video = Video()
+        self.picam2.configure(self.configurations["still"]["half"])
+        self.video = None
+        self.timelapse = None
         self.lock = Lock()        
     
     def _encoders_running(self) -> bool:
         return len(self.picam2.encoders) > 0
     
     def preview_running(self) -> bool:
-        return self.encoders["stream"] in self.picam2.encoders
+        return self.encoders["preview"] in self.picam2.encoders
     def recording_running(self) -> bool:
-        return self.encoders["record"] in self.picam2.encoders
+        return self.encoders["video"] in self.picam2.encoders
 
-    def _start_record_encoder(self):
+    def _start_video_encoder(self):
         self.picam2.start_encoder(
-            encoder=self.encoders['record'],
+            encoder=self.encoders['video'],
             output=FileOutput(self.video.data),
             quality=self.video.quality,
             name="main"
         )
 
-    def _start_stream_encoder(self, lores=False):
+    def _start_preview_encoder(self):
         self.picam2.start_encoder(
-            encoder=self.encoders["stream"],
+            encoder=self.encoders["preview"],
             output=FileOutput(self.streaming_output),
-            name="lores" if lores else "main"
+            name="lores"
         )
 
     def stop(self):
         self.picam2.stop_encoder()
         self.picam2.stop()
+    
+    def timelapse_start(self, resolution, interval, count) -> bool:
+        if self.timelapse is not None:
+            return False
+        self.timelapse = Timelapse(resolution, interval, count)
+        
 
     def recording_start(self, resolution, quality) -> bool:
         if self.recording_running():
@@ -125,17 +162,17 @@ class Camera:
         self.picam2.configure(self.configurations["video"][resolution])
         self.video.resolution = resolution
         self.video.quality = quality
-        self._start_record_encoder()
+        self._start_video_encoder()
         logging.info("Recording started.")
         if stream_paused:
-            self._start_stream_encoder(lores=True)
+            self._start_preview_encoder()
             logging.info("Stream resumed.")
         self.picam2.start()
 
     def _recording_resume(self):
         logging.info(f"Configure to {self.video.resolution}")
         self.picam2.configure(self.configurations["video"][self.video.resolution])
-        self._start_record_encoder()
+        self._start_video_encoder()
         logging.info("Recording resumed.")
 
     def recording_stop(self) -> bool:
@@ -145,17 +182,12 @@ class Camera:
         stream_running = self.preview_running()
         self.picam2.stop_encoder()
         self.picam2.stop()
-
         logging.info("Recording stopped.")        
+        logging.info("Configure to still.")
+        self.picam2.configure(self.configurations['still']['half'])
 
-        if not stream_running:
-            logging.info("Configure to still.")
-            self.picam2.configure(self.configurations['still'])
-
-        else:
-            logging.info("Configure to preview.")
-            self.picam2.configure(self.configurations['video']['240p'])
-            self._start_stream_encoder()
+        if stream_running:            
+            self._start_preview_encoder()
             logging.info("Streaming resumed.")
             self.picam2.start()
         return True
@@ -173,9 +205,7 @@ class Camera:
             self.picam2.stop_encoder()
             logging.info("Recording/streaming paused.")
             logging.info("Configure to still.")
-            self.picam2.switch_mode(self.configurations['still'])
-            logging.info(pformat(self.picam2.camera_configuration()))
-
+            self.picam2.switch_mode(self.configurations['still']['full'])
         else:
             self.picam2.start()
 
@@ -193,30 +223,11 @@ class Camera:
         data.seek(0)
         return data  
        
-    def capture_timelapse(self, interval : int, count : int):
+    def capture_timelapse(self, lock : Lock, upload, interval : int, count : int):
         
         if self.recording_running():
             logging.warn("Timelapse cancelled: Recording running")
-            return
-
-        limit = int(1000000 * interval)
-
-        if interval < 1:
-            config = self.picam2.create_video_configuration(
-                main={"size": (1332, 990)},
-                raw={"size": (1332, 990), "format": "SRGGB10_CSI2P"},
-                lores={"size": Resolutions.STREAM_4_3},
-                buffer_count = 6,
-                controls={'NoiseReductionMode': controls.draft.NoiseReductionModeEnum.Fast,                                  
-                    'FrameDurationLimits': (limit, limit)}
-            )
-        else:
-            config = self.picam2.create_video_configuration(
-                main={"size": (2028, 1520)},
-                lores={"size": Resolutions.STREAM_4_3},
-                buffer_count = 6,
-                controls={'FrameDurationLimits': (limit, limit)}
-            )
+            return        
        
         stream_paused = False
         if self.preview_running():
@@ -226,31 +237,35 @@ class Camera:
             logging.info("Streaming paused.")            
                  
         logging.info("Configure to timelapse.") 
-        self.picam2.configure(config)  
+        self.picam2.configure(self.configurations["still"]["half"])
         if stream_paused:
-            self._start_stream_encoder(lores=True)
+            self._start_preview_encoder()
             logging.info("Streaming resumed.")
-        #self.picam2.options["quality"]=80
         self.picam2.start()
-        data = []
-        for i in range(count):
-            data.append(self.capture_fast())
+        lock.release()
+        self.framecount = 0
+        i = 0
+        data = [io.BytesIO()] * count
+        while i < count:        
+            if (self.framecount % (interval * 30)):
+                data[i] = self.capture_fast()
+                i += 1
+                Thread(target=upload, args=(data[i], f'timelapse/capture{i}',)).start()
         if stream_paused:
             self.picam2.stop_encoder()
             logging.info("Streaming paused.")
         self.picam2.stop() 
-        self.picam2.options["quality"]=95
         if stream_paused:
             self._preview_resume()
             self.picam2.start()
         else:            
             self.picam2.configure(self.configurations['still']) 
             
-        return data
              
     def capture_fast(self) -> io.BytesIO:    
         data = io.BytesIO()    
         self.picam2.capture_file(data, format='jpeg')
+        data.seek(0)
         return data
 
 
@@ -258,22 +273,17 @@ class Camera:
         if self.preview_running():
             logging.warn("Stream already running.")
             return False        
-        if not self.recording_running():
-            logging.info("Configure to stream.")
-            self.picam2.configure(self.configurations['video']['240p'])
-            self._start_stream_encoder()
+        if not self.recording_running():            
+            self._start_preview_encoder()
             logging.info("Streaming started.")
             self.picam2.start()
         else:
-            self._start_stream_encoder(lores=True)
+            self._start_preview_encoder()
             logging.info("Streaming started.")
         return True
 
-    def _preview_resume(self):
-        if not self._encoders_running():
-            logging.info("Configure to stream.")
-            self.picam2.configure(self.configurations['video']['240p'])            
-        self._start_stream_encoder()
+    def _preview_resume(self):        
+        self._start_preview_encoder()
         logging.info("Streaming resumed.")
 
 
@@ -287,7 +297,7 @@ class Camera:
         if not self._encoders_running():
             self.picam2.stop()            
             logging.info("Configure to still.")
-            self.picam2.configure(self.configurations['still'])
+            self.picam2.configure(self.configurations['still']['half'])
         return True
     
 
