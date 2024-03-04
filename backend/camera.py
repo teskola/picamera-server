@@ -232,7 +232,8 @@ class Camera:
             logging.info("Streaming resumed.")
         self.picam2.start()
         for i in range(count):
-            Thread(target=self.capture_fast)
+            request = self.picam2.capture_request()
+            Thread(target=self.capture_fast, args=(request, )).start()
         if stream_paused:
             self.picam2.stop_encoder()
             logging.info("Streaming paused.")
@@ -243,10 +244,10 @@ class Camera:
         else:            
             self.picam2.configure(self.configurations['still']) 
                          
-    def capture_fast(self) -> io.BytesIO:    
+    def capture_fast(self, request):    
         data = io.BytesIO()    
-        self.picam2.capture_file(data, format='jpeg')
-        return data
+        request.save("main", FileOutput(data), 'jpeg')
+        request.release()
 
 
     def preview_start(self) -> bool:
