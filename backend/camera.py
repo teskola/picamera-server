@@ -245,9 +245,9 @@ class Camera:
         metadata = Metadata(self.picam2.capture_metadata())
         logging.info(repr(metadata))
         data = [io.BytesIO()] * count
-        while i < count:
+        for i in range (count):
             frame += 1
-            if ((frame % (interval * 30)) == 0):
+            if ((frame % (interval * 10)) == 0):
                 data[i] = self.capture_fast()
                 Thread(target=upload, args=(data[i], f'timelapse/capture{i}',)).start()
                 i += 1
