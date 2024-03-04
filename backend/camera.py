@@ -90,7 +90,7 @@ class Camera:
                     self.picam2.create_still_configuration(
                     main={"size": Resolutions.HALF},
                     lores={"size": Resolutions.STREAM_4_3},
-                    controls={"FrameDurationLimits": (1000000, 1000000)},
+                    controls={"FrameDurationLimits": (333333, 333333)},
                     buffer_count = 6
                 ),
                 'full':
@@ -251,7 +251,7 @@ class Camera:
         data = [io.BytesIO()] * count
         while i < count:
             frame += 1
-            if ((frame % (interval * 10)) == 0):
+            if ((frame % (interval * 30)) == 0):
                 self.picam2.capture_file(data[i], format='jpeg')
                 data[i].seek(0)
                 Thread(target=upload, args=(data[i], f'timelapse/capture{i}',)).start()
