@@ -247,6 +247,7 @@ class Camera:
         data = [io.BytesIO()] * count
         while i < count:        
             if ((self.framecount % (interval * 30)) == 0):
+                logging.info(f"Frame: {self.framecount}")
                 data[i] = self.capture_fast()
                 Thread(target=upload, args=(data[i], f'timelapse/capture{i}',)).start()
                 i += 1
@@ -257,6 +258,7 @@ class Camera:
         if stream_paused:
             self._preview_resume()
             self.picam2.start()
+        self.framecount = 0
                     
              
     def capture_fast(self) -> io.BytesIO:    
