@@ -16,37 +16,37 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S')
 
 scheduler = sched.scheduler(time.time, time.sleep)
-capture_timer = None
+task = None
 count = 0
 limit = 0
+interval = 0
 lock = Lock()
 camera = Camera()
 minio = MinioClient()
 stream_clients = set()
 
 def capture_and_upload(name):
-    global count
-    if limit > 0 and count >= limit:
-        stop_capture_timer()
+    global count, task
+    if limit == 0 or count < limit:
+        task = scheduler.enter(interval, 1, capture_and_upload, argument=(name, ))
+    camera.lock.acquire()
+    data = camera.capture_still()
+    camera.lock.release()
+    count += 1
+    Thread(target=minio.upload_image, args=(data, name,)).start()
 
-    else:
-        camera.lock.acquire()
-        data = camera.capture_still()
-        camera.lock.release()
-        count += 1
-        #Thread(target=minio.upload_image, args=(data, name,)).start()
-
-def set_capture_timer(interval : float, name : str, _limit : int = 0):
-    global limit, capture_timer
+def set_capture_timer(_interval : float, name : str, _limit : int = 0):
+    global limit, interval, task
     limit = _limit
+    interval = _interval
     if scheduler.empty():
-        capture_timer = scheduler.enter(interval, 1, capture_and_upload, argument=(name,))
+        task = scheduler.enter(interval, 1, capture_and_upload, argument=(name,))
         scheduler.run()
 
 def stop_capture_timer():
-    global capture_timer, count, limit
-    scheduler.cancel(capture_timer)
-    capture_timer = None
+    global task, count, limit
+    scheduler.cancel(task)
+    task = None
     count = 0
     limit = 0
 
@@ -150,5 +150,5 @@ def run_server():
         camera.stop()        
 
 if __name__ == "__main__":
-    set_capture_timer(5.0, "testi", 5)
+    set_capture_timer(1.0, "testi", 5)
     run_server()
