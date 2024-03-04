@@ -246,7 +246,7 @@ class Camera:
                          
     def capture_fast(self, request):    
         data = io.BytesIO()    
-        request.save("main", FileOutput(data), 'jpeg')
+        request.save("main", data, 'jpeg')
         request.release()
 
 
