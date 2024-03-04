@@ -4,7 +4,7 @@ import json
 import sched
 import time
 from http import server
-from threading import Lock
+from threading import Lock, Thread
 from picamera2.encoders import Quality
 
 from minio_client import MinioClient
@@ -34,7 +34,7 @@ def capture_and_upload(name):
         data = camera.capture_still()
         camera.lock.release()
         count += 1
-        return minio.upload_image(data, name)       
+        Thread(target=minio.upload_image, args=(data, name,)).start()
 
 def set_capture_timer(interval : float, name : str, _limit : int = 0):
     global limit, capture_timer
