@@ -248,8 +248,8 @@ class Camera:
         while i < count:        
             if (self.framecount % (interval * 30)):
                 data[i] = self.capture_fast()
-                i += 1
                 Thread(target=upload, args=(data[i], f'timelapse/capture{i}',)).start()
+                i += 1
         if stream_paused:
             self.picam2.stop_encoder()
             logging.info("Streaming paused.")
