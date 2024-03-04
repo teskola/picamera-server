@@ -51,7 +51,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.wfile.write(json_string.encode(encoding='utf_8'))
         elif self.path == '/timelapse':
             camera.lock.acquire()
-            camera.capture_timelapse(camera.lock, minio.upload_image,1,100)
+            camera.capture_timelapse(camera.lock, minio.upload_image,1,20)
             self.send_response(200)
             self.end_headers()
         elif self.path == '/stream.mjpg':            
