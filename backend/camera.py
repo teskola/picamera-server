@@ -251,7 +251,7 @@ class Camera:
         data = [io.BytesIO()] * count
         while i < count:
             frame += 1
-            self.picam2.capture_file(data[i], format='jpeg')
+            data[i] = self.capture_fast()
             Thread(target=upload, args=(data[i], f'timelapse/capture{i}',)).start()
             i += 1
         if stream_paused:
