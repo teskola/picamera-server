@@ -3,7 +3,7 @@ import io
 import time
 import copy
 from pprint import pformat
-from threading import Condition, Lock
+from threading import Condition, Lock, Thread
 from libcamera import controls
 from picamera2 import Picamera2
 from picamera2.encoders import MJPEGEncoder, H264Encoder
@@ -230,24 +230,19 @@ class Camera:
         if stream_paused:
             self._start_stream_encoder(lores=True)
             logging.info("Streaming resumed.")
-        #self.picam2.options["quality"]=80
         self.picam2.start()
-        data = []
         for i in range(count):
-            data.append(self.capture_fast())
+            Thread(target=self.capture_fast)
         if stream_paused:
             self.picam2.stop_encoder()
             logging.info("Streaming paused.")
         self.picam2.stop() 
-        self.picam2.options["quality"]=95
         if stream_paused:
             self._preview_resume()
             self.picam2.start()
         else:            
             self.picam2.configure(self.configurations['still']) 
-            
-        return data
-             
+                         
     def capture_fast(self) -> io.BytesIO:    
         data = io.BytesIO()    
         self.picam2.capture_file(data, format='jpeg')

@@ -40,7 +40,7 @@ def set_capture_timer(_interval : float, name : str, _limit : int = 0):
     limit = _limit
     interval = _interval
     if scheduler.empty():
-        task = scheduler.enter(interval, 1, capture_and_upload, argument=(name,))
+        task = scheduler.enter(0, 1, capture_and_upload, argument=(name,))
         scheduler.run()
 
 def stop_capture_timer():
@@ -70,30 +70,25 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                 self.send_response(409)
             self.end_headers()           
         elif self.path == '/still':
-            camera.lock.acquire()
-            data = camera.capture_still()
-            camera.lock.release()
-            response = minio.upload_image(data, 'capture')
-            json_string = json.dumps(response)
+            set_capture_timer(5.0, "testi", 5)
             self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
             self.end_headers()
-            self.wfile.write(json_string.encode(encoding='utf_8'))
         elif self.path == '/timelapse':
             camera.lock.acquire()
-            data = camera.capture_timelapse(0.120,100)
+            camera.capture_timelapse(0.120,100)
             camera.lock.release()
-            response = []
-            i = 0
+
+            """ i = 0
             while i < len(data):
                 data[i].seek(0)
                 response.append(minio.upload_image(data[i], f'timelapse/capture{i}'))
                 i = i + 1                
-            json_string = json.dumps(response)
+            json_string = json.dumps(response) """
+
             self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
+            #self.send_header('Content-Type', 'application/json')
             self.end_headers()
-            self.wfile.write(json_string.encode(encoding='utf_8'))
+            #self.wfile.write(json_string.encode(encoding='utf_8'))
         elif self.path == '/stream.mjpg':            
             if not camera.preview_running():
                 camera.lock.acquire()
@@ -149,6 +144,5 @@ def run_server():
     finally:    
         camera.stop()        
 
-if __name__ == "__main__":
-    set_capture_timer(1.0, "testi", 5)
+if __name__ == "__main__":    
     run_server()
