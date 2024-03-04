@@ -5,7 +5,7 @@ import copy
 from pprint import pformat
 from threading import Condition, Lock, Thread
 from libcamera import controls
-from picamera2 import Picamera2, MetaData
+from picamera2 import Picamera2, Metadata
 from picamera2.encoders import MJPEGEncoder, H264Encoder
 from picamera2.outputs import FileOutput
 
@@ -242,7 +242,7 @@ class Camera:
         lock.release()
         i = 0
         frame = 0
-        metadata = MetaData(self.picam2.capture_metadata())
+        metadata = Metadata(self.picam2.capture_metadata())
         logging.info(repr(metadata))
         data = [io.BytesIO()] * count
         while i < count:
