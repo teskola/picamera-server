@@ -32,12 +32,11 @@ def capture_and_upload(name : str):
         task = scheduler.enter(interval, 1, capture_and_upload, argument=(name, ))
     keep_alive = interval < 20
     camera.lock.acquire()
+    data = camera.capture_still(keep_alive=keep_alive, full_res=full_res) 
+    count += 1 
     if limit != 0 and count == limit and keep_alive:
-        data = camera.capture_still(full_res=full_res)
-    else:
-        data = camera.capture_still(keep_alive=keep_alive, full_res=full_res)    
+        camera.stop_timelapse(full_res=full_res)
     camera.lock.release()
-    count += 1
     Thread(target=minio.upload_image, args=(data, name,)).start()
 
 def set_capture_timer(_interval : float, name : str, _limit : int = 0, _full_res : bool = False):
