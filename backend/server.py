@@ -68,13 +68,13 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             camera.lock.release()
         elif self.path == '/video_stop':                       
             camera.lock.acquire()
-            stopped = camera.recording_stop()
+            data = camera.recording_stop()
             camera.lock.release()
-            if stopped:
-                self.send_response(200)
-                minio.upload_video(camera.recording_data(), 'video') 
+            if data is None:
+                self.send_response(409)                
             else:
-                self.send_response(409)
+                self.send_response(200)
+                minio.upload_video(data, 'video') 
             self.end_headers()           
         elif self.path == '/still':
             set_capture_timer(1, "testi", 0, False)

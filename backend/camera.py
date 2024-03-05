@@ -168,7 +168,7 @@ class Camera:
         self._start_video_encoder()
         logging.info("Recording resumed.")
 
-    def recording_stop(self) -> bool:
+    def recording_stop(self) -> io.BytesIO:
         if not self.recording_running():
             logging.warn("Recording not running.")
             return None
