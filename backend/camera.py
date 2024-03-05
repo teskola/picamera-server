@@ -191,14 +191,17 @@ class Camera:
 
     def pause_encoders(self, full_res : bool = False) -> list:
         paused_encoders = self.picam2.encoders.copy()
-        if len(paused_encoders) > 0:
+        if self.recording_running():
             self.picam2.stop_encoder()
             self.picam2.stop()
             logging.info("Recording/streaming paused.")
             self.configure_still(full_res=full_res)
+            self.picam2.start()
         else:
             if full_res:
+                self.picam2.stop()
                 self.configure_still(full_res=True)
+                self.picam2.start()
         self.picam2.start()
         return paused_encoders
     
