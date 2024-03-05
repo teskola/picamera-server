@@ -115,13 +115,7 @@ class Camera:
 
     def stop(self):
         self.picam2.stop_encoder()
-        self.picam2.stop()
-    
-    def timelapse_start(self, resolution, interval, count) -> bool:
-        if self.timelapse is not None:
-            return False
-        self.timelapse = Timelapse(resolution, interval, count)
-        
+        self.picam2.stop()   
 
     def recording_start(self, resolution, quality) -> bool:
         if self.recording_running():
@@ -201,8 +195,11 @@ class Camera:
 
     def capture_still(self, full_res : bool = False, keep_alive : bool = False, paused : list = None) -> io.BytesIO:
 
-        if not keep_alive and paused is None:
-            paused_encoders = self.pause_encoders(full_res=full_res)
+        if not keep_alive:
+            if paused is None:
+                paused_encoders = self.pause_encoders(full_res=full_res)
+            else:
+                paused_encoders = paused
         data = io.BytesIO()
         self.picam2.capture_file(data, format='jpeg')
         if not keep_alive:
