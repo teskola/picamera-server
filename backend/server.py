@@ -80,7 +80,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                 self.send_response(409)
             self.end_headers()           
         elif self.path == '/still':
-            set_capture_timer(1.0, "testi", 5)
+            set_capture_timer(1.0, "testi", 5, True)
             self.send_response(200)
             self.end_headers()
         elif self.path == '/timelapse':

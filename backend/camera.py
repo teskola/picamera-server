@@ -177,7 +177,7 @@ class Camera:
                 self.picam2.switch_mode(self.configurations['still']['half'])
         else:
             if full_res:
-                self.picam2.switch_mode(self.configurations['still']['full'])
+                self.picam2.configure(self.configurations['still']['full'])
             self.picam2.start()
         return paused_encoders
     
