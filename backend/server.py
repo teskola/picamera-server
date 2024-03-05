@@ -39,7 +39,7 @@ def capture_and_upload(name : str):
     camera.lock.release()
     Thread(target=minio.upload_image, args=(data, name,)).start()
 
-def set_capture_timer(_interval : float, name : str, _limit : int = 0, _full_res : bool = False):
+def set_capture_timer(_interval : int, name : str, _limit : int = 0, _full_res : bool = False):
     global limit, interval, task, full_res
     limit = _limit
     interval = _interval
@@ -78,25 +78,10 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                 self.send_response(409)
             self.end_headers()           
         elif self.path == '/still':
-            set_capture_timer(1.0, "testi", 5, True)
+            set_capture_timer(60, "testi", 0, True)
             self.send_response(200)
             self.end_headers()
-        elif self.path == '/timelapse':
-            camera.lock.acquire()
-            camera.capture_timelapse(0.120,100)
-            camera.lock.release()
-
-            """ i = 0
-            while i < len(data):
-                data[i].seek(0)
-                response.append(minio.upload_image(data[i], f'timelapse/capture{i}'))
-                i = i + 1                
-            json_string = json.dumps(response) """
-
-            self.send_response(200)
-            #self.send_header('Content-Type', 'application/json')
-            self.end_headers()
-            #self.wfile.write(json_string.encode(encoding='utf_8'))
+        
         elif self.path == '/stream.mjpg':            
             if not camera.preview_running():
                 camera.lock.acquire()

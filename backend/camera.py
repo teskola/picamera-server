@@ -189,7 +189,7 @@ class Camera:
     
     def restart_paused_encoders(self, paused_encoders : list, full_res : bool = False):
         self.picam2.stop()
-        if self.encoders['record'] in paused_encoders:
+        if self.encoders['video'] in paused_encoders:
             self._recording_resume()
             if self.encoders["preview"] in paused_encoders:
                 self._preview_resume()
