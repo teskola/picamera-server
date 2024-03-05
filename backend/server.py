@@ -27,7 +27,7 @@ minio = MinioClient()
 stream_clients = set()
 
 def capture_and_upload(name):
-    global count, task
+    global count, task, paused
     if limit == 0 or count < limit:
         task = scheduler.enter(interval, 1, capture_and_upload, argument=(name, ))
     keep_alive = interval < 20

@@ -19,16 +19,6 @@ class Resolutions:
     P720 = (1280, 720)
     P1080 = (1920, 1080)
 
-class Timelapse:
-    def __init__(self, resolution : int, interval: int, count : int, start) -> None:
-        self.resolution = resolution
-        self.interval = interval
-        self.count = count
-        self.start = start
-    
-    def start(self):
-        self.start()
-
 class Video:
     def __init__(self, resolution, quality) -> None:
         self.resolution = resolution
@@ -212,6 +202,7 @@ class Camera:
     def capture_still(self, full_res : bool = False, keep_alive : bool = False, paused : list = None) -> io.BytesIO:
 
         if paused is None:
+            logging.info("Pause encoders.")
             paused_encoders = self.pause_encoders(full_res=full_res)
         data = io.BytesIO()
         self.picam2.capture_file(data, format='jpeg')
