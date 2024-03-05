@@ -201,8 +201,7 @@ class Camera:
 
     def capture_still(self, full_res : bool = False, keep_alive : bool = False, paused : list = None) -> io.BytesIO:
 
-        if paused is None:
-            logging.info("Pause encoders.")
+        if not keep_alive and paused is None:
             paused_encoders = self.pause_encoders(full_res=full_res)
         data = io.BytesIO()
         self.picam2.capture_file(data, format='jpeg')

@@ -47,7 +47,7 @@ def set_capture_timer(_interval : float, name : str, _limit : int = 0):
     if scheduler.empty():
         if interval < 20:
             paused = camera.pause_encoders()
-        task = scheduler.enter(0, 1, capture_and_upload, argument=(name,))
+        task = scheduler.enter(1, 1, capture_and_upload, argument=(name,))
         scheduler.run()
 
 def stop_capture_timer():
