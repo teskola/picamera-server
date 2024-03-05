@@ -26,28 +26,28 @@ camera = Camera()
 minio = MinioClient()
 stream_clients = set()
 
-def capture_and_upload(name):
+def capture_and_upload(name : str, full_res : bool):
     global count, task, paused
     if limit == 0 or count < limit:
-        task = scheduler.enter(interval, 1, capture_and_upload, argument=(name, ))
+        task = scheduler.enter(interval, 1, capture_and_upload, argument=(name, full_res,))
     keep_alive = interval < 20
     camera.lock.acquire()
     if limit != 0 and count == limit and keep_alive:
-        data = camera.capture_still(paused=paused)
+        data = camera.capture_still(paused=paused, full_res=full_res)
     else:
-        data = camera.capture_still(keep_alive=keep_alive)    
+        data = camera.capture_still(keep_alive=keep_alive, full_res=full_res)    
     camera.lock.release()
     count += 1
     Thread(target=minio.upload_image, args=(data, name,)).start()
 
-def set_capture_timer(_interval : float, name : str, _limit : int = 0):
+def set_capture_timer(_interval : float, name : str, _limit : int = 0, full_res : bool = False):
     global limit, interval, task, paused
     limit = _limit
     interval = _interval
     if scheduler.empty():
         if interval < 20:
-            paused = camera.pause_encoders()
-        task = scheduler.enter(1, 1, capture_and_upload, argument=(name,))
+            paused = camera.pause_encoders(full_res=full_res)
+        task = scheduler.enter(1, 1, capture_and_upload, argument=(name, full_res,))
         scheduler.run()
 
 def stop_capture_timer():
@@ -80,7 +80,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                 self.send_response(409)
             self.end_headers()           
         elif self.path == '/still':
-            set_capture_timer(5.0, "testi", 5)
+            set_capture_timer(1.0, "testi", 5)
             self.send_response(200)
             self.end_headers()
         elif self.path == '/timelapse':
