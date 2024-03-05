@@ -29,7 +29,7 @@ stream_clients = set()
 def capture_and_upload(name : str):
     global count, task, full_res
     if limit == 0 or count < limit:
-        task = scheduler.enter(interval, 1, capture_and_upload, argument=(name, full_res,))
+        task = scheduler.enter(interval, 1, capture_and_upload, argument=(name, ))
     keep_alive = interval < 20
     camera.lock.acquire()
     if limit != 0 and count == limit and keep_alive:
@@ -48,7 +48,7 @@ def set_capture_timer(_interval : float, name : str, _limit : int = 0, _full_res
     if scheduler.empty():
         if interval < 20:
             camera.start(full_res=full_res)
-        task = scheduler.enter(1, 1, capture_and_upload, argument=(name, full_res,))
+        task = scheduler.enter(1, 1, capture_and_upload, argument=(name, ))
         scheduler.run()
 
 def stop_capture_timer():
