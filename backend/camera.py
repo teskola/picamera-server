@@ -216,10 +216,11 @@ class Camera:
         if self.preview_running() and full_res:
             self.picam2.switch_mode(self.configurations["still"]["half"])
         else:
+            self.picam2.stop()
             if full_res:
                 self.picam2.configure(self.configurations["still"]["half"])
-            self.picam2.stop()
-            
+            if self.preview_running():
+                self.picam2.start()            
 
     def preview_start(self) -> bool:
         if self.preview_running():
