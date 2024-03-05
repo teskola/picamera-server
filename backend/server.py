@@ -57,6 +57,7 @@ def stop_capture_timer():
     limit = 0  
     camera.stop_timelapse() 
 
+
 class StreamingHandler(server.BaseHTTPRequestHandler):
     
     def do_GET(self):        
@@ -81,6 +82,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.send_response(200)
             self.end_headers()
         
+
         elif self.path == '/stream.mjpg':            
             if not camera.preview_running():
                 camera.lock.acquire()

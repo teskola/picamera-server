@@ -245,6 +245,7 @@ class Camera:
             if self.configuration == Resolutions.FULL:
                 self.configure_still()
            
+
     def preview_start(self) -> bool:
         if self.preview_running():
             logging.warn("Stream already running.")
