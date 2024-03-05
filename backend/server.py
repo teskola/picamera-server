@@ -77,7 +77,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                 self.send_response(409)
             self.end_headers()           
         elif self.path == '/still':
-            set_capture_timer(60, "testi", 0, False)
+            set_capture_timer(10, "testi", 0, True)
             self.send_response(200)
             self.end_headers()
         
