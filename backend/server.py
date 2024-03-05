@@ -1,7 +1,10 @@
 import logging
 import socketserver
 import json
+import sched
+import time
 from http import server
+from threading import Lock, Thread
 from picamera2.encoders import Quality
 
 from minio_client import MinioClient
@@ -12,18 +15,55 @@ logging.basicConfig(
     level=logging.INFO,
     datefmt='%Y-%m-%d %H:%M:%S')
 
+scheduler = sched.scheduler(time.time, time.sleep)
+task = None
+count = 0
+limit = 0
+interval = 0
+paused = []
+lock = Lock()
 camera = Camera()
 minio = MinioClient()
 stream_clients = set()
 
+def capture_and_upload(name):
+    global count, task
+    if limit == 0 or count < limit:
+        task = scheduler.enter(interval, 1, capture_and_upload, argument=(name, ))
+    keep_alive = interval < 20
+    camera.lock.acquire()
+    if limit != 0 and count == limit and keep_alive:
+        data = camera.capture_still(paused=paused)
+    else:
+        data = camera.capture_still(keep_alive=keep_alive)    
+    camera.lock.release()
+    count += 1
+    Thread(target=minio.upload_image, args=(data, name,)).start()
+
+def set_capture_timer(_interval : float, name : str, _limit : int = 0):
+    global limit, interval, task, paused
+    limit = _limit
+    interval = _interval
+    if scheduler.empty():
+        if interval < 20:
+            paused = camera.pause_encoders()
+        task = scheduler.enter(0, 1, capture_and_upload, argument=(name,))
+        scheduler.run()
+
+def stop_capture_timer():
+    global task, count, limit, paused
+    scheduler.cancel(task)
+    task = None
+    count = 0
+    limit = 0
+    if interval < 20:
+        camera.restart_paused_encoders(paused_encoders=paused)
+    paused = []
+
 class StreamingHandler(server.BaseHTTPRequestHandler):
     
-    def do_GET(self):
-        if self.path == '/':
-            self.send_response(301)
-            self.send_header('Location', '/stream.mjpg')
-            self.end_headers()
-        elif self.path == '/video_start':            
+    def do_GET(self):        
+        if self.path == '/video_start':            
             self.send_response(200)
             self.end_headers()
             camera.lock.acquire()
@@ -40,20 +80,25 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                 self.send_response(409)
             self.end_headers()           
         elif self.path == '/still':
-            camera.lock.acquire()
-            data = camera.capture_still()
-            camera.lock.release()
-            response = minio.upload_image(data, 'capture')
-            json_string = json.dumps(response)
+            set_capture_timer(5.0, "testi", 5)
             self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
             self.end_headers()
-            self.wfile.write(json_string.encode(encoding='utf_8'))
         elif self.path == '/timelapse':
             camera.lock.acquire()
-            camera.capture_timelapse(camera.lock, minio.upload_image,1,20)
+            camera.capture_timelapse(0.120,100)
+            camera.lock.release()
+
+            """ i = 0
+            while i < len(data):
+                data[i].seek(0)
+                response.append(minio.upload_image(data[i], f'timelapse/capture{i}'))
+                i = i + 1                
+            json_string = json.dumps(response) """
+
             self.send_response(200)
+            #self.send_header('Content-Type', 'application/json')
             self.end_headers()
+            #self.wfile.write(json_string.encode(encoding='utf_8'))
         elif self.path == '/stream.mjpg':            
             if not camera.preview_running():
                 camera.lock.acquire()
@@ -109,5 +154,5 @@ def run_server():
     finally:    
         camera.stop()        
 
-if __name__ == "__main__":
+if __name__ == "__main__":    
     run_server()

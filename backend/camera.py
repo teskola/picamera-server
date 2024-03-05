@@ -1,7 +1,5 @@
 import logging
 import io
-import time
-import copy
 from pprint import pformat
 from threading import Condition, Lock, Thread
 from libcamera import controls
@@ -10,9 +8,6 @@ from picamera2.encoders import MJPEGEncoder, H264Encoder
 from picamera2.outputs import FileOutput
 
 STREAM_BITRATE = 2400000
-
-def interval_to_fps(interval):
-    pass 
 
 class Resolutions:
     FULL = (4056, 3040)
@@ -38,13 +33,7 @@ class Video:
     def __init__(self, resolution, quality) -> None:
         self.resolution = resolution
         self.quality = quality
-        self.data = io.BytesIO()
-
-    def release(self) -> io.BytesIO:
-        self.data.seek(0)
-        result = copy.deepcopy(self.data)
-        self.data.truncate()
-        return result
+        self.data = io.BytesIO()    
    
 # https://github.com/raspberrypi/picamera2/blob/main/examples/mjpeg_server_2.py
 
@@ -59,10 +48,7 @@ class StreamingOutput(io.BufferedIOBase):
             self.condition.notify_all()
 
 class Camera:
-
-    def _increase_framecount(self, request):
-        self.framecount +=1       
-        
+    
     def _create_configurations(self):       
        
         return {
@@ -90,14 +76,14 @@ class Camera:
                     self.picam2.create_still_configuration(
                     main={"size": Resolutions.HALF},
                     lores={"size": Resolutions.STREAM_4_3},
-                    controls={"FrameDurationLimits": (1000000, 1000000)},
+                    controls={"FrameDurationLimits": (33333, 33333)},
                     buffer_count = 6
                 ),
                 'full':
                    self.picam2.create_still_configuration(
                     main={"size": Resolutions.FULL},
                     lores={"size": Resolutions.STREAM_4_3},
-                    controls={"FrameDurationLimits": (1000000, 1000000)},
+                    controls={"FrameDurationLimits": (100000, 100000)},
                     buffer_count = 6
                    )               
                 
@@ -105,9 +91,7 @@ class Camera:
         }          
             
     def __init__(self) -> None:
-        self.picam2 = Picamera2()
-        self.framecount = 0
-        self.picam2.pre_callback = self._increase_framecount
+        self.picam2 = Picamera2()        
         self.configurations = self._create_configurations()
         self.encoders = {'preview': MJPEGEncoder(bitrate=STREAM_BITRATE), 'video': H264Encoder()}
         self.streaming_output = StreamingOutput()
@@ -162,8 +146,7 @@ class Camera:
 
         logging.info(f"Configure to {resolution}")
         self.picam2.configure(self.configurations["video"][resolution])
-        self.video.resolution = resolution
-        self.video.quality = quality
+        self.video = Video(resolution=resolution, quality=quality)        
         self._start_video_encoder()
         logging.info("Recording started.")
         if stream_paused:
@@ -180,7 +163,7 @@ class Camera:
     def recording_stop(self) -> bool:
         if not self.recording_running():
             logging.warn("Recording not running.")
-            return False
+            return None
         stream_running = self.preview_running()
         self.picam2.stop_encoder()
         self.picam2.stop()
@@ -192,84 +175,51 @@ class Camera:
             self._start_preview_encoder()
             logging.info("Streaming resumed.")
             self.picam2.start()
-        return True
+        data = self.video.data
+        data.seek(0)
+        self.video = None
+        return data    
 
-    def recording_data(self) -> io.BytesIO:
-        return self.video.release()    
+    # Pause video/stream if running. Configure to half/full still. Return paused encoders.
 
-    def capture_still(self) -> io.BytesIO:
-
-        # If recording, pause recording and configure for still image.
-
+    def pause_encoders(self, full_res : bool = False) -> list:
         paused_encoders = self.picam2.encoders.copy()
-
-        if self._encoders_running():
+        if len(paused_encoders) > 0:
             self.picam2.stop_encoder()
             logging.info("Recording/streaming paused.")
-            logging.info("Configure to still.")
-            self.picam2.switch_mode(self.configurations['still']['full'])
+            if full_res:
+                self.picam2.switch_mode(self.configurations['still']['full'])
+            else:
+                self.picam2.switch_mode(self.configurations['still']['half'])
         else:
+            if full_res:
+                self.picam2.switch_mode(self.configurations['still']['full'])
             self.picam2.start()
-
-        data = io.BytesIO()
-        self.picam2.capture_file(data, format='jpeg')
+        return paused_encoders
+    
+    def restart_paused_encoders(self, paused_encoders : list, full_res : bool = False):
         self.picam2.stop()
-
         if len(paused_encoders) > 0:
             if self.encoders['record'] in paused_encoders:
                 self._recording_resume()
             if self.encoders['stream'] in paused_encoders:
                 self._preview_resume()
             self.picam2.start()
+        elif full_res:
+            self.picam2.configure(self.configurations['still']['half'])
 
-        data.seek(0)
-        return data  
-       
-    def capture_timelapse(self, lock : Lock, upload, interval : int, count : int):
-        
-        if self.recording_running():
-            logging.warn("Timelapse cancelled: Recording running")
-            return        
-       
-        stream_paused = False
-        if self.preview_running():
-            self.picam2.stop_encoder()
-            self.picam2.stop()
-            stream_paused = True
-            logging.info("Streaming paused.")            
-                 
-        
-        if stream_paused:
-            self._start_preview_encoder()
-            logging.info("Streaming resumed.")
-        self.picam2.start()
-        lock.release()
-        i = 0
-        frame = 0
-        metadata = Metadata(self.picam2.capture_metadata())
-        logging.info(repr(metadata))
-        data = [io.BytesIO()] * count
-        while i < count:
-            frame += 1
-            data[i] = self.capture_fast()
-            Thread(target=upload, args=(data[i], f'timelapse/capture{i}',)).start()
-            i += 1
-        if stream_paused:
-            self.picam2.stop_encoder()
-            logging.info("Streaming paused.")
-        self.picam2.stop() 
-        if stream_paused:
-            self._preview_resume()
-            self.picam2.start()
-                    
-             
-    def capture_fast(self) -> io.BytesIO:    
-        data = io.BytesIO()    
+
+    def capture_still(self, full_res : bool = False, keep_alive : bool = False, paused : list = None) -> io.BytesIO:
+
+        if paused is None:
+            paused_encoders = self.pause_encoders(full_res=full_res)
+        data = io.BytesIO()
         self.picam2.capture_file(data, format='jpeg')
+        if not keep_alive:
+            self.restart_paused_encoders(paused_encoders=paused_encoders, full_res=full_res)
         data.seek(0)
-        return data
-
-
+        return data        
+    
     def preview_start(self) -> bool:
         if self.preview_running():
             logging.warn("Stream already running.")
