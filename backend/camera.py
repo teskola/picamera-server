@@ -112,7 +112,13 @@ class Camera:
             output=FileOutput(self.streaming_output),
             name="lores"
         )
-
+    
+    def start(self, full_res : bool = False):        
+        if full_res and self.preview_running():
+            self.picam2.switch_mode(self.configurations["still"]["full"])
+        if not self.preview_running():
+            self.picam2.start()
+    
     def stop(self):
         self.picam2.stop_encoder()
         self.picam2.stop()   
@@ -183,23 +189,22 @@ class Camera:
     
     def restart_paused_encoders(self, paused_encoders : list, full_res : bool = False):
         self.picam2.stop()
-        if len(paused_encoders) > 0:
-            if self.encoders['record'] in paused_encoders:
-                self._recording_resume()
-            if self.encoders['stream'] in paused_encoders:
+        if self.encoders['record'] in paused_encoders:
+            self._recording_resume()
+            if self.encoders["preview"] in paused_encoders:
                 self._preview_resume()
             self.picam2.start()
-        elif full_res:
-            self.picam2.configure(self.configurations['still']['half'])
-
-
-    def capture_still(self, full_res : bool = False, keep_alive : bool = False, paused : list = None) -> io.BytesIO:
+        if full_res:
+            self.picam2.configure(self.configurations['still']['half']) 
+        if self.encoders["preview"] in paused_encoders:            
+            self._preview_resume()
+            self.picam2.start()
+             
+        
+    def capture_still(self, full_res : bool = False, keep_alive : bool = False) -> io.BytesIO:
 
         if not keep_alive:
-            if paused is None:
-                paused_encoders = self.pause_encoders(full_res=full_res)
-            else:
-                paused_encoders = paused
+            paused_encoders = self.pause_encoders(full_res=full_res)        
         data = io.BytesIO()
         self.picam2.capture_file(data, format='jpeg')
         if not keep_alive:
@@ -207,6 +212,15 @@ class Camera:
         data.seek(0)
         return data        
     
+    def stop_timelapse(self, full_res : bool = False):
+        if self.preview_running() and full_res:
+            self.picam2.switch_mode(self.configurations["still"]["half"])
+        else:
+            if full_res:
+                self.picam2.configure(self.configurations["still"]["half"])
+            self.picam2.stop()
+            
+
     def preview_start(self) -> bool:
         if self.preview_running():
             logging.warn("Stream already running.")

@@ -20,45 +20,44 @@ task = None
 count = 0
 limit = 0
 interval = 0
-paused = []
+full_res = False
 lock = Lock()
 camera = Camera()
 minio = MinioClient()
 stream_clients = set()
 
-def capture_and_upload(name : str, full_res : bool):
-    global count, task, paused
+def capture_and_upload(name : str):
+    global count, task, full_res
     if limit == 0 or count < limit:
         task = scheduler.enter(interval, 1, capture_and_upload, argument=(name, full_res,))
     keep_alive = interval < 20
     camera.lock.acquire()
     if limit != 0 and count == limit and keep_alive:
-        data = camera.capture_still(paused=paused, full_res=full_res)
+        data = camera.capture_still(full_res=full_res)
     else:
         data = camera.capture_still(keep_alive=keep_alive, full_res=full_res)    
     camera.lock.release()
     count += 1
     Thread(target=minio.upload_image, args=(data, name,)).start()
 
-def set_capture_timer(_interval : float, name : str, _limit : int = 0, full_res : bool = False):
-    global limit, interval, task, paused
+def set_capture_timer(_interval : float, name : str, _limit : int = 0, _full_res : bool = False):
+    global limit, interval, task, full_res
     limit = _limit
     interval = _interval
+    full_res = _full_res
     if scheduler.empty():
         if interval < 20:
-            paused = camera.pause_encoders(full_res=full_res)
+            camera.start(full_res=full_res)
         task = scheduler.enter(1, 1, capture_and_upload, argument=(name, full_res,))
         scheduler.run()
 
 def stop_capture_timer():
-    global task, count, limit, paused
+    global task, count, limit
     scheduler.cancel(task)
     task = None
     count = 0
-    limit = 0
-    if interval < 20:
-        camera.restart_paused_encoders(paused_encoders=paused)
-    paused = []
+    limit = 0  
+    camera.stop_timelapse(full_res=full_res) 
 
 class StreamingHandler(server.BaseHTTPRequestHandler):
     
