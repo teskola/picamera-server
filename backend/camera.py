@@ -79,16 +79,34 @@ class Camera:
                 
             }                          
         }          
-            
+   
     def __init__(self) -> None:
         self.picam2 = Picamera2()        
         self.configurations = self._create_configurations()
         self.encoders = {'preview': MJPEGEncoder(bitrate=STREAM_BITRATE), 'video': H264Encoder()}
         self.streaming_output = StreamingOutput()
-        self.picam2.configure(self.configurations["still"]["half"])
+        self._configuration = self.picam2.configure(self.configurations["still"]["half"])
         self.video = None
         self.timelapse = None
-        self.lock = Lock()        
+        self.lock = Lock() 
+
+    def configuration(self) -> str:
+        return self._configuration["main"]["size"]
+    
+    def configure_still(self, full_res : bool = False):        
+        if full_res:
+            logging.info(f"Configure to: full resolution")
+            self._configuration = self.picam2.configure(self.configurations["still"]["full"])
+        else:
+            logging.info(f"Configure to: half resolution")
+            self._configuration = self.picam2.configure(self.configurations["still"]["half"])
+    
+    def configure_video(self, resolution):
+        logging.info(f"Configure to: {resolution}")
+        if resolution == '720p':
+            self._configuration = self.picam2.configure(self.configurations["video"]["720p"])
+        elif resolution == '1080p':
+            self._configuration = self.picam2.configure(self.configurations["video"]["1080p"])
     
     def _encoders_running(self) -> bool:
         return len(self.picam2.encoders) > 0
@@ -115,7 +133,9 @@ class Camera:
     
     def start(self, full_res : bool = False):        
         if full_res and self.preview_running():
-            self.picam2.switch_mode(self.configurations["still"]["full"])
+            self.picam2.stop()
+            self.configure_still(full_res=True)
+            self.picam2.start()
         if not self.preview_running():
             self.picam2.start()
     
@@ -134,8 +154,7 @@ class Camera:
             stream_paused = True
             self.picam2.stop()
 
-        logging.info(f"Configure to {resolution}")
-        self.picam2.configure(self.configurations["video"][resolution])
+        self.configure_video(resolution=resolution)
         self.video = Video(resolution=resolution, quality=quality)        
         self._start_video_encoder()
         logging.info("Recording started.")
@@ -145,8 +164,7 @@ class Camera:
         self.picam2.start()
 
     def _recording_resume(self):
-        logging.info(f"Configure to {self.video.resolution}")
-        self.picam2.configure(self.configurations["video"][self.video.resolution])
+        self.configure_video(self.video.resolution)
         self._start_video_encoder()
         logging.info("Recording resumed.")
 
@@ -158,8 +176,7 @@ class Camera:
         self.picam2.stop_encoder()
         self.picam2.stop()
         logging.info("Recording stopped.")        
-        logging.info("Configure to still.")
-        self.picam2.configure(self.configurations['still']['half'])
+        self.configure_still()
 
         if stream_running:            
             self._start_preview_encoder()
@@ -176,15 +193,13 @@ class Camera:
         paused_encoders = self.picam2.encoders.copy()
         if len(paused_encoders) > 0:
             self.picam2.stop_encoder()
+            self.picam2.stop()
             logging.info("Recording/streaming paused.")
-            if full_res:
-                self.picam2.switch_mode(self.configurations['still']['full'])
-            else:
-                self.picam2.switch_mode(self.configurations['still']['half'])
+            self.configure_still(full_res=full_res)
         else:
             if full_res:
-                self.picam2.configure(self.configurations['still']['full'])
-            self.picam2.start()
+                self.configure_still(full_res=True)
+        self.picam2.start()
         return paused_encoders
     
     def restart_paused_encoders(self, paused_encoders : list, full_res : bool = False):
@@ -195,33 +210,39 @@ class Camera:
                 self._preview_resume()
             self.picam2.start()
         if full_res:
-            self.picam2.configure(self.configurations['still']['half']) 
+            self.configure_still()
         if self.encoders["preview"] in paused_encoders:            
             self._preview_resume()
             self.picam2.start()
              
         
-    def capture_still(self, full_res : bool = False, keep_alive : bool = False) -> io.BytesIO:
+    def capture_still(self, upload, name, full_res : bool = False, keep_alive : bool = False) -> io.BytesIO:
 
         if not keep_alive:
             paused_encoders = self.pause_encoders(full_res=full_res)        
-        data = io.BytesIO()
-        self.picam2.capture_file(data, format='jpeg')
+        Thread(target=self.capture_and_upload, args=(upload, name, )).start()
         if not keep_alive:
             self.restart_paused_encoders(paused_encoders=paused_encoders, full_res=full_res)
+
+    def capture_and_upload(self, upload, name):
+        data = io.BytesIO()
+        request = self.picam2.capture_request()
+        request.save("main", data, format='jpeg')
+        request.release()
         data.seek(0)
-        return data        
+        upload(data, name)
     
-    def stop_timelapse(self, full_res : bool = False):
-        if self.preview_running() and full_res:
-            self.picam2.switch_mode(self.configurations["still"]["half"])
+    def stop_timelapse(self):
+        if self.preview_running():
+            if self.configuration == Resolutions.FULL:
+                self.picam2.stop()
+                self.configure_still()
+                self.picam2.start()
         else:
             self.picam2.stop()
-            if full_res:
-                self.picam2.configure(self.configurations["still"]["half"])
-            if self.preview_running():
-                self.picam2.start()            
-
+            if self.configuration == Resolutions.FULL:
+                self.configure_still()
+           
     def preview_start(self) -> bool:
         if self.preview_running():
             logging.warn("Stream already running.")
@@ -241,16 +262,14 @@ class Camera:
 
 
     def preview_stop(self) -> bool:
-        if not self.encoders["stream"] in self.picam2.encoders:
+        if not self.encoders["preview"] in self.picam2.encoders:
             logging.warn("Stream not running")
             return False
 
-        self.picam2.stop_encoder(encoders=[self.encoders["stream"]])
+        self.picam2.stop_encoder(encoders=[self.encoders["preview"]])
         logging.info("Streaming stopped.")
         if not self._encoders_running():
             self.picam2.stop()            
-            logging.info("Configure to still.")
-            self.picam2.configure(self.configurations['still']['half'])
         return True
     
 
