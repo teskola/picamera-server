@@ -11,7 +11,7 @@ from picamera2.outputs import FileOutput
 
 STREAM_BITRATE = 2400000
 TIMELAPSE_INTERVAL = 20
-scheduler = sched.scheduler(time.time, time.sleep)
+scheduler = sched.scheduler(time.monotonic, time.sleep)
 
 
 class Resolutions:
@@ -32,6 +32,8 @@ class Timelapse:
         self.name = name
         self.count = 0
         self.event = None
+        self.started = 0
+        self.stopped = 0
     
     def start(self, capture, stop, upload):
         logging.info("Timelapse started.")
@@ -43,6 +45,7 @@ class Timelapse:
     
     def stop(self, func):
         logging.info("Timelapse stopped.")
+        self.stopped = time.time()
         if self.event in scheduler.queue:
             scheduler.cancel(self.event)                     
             func()
@@ -52,7 +55,9 @@ class Timelapse:
     
     def tick(self, capture, stop, name : str, upload):
         if self.limit == 0 or self.count < self.limit:
-            self.event = scheduler.enter(self.interval, 1, self.tick, argument=(capture, stop, name, upload, ))    
+            self.event = scheduler.enter(self.interval, 1, self.tick, argument=(capture, stop, name, upload, ))
+        if self.count == 0:
+            self.started = time.time()    
         capture(upload, name, self.full_res, self.keep_alive())   
         self.count += 1 
         if self.limit != 0 and self.count == self.limit and self.keep_alive():
@@ -63,7 +68,12 @@ class Video:
     def __init__(self, resolution, quality) -> None:
         self.resolution = resolution
         self.quality = quality
-        self.data = io.BytesIO()    
+        self.data = io.BytesIO() 
+        self.started = 0
+        self.stopped = 0  
+
+    def size(self):
+        return len(self.data.getvalue()) 
     
    
 # https://github.com/raspberrypi/picamera2/blob/main/examples/mjpeg_server_2.py
@@ -160,7 +170,7 @@ class Camera:
             output=FileOutput(self.video.data),
             quality=self.video.quality,
             name="main"
-        )
+        )        
 
     def _start_preview_encoder(self):
         self.picam2.start_encoder(
@@ -191,14 +201,26 @@ class Camera:
 
         video = {}
         if self.video is not None:
-            video = vars(self.video)
-            del video["data"]
+            video = {
+                'resolution': self.video.resolution,
+                'quality': self.video.quality,
+                'started': self.video.started,
+                'stopped': self.video.stopped,
+                'size': self.video.size()
+            }
 
         timelapse = {}
         if self.timelapse is not None:
-            timelapse = vars(self.timelapse).copy()
-            del timelapse["event"] 
-            timelapse["status"] = self.timelapse.running()    
+            timelapse = {
+                'limit': self.timelapse.limit,
+                'interval': self.timelapse.interval,
+                'full_res': self.timelapse.full_res,
+                'name': self.timelapse.name,
+                'count': self.timelapse.count,
+                'running': self.timelapse.running(),
+                'started': self.timelapse.started,
+                'stopped': self.timelapse.stopped
+            } 
          
         config = self.picam2.camera_configuration().copy()
         del config["controls"]
@@ -266,6 +288,7 @@ class Camera:
             self._start_preview_encoder()
             logging.info("Stream resumed.")
         self.picam2.start()
+        self.video.started = time.time()
         return True
 
     def _recording_resume(self):
@@ -280,6 +303,7 @@ class Camera:
         stream_running = self.preview_running()
         self.picam2.stop_encoder()
         self.picam2.stop()
+        self.video.stopped = time.time()
         logging.info("Recording stopped.")        
         self.configure_still()
 
