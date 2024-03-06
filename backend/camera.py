@@ -108,7 +108,6 @@ class Camera:
                     lores={"size": Resolutions.STREAM_4_3},
                     controls={"FrameDurationLimits": (33333, 33333)},
                     buffer_count = 6,
-                    use_case="default"
                 ),
                 'full':
                    self.picam2.create_still_configuration(
