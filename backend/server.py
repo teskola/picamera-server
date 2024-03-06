@@ -77,12 +77,14 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                 self.send_response(200)
                 minio.upload_video(data, 'video') 
             self.end_headers()           
-        elif self.path == '/still':
+        elif self.path == '/still_start':
             set_capture_timer(1, "testi", 0, False)
             self.send_response(200)
             self.end_headers()
-        
-
+        elif self.path == '/still_stop':
+            stop_capture_timer()
+            self.send_response(200)
+            self.end_headers()
         elif self.path == '/stream.mjpg':            
             if not camera.preview_running():
                 camera.lock.acquire()
