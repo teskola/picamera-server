@@ -51,11 +51,8 @@ class Timelapse:
         return self.event is not None and self.event in scheduler.queue
     
     def capture_and_upload(self, capture, stop, name : str, upload):
-        logging.info("capture_and_upload")
         if self.limit == 0 or self.count < self.limit:
-            logging.info("schedule next")
             self.event = scheduler.enter(self.interval, 1, self.capture_and_upload, argument=(capture, stop, name, upload, ))    
-        logging.info("capture")
         capture(upload, name, self.full_res, self.keep_alive())   
         self.count += 1 
         if self.limit != 0 and self.count == self.limit and self.keep_alive():
@@ -296,7 +293,6 @@ class Camera:
              
         
     def capture_still(self, upload, name, full_res : bool = False, keep_alive : bool = False) -> io.BytesIO:
-        logging.info(f"capture_still {name}, {full_res}, {keep_alive}")
         if not keep_alive:
             paused_encoders = self.pause_encoders(full_res=full_res)        
         Thread(target=self.capture_and_upload, args=(upload, name, )).start()
@@ -304,7 +300,6 @@ class Camera:
             self.restart_paused_encoders(paused_encoders=paused_encoders, full_res=full_res)
 
     def capture_and_upload(self, upload, name):
-        logging.info("capture_and_upload")
         data = io.BytesIO()
         request = self.picam2.capture_request()
         request.save("main", data, format='jpeg')
