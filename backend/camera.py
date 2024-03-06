@@ -186,6 +186,8 @@ class Camera:
     
     def status(self):
         result = self.picam2.camera_configuration()
+        logging.info(pformat(result))
+        del result["colour_space"]
         del result["transform"]
         return result
 
