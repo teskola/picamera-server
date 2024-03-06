@@ -131,7 +131,9 @@ class Camera:
         self.lock = Lock() 
 
     def configuration(self) -> str:
-        return self._configuration["main"]["size"]
+        result = self._configuration["main"]["size"]
+        logging.info(pformat(result))
+        return result
     
     def configure_still(self, full_res : bool = False):        
         if full_res:
