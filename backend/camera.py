@@ -48,7 +48,7 @@ class Timelapse:
             func()
     
     def running(self):
-        return self.event in scheduler.queue
+        return self.event is not None and self.event in scheduler.queue
     
     def tick(self, capture, stop, name : str, upload):
         if self.limit == 0 or self.count < self.limit:
@@ -196,7 +196,7 @@ class Camera:
 
         timelapse = {}
         if self.timelapse is not None:
-            timelapse = vars(self.timelapse)  
+            timelapse = vars(self.timelapse).copy()
             del timelapse["event"] 
             timelapse["status"] = self.timelapse.running()    
          
