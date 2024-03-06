@@ -183,7 +183,7 @@ class Camera:
         self.picam2.close()
     
     def running(self):
-        return self._encoders_running() or self.timelapse.running()
+        return self._encoders_running() or (self.timelapse is not None and self.timelapse.running())
     
     def status(self):
         result = {}
