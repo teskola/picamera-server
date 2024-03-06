@@ -131,9 +131,7 @@ class Camera:
         self.lock = Lock() 
 
     def configuration(self) -> str:
-        result = self._configuration["main"]["size"]
-        logging.info(pformat(result))
-        return result
+        return self._configuration["main"]["size"]
     
     def configure_still(self, full_res : bool = False):        
         if full_res:
@@ -187,7 +185,7 @@ class Camera:
         self.picam2.close()
     
     def status(self):
-        return self._configuration
+        return self.picam2.camera_configuration()
 
     def timelapse_start(self, limit, interval, full_res, name, upload):
         if self.timelapse is not None and self.timelapse.running():
