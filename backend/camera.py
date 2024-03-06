@@ -36,8 +36,7 @@ class Timelapse:
     def start(self, capture, stop, upload):
         logging.info("Timelapse started.")
         self.event = scheduler.enter(1, 1, self.tick, argument=(capture, stop, self.name, upload, ))
-        scheduler.run()
-        logging.info("Return.")
+        Thread(target=scheduler.run).start()        
     
     def keep_alive(self):
         return self.interval < TIMELAPSE_INTERVAL
