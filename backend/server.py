@@ -19,29 +19,6 @@ camera = Camera()
 minio = MinioClient()
 stream_clients = set()
 
-def set_capture_timer(_interval : int, name : str, _limit : int = 0, _full_res : bool = False):    
-    if scheduler.empty():
-        if keep_alive():
-            camera.start(full_res=full_res)
-        global limit, interval, task, full_res
-        limit = _limit
-        interval = _interval
-        full_res = _full_res
-        task = scheduler.enter(1, 1, capture_and_upload, argument=(name, ))
-        scheduler.run()
-
-def stop_capture_timer():
-    if task in scheduler.queue:
-        global task, count, limit
-        scheduler.cancel(task)
-        task = None
-        count = 0
-        limit = 0  
-        camera.lock.acquire()
-        camera.stop_timelapse() 
-        camera.lock.release()
-
-
 class StreamingHandler(server.BaseHTTPRequestHandler):
     
     def do_GET(self):        
