@@ -239,7 +239,9 @@ class Camera:
                 self.configure_still()
     
     def timelapse_stop(self):
+        logging.info("Stop called.")
         if self.timelapse is not None:
+            logging.info("Stop timelapse.")
             self.timelapse.stop(self.reconfig_after_stop) 
         
           
