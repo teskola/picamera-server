@@ -192,7 +192,7 @@ class Camera:
             full_res=full_res, 
             name=name).start( 
             capture=self.capture_still, 
-            stop=self.stop_timelapse,
+            stop=self.timelapse_stop,
             upload=upload)
     
     def timelapse_stop(self):
