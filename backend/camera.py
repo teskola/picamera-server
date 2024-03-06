@@ -6,13 +6,24 @@ from pprint import pformat
 from threading import Condition, Lock, Thread
 from libcamera import controls
 from picamera2 import Picamera2, Metadata
-from picamera2.encoders import MJPEGEncoder, H264Encoder
+from picamera2.encoders import MJPEGEncoder, H264Encoder, Quality
 from picamera2.outputs import FileOutput
 
 STREAM_BITRATE = 2400000
 TIMELAPSE_INTERVAL = 20
 scheduler = sched.scheduler(time.monotonic, time.sleep)
 
+def quality_to_int(quality : Quality) -> int:
+    if quality == Quality.VERY_LOW:
+        return 1
+    elif quality == Quality.LOW:
+        return 2
+    elif quality == Quality.MEDIUM:
+        return 3
+    elif quality == Quality.HIGH:
+        return 4
+    elif quality == Quality.VERY_HIGH:
+        return 5
 
 class Resolutions:
     FULL = (4056, 3040)
@@ -201,9 +212,10 @@ class Camera:
 
         video = {}
         if self.video is not None:
+            
             video = {
                 'resolution': self.video.resolution,
-                'quality': self.video.quality,
+                'quality': quality_to_int(self.video.quality),
                 'started': self.video.started,
                 'stopped': self.video.stopped,
                 'size': self.video.size()
