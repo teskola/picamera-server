@@ -21,13 +21,22 @@ stream_clients = set()
 
 class StreamingHandler(server.BaseHTTPRequestHandler):
     
-    def do_GET(self):        
+    def do_GET(self):   
+        if self.path == '/status':
+            response = camera.status()
+            json_string = json.dumps(response)
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json_string.encode(encoding='utf_8'))
+
         if self.path == '/video_start':            
             self.send_response(200)
             self.end_headers()
             camera.lock.acquire()
             camera.recording_start(resolution='720p', quality=Quality.MEDIUM)
             camera.lock.release()
+
         elif self.path == '/video_stop':                       
             camera.lock.acquire()
             data = camera.recording_stop()
@@ -38,18 +47,21 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                 self.send_response(200)
                 minio.upload_video(data, 'video') 
             self.end_headers()           
+
         elif self.path == '/still_start':
             camera.lock.acquire()
             camera.timelapse_start(interval=1, name="testi", limit=0, full_res=False, upload=minio.upload_image)
             camera.lock.release()
             self.send_response(200)
             self.end_headers()
+
         elif self.path == '/still_stop':
             camera.lock.acquire()
             camera.timelapse_stop()
             camera.lock.release()
             self.send_response(200)
             self.end_headers()
+
         elif self.path == '/stream.mjpg':            
             if not camera.preview_running():
                 camera.lock.acquire()

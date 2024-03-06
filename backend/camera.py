@@ -35,7 +35,7 @@ class Timelapse:
     
     def start(self, capture, stop, upload):
         logging.info("Timelapse started.")
-        self.event = scheduler.enter(1, 1, self.capture_and_upload, argument=(capture, stop, self.name, upload, ))
+        self.event = scheduler.enter(1, 1, self.tick, argument=(capture, stop, self.name, upload, ))
         scheduler.run()
     
     def keep_alive(self):
@@ -50,9 +50,9 @@ class Timelapse:
     def running(self):
         return self.event is not None and self.event in scheduler.queue
     
-    def capture_and_upload(self, capture, stop, name : str, upload):
+    def tick(self, capture, stop, name : str, upload):
         if self.limit == 0 or self.count < self.limit:
-            self.event = scheduler.enter(self.interval, 1, self.capture_and_upload, argument=(capture, stop, name, upload, ))    
+            self.event = scheduler.enter(self.interval, 1, self.tick, argument=(capture, stop, name, upload, ))    
         capture(upload, name, self.full_res, self.keep_alive())   
         self.count += 1 
         if self.limit != 0 and self.count == self.limit and self.keep_alive():
@@ -181,7 +181,11 @@ class Camera:
     
     def stop(self):
         self.picam2.stop_encoder()
-        self.picam2.stop() 
+        self.picam2.stop()
+        self.picam2.close()
+    
+    def status(self):
+        return self._configuration
 
     def timelapse_start(self, limit, interval, full_res, name, upload):
         if self.timelapse is not None and self.timelapse.running():
