@@ -197,7 +197,8 @@ class Camera:
         timelapse = {}
         if self.timelapse is not None:
             timelapse = vars(self.timelapse)  
-            del timelapse["event"]     
+            del timelapse["event"] 
+            timelapse["status"] = self.timelapse.running()    
          
         config = self.picam2.camera_configuration().copy()
         del config["controls"]
@@ -239,9 +240,7 @@ class Camera:
                 self.configure_still()
     
     def timelapse_stop(self):
-        logging.info("Stop called.")
         if self.timelapse is not None:
-            logging.info("Stop timelapse.")
             self.timelapse.stop(self.reconfig_after_stop) 
         
           
