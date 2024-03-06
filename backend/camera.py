@@ -189,11 +189,15 @@ class Camera:
     def timelapse_start(self, limit, interval, full_res, name, upload):
         if self.timelapse is not None and self.timelapse.running():
             logging.warn("Timelapse already running!")
+        
         self.timelapse = Timelapse(
             limit=limit, 
             interval=interval, 
             full_res=full_res, 
-            name=name).start( 
+            name=name)
+        if self.timelapse.keep_alive():
+            self.start()            
+        self.timelapse.start(
             capture=self.capture_still, 
             stop=self.timelapse_stop,
             upload=upload)
