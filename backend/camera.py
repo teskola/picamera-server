@@ -300,7 +300,7 @@ class Camera:
             self.restart_paused_encoders(paused_encoders=paused_encoders, full_res=full_res)
 
     def capture_and_upload(self, upload, name):
-        logging.ifno("capture_and_upload")
+        logging.info("capture_and_upload")
         data = io.BytesIO()
         request = self.picam2.capture_request()
         request.save("main", data, format='jpeg')
