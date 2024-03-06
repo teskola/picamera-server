@@ -31,11 +31,11 @@ class Timelapse:
         self.full_res = full_res
         self.name = name
         self.count = 0
-        self.event = None
+        self.eventti = None
     
     def start(self, capture, stop, upload):
         logging.info("Timelapse started.")
-        self.event = scheduler.enter(1, 1, self.tick, argument=(capture, stop, self.name, upload, ))
+        self.eventti = scheduler.enter(1, 1, self.tick, argument=(capture, stop, self.name, upload, ))
         Thread(target=scheduler.run).start()        
     
     def keep_alive(self):
@@ -43,16 +43,16 @@ class Timelapse:
     
     def stop(self, func):
         logging.info("Timelapse stopped.")
-        if self.event in scheduler.queue:
-            scheduler.cancel(self.event)                     
+        if self.eventti in scheduler.queue:
+            scheduler.cancel(self.eventti)                     
             func()
     
     def running(self):
-        return ((self.event is not None) and (self.event in scheduler.queue))
+        return ((self.eventti is not None) and (self.eventti in scheduler.queue))
     
     def tick(self, capture, stop, name : str, upload):
         if self.limit == 0 or self.count < self.limit:
-            self.event = scheduler.enter(self.interval, 1, self.tick, argument=(capture, stop, name, upload, ))    
+            self.eventti = scheduler.enter(self.interval, 1, self.tick, argument=(capture, stop, name, upload, ))    
         capture(upload, name, self.full_res, self.keep_alive())   
         self.count += 1 
         if self.limit != 0 and self.count == self.limit and self.keep_alive():
