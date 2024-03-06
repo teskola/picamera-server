@@ -197,7 +197,7 @@ class Camera:
         timelapse = {}
         if self.timelapse is not None:
             timelapse = vars(self.timelapse)  
-            del timelapse["event"] 
+            del timelapse["eventti"] 
             timelapse["status"] = self.timelapse.running()    
          
         config = self.picam2.camera_configuration().copy()
