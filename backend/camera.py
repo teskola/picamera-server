@@ -64,6 +64,7 @@ class Video:
         self.resolution = resolution
         self.quality = quality
         self.data = io.BytesIO()    
+    
    
 # https://github.com/raspberrypi/picamera2/blob/main/examples/mjpeg_server_2.py
 
@@ -124,9 +125,9 @@ class Camera:
         self.picam2 = Picamera2()        
         self.configurations = self._create_configurations()
         self.encoders = {'preview': MJPEGEncoder(bitrate=STREAM_BITRATE), 'video': H264Encoder()}
-        self.streaming_output = StreamingOutput()
+        self.streaming_output : StreamingOutput = StreamingOutput()
         self.picam2.configure(self.configurations["still"]["half"])
-        self.video = None
+        self.video : Video = None
         self.timelapse : Timelapse = None
         self.lock = Lock()     
     
@@ -186,11 +187,25 @@ class Camera:
     
     def status(self):
         result = {}
+        result["running"] = self.running()
+
+        video = {}
+        if self.video is not None:
+            video = vars(self.video)
+            del video["data"]
+
+        timelapse = {}
+        if self.timelapse is not None:
+            timelapse = vars(self.timelapse)  
+            del timelapse["event"]     
+         
         config = self.picam2.camera_configuration().copy()
         del config["controls"]
         del config["colour_space"]
         del config["transform"]
         result["configration"] = config
+        result["video"] = video
+        result["timelapse"] = timelapse
         return result
 
     def timelapse_start(self, limit, interval, full_res, name, upload):
