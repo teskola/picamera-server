@@ -221,12 +221,10 @@ class Camera:
             self.start()            
         self.timelapse.start(
             capture=self.capture_still, 
-            stop=self.timelapse_stop,
+            stop=self.reconfig_after_stop,
             upload=upload)
     
-    def timelapse_stop(self):
-        if self.timelapse is not None:
-            self.timelapse.stop() 
+    def reconfig_after_stop(self):
         if self.recording_running():
             return
         resolution = self.picam2.camera_configuration()["main"]["size"]
@@ -239,6 +237,11 @@ class Camera:
             self.picam2.stop()
             if resolution == Resolutions.FULL:
                 self.configure_still()
+    
+    def timelapse_stop(self):
+        if self.timelapse is not None:
+            self.timelapse.stop(self.reconfig_after_stop) 
+        
           
 
     def recording_start(self, resolution, quality) -> bool:
