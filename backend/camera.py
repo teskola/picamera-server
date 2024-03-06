@@ -31,11 +31,11 @@ class Timelapse:
         self.full_res = full_res
         self.name = name
         self.count = 0
-        self.eventti = None
+        self.event = None
     
     def start(self, capture, stop, upload):
         logging.info("Timelapse started.")
-        self.eventti = scheduler.enter(1, 1, self.tick, argument=(capture, stop, self.name, upload, ))
+        self.event = scheduler.enter(1, 1, self.tick, argument=(capture, stop, self.name, upload, ))
         Thread(target=scheduler.run).start()        
     
     def keep_alive(self):
@@ -43,16 +43,16 @@ class Timelapse:
     
     def stop(self, func):
         logging.info("Timelapse stopped.")
-        if self.eventti in scheduler.queue:
-            scheduler.cancel(self.eventti)                     
+        if self.event in scheduler.queue:
+            scheduler.cancel(self.event)                     
             func()
     
     def running(self):
-        return ((self.eventti is not None) and (self.eventti in scheduler.queue))
+        return self.event in scheduler.queue
     
     def tick(self, capture, stop, name : str, upload):
         if self.limit == 0 or self.count < self.limit:
-            self.eventti = scheduler.enter(self.interval, 1, self.tick, argument=(capture, stop, name, upload, ))    
+            self.event = scheduler.enter(self.interval, 1, self.tick, argument=(capture, stop, name, upload, ))    
         capture(upload, name, self.full_res, self.keep_alive())   
         self.count += 1 
         if self.limit != 0 and self.count == self.limit and self.keep_alive():
@@ -197,7 +197,7 @@ class Camera:
         timelapse = {}
         if self.timelapse is not None:
             timelapse = vars(self.timelapse)  
-            del timelapse["eventti"] 
+            del timelapse["event"] 
             timelapse["status"] = self.timelapse.running()    
          
         config = self.picam2.camera_configuration().copy()
