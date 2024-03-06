@@ -185,8 +185,9 @@ class Camera:
         self.picam2.close()
     
     def status(self):
-        logging.info(pformat(self.picam2.camera_configuration()))
-        return 'hello'
+        result = self.picam2.camera_configuration()
+        del result["transform"]
+        return result
 
     def timelapse_start(self, limit, interval, full_res, name, upload):
         if self.timelapse is not None and self.timelapse.running():
