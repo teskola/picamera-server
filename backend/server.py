@@ -15,47 +15,31 @@ logging.basicConfig(
     level=logging.INFO,
     datefmt='%Y-%m-%d %H:%M:%S')
 
-scheduler = sched.scheduler(time.time, time.sleep)
-task = None
-count = 0
-limit = 0
-interval = 0
-full_res = False
-lock = Lock()
 camera = Camera()
 minio = MinioClient()
 stream_clients = set()
 
-def capture_and_upload(name : str):
-    global count, task, full_res
-    if limit == 0 or count < limit:
-        task = scheduler.enter(interval, 1, capture_and_upload, argument=(name, ))
-    keep_alive = interval < 20
-    camera.lock.acquire()
-    data = camera.capture_still(minio.upload_image, name, keep_alive=keep_alive, full_res=full_res) 
-    count += 1 
-    if limit != 0 and count == limit and keep_alive:
-        camera.stop_timelapse()
-    camera.lock.release()
-
-def set_capture_timer(_interval : int, name : str, _limit : int = 0, _full_res : bool = False):
-    global limit, interval, task, full_res
-    limit = _limit
-    interval = _interval
-    full_res = _full_res
+def set_capture_timer(_interval : int, name : str, _limit : int = 0, _full_res : bool = False):    
     if scheduler.empty():
-        if interval < 20:
+        if keep_alive():
             camera.start(full_res=full_res)
+        global limit, interval, task, full_res
+        limit = _limit
+        interval = _interval
+        full_res = _full_res
         task = scheduler.enter(1, 1, capture_and_upload, argument=(name, ))
         scheduler.run()
 
 def stop_capture_timer():
-    global task, count, limit
-    scheduler.cancel(task)
-    task = None
-    count = 0
-    limit = 0  
-    camera.stop_timelapse() 
+    if task in scheduler.queue:
+        global task, count, limit
+        scheduler.cancel(task)
+        task = None
+        count = 0
+        limit = 0  
+        camera.lock.acquire()
+        camera.stop_timelapse() 
+        camera.lock.release()
 
 
 class StreamingHandler(server.BaseHTTPRequestHandler):
@@ -78,11 +62,15 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                 minio.upload_video(data, 'video') 
             self.end_headers()           
         elif self.path == '/still_start':
-            set_capture_timer(1, "testi", 0, False)
+            camera.lock.acquire()
+            camera.timelapse_start(interval=1, name="testi", limit=0, full_res=False, upload=minio.upload_image)
+            camera.lock.release()
             self.send_response(200)
             self.end_headers()
         elif self.path == '/still_stop':
-            stop_capture_timer()
+            camera.lock.acquire()
+            camera.timelapse_stop()
+            camera.lock.release()
             self.send_response(200)
             self.end_headers()
         elif self.path == '/stream.mjpg':            

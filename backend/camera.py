@@ -1,5 +1,7 @@
 import logging
 import io
+import sched
+import time
 from pprint import pformat
 from threading import Condition, Lock, Thread
 from libcamera import controls
@@ -8,6 +10,9 @@ from picamera2.encoders import MJPEGEncoder, H264Encoder
 from picamera2.outputs import FileOutput
 
 STREAM_BITRATE = 2400000
+TIMELAPSE_INTERVAL = 20
+scheduler = sched.scheduler(time.time, time.sleep)
+
 
 class Resolutions:
     FULL = (4056, 3040)
@@ -18,6 +23,41 @@ class Resolutions:
     P480 = (640, 480)
     P720 = (1280, 720)
     P1080 = (1920, 1080)
+
+class Timelapse:
+    def __init__(self, limit, interval, full_res, name) -> None:
+        self.limit = limit
+        self.interval = interval
+        self.full_res = full_res
+        self.name = name
+        self.count = 0
+        self.event = None
+    
+    def start(self, capture, stop, upload):
+        logging.info("Timelapse started.")
+        self.event = scheduler.enter(1, 1, self.capture_and_upload, argument=(capture, stop, self.name, upload, ))
+        scheduler.run()
+    
+    def keep_alive(self):
+        return self.interval < TIMELAPSE_INTERVAL
+    
+    def stop(self, func):
+        logging.info("Timelapse stopped.")
+        if self.event in scheduler.queue:
+            scheduler.cancel(self.event)                     
+            func()
+    
+    def running(self):
+        return self.event is not None and self.event in scheduler.queue
+    
+    def capture_and_upload(self, capture, stop, name : str, upload):
+        if self.limit == 0 or self.count < self.limit:
+            self.event = scheduler.enter(self.interval, 1, self.capture_and_upload, argument=(capture, stop, name, upload, ))    
+        capture(upload, name, self.full_res, self.keep_alive())   
+        self.count += 1 
+        if self.limit != 0 and self.count == self.limit and self.keep_alive():
+            self.stop(stop)
+
 
 class Video:
     def __init__(self, resolution, quality) -> None:
@@ -87,7 +127,7 @@ class Camera:
         self.streaming_output = StreamingOutput()
         self._configuration = self.picam2.configure(self.configurations["still"]["half"])
         self.video = None
-        self.timelapse = None
+        self.timelapse : Timelapse = None
         self.lock = Lock() 
 
     def configuration(self) -> str:
@@ -129,7 +169,7 @@ class Camera:
             encoder=self.encoders["preview"],
             output=FileOutput(self.streaming_output),
             name="lores"
-        )
+        )   
     
     def start(self, full_res : bool = False):        
         if full_res and self.preview_running():
@@ -141,11 +181,42 @@ class Camera:
     
     def stop(self):
         self.picam2.stop_encoder()
-        self.picam2.stop()   
+        self.picam2.stop() 
+
+    def timelapse_start(self, limit, interval, full_res, name, upload):
+        if self.timelapse is not None and self.timelapse.running():
+            logging.warn("Timelapse already running!")
+        self.timelapse = Timelapse(
+            limit=limit, 
+            interval=interval, 
+            full_res=full_res, 
+            name=name).start( 
+            capture=self.capture_still, 
+            stop=self.stop_timelapse,
+            upload=upload)
+    
+    def timelapse_stop(self):
+        if self.timelapse is not None:
+            self.timelapse.stop() 
+        if self.recording_running():
+            return
+        if self.preview_running():
+            if self.configuration == Resolutions.FULL:
+                self.picam2.stop()
+                self.configure_still()
+                self.picam2.start()
+        else:
+            self.picam2.stop()
+            if self.configuration == Resolutions.FULL:
+                self.configure_still()
+          
 
     def recording_start(self, resolution, quality) -> bool:
         if self.recording_running():
             logging.warn("Recording already running.")
+            return False
+        if self.timelapse is not None and self.timelapse.interval < TIMELAPSE_INTERVAL:
+            logging.warn("Recording cancelled: Timelapse running.")
             return False
         stream_paused = False
         if self.preview_running():
@@ -153,7 +224,6 @@ class Camera:
             logging.info("Stream paused.")
             stream_paused = True
             self.picam2.stop()
-
         self.configure_video(resolution=resolution)
         self.video = Video(resolution=resolution, quality=quality)        
         self._start_video_encoder()
@@ -162,6 +232,7 @@ class Camera:
             self._start_preview_encoder()
             logging.info("Stream resumed.")
         self.picam2.start()
+        return True
 
     def _recording_resume(self):
         self.configure_video(self.video.resolution)
@@ -184,7 +255,6 @@ class Camera:
             self.picam2.start()
         data = self.video.data
         data.seek(0)
-        self.video = None
         return data    
 
     # Pause video/stream if running. Configure to half/full still. Return paused encoders.
@@ -232,19 +302,7 @@ class Camera:
         request.save("main", data, format='jpeg')
         request.release()
         data.seek(0)
-        upload(data, name)
-    
-    def stop_timelapse(self):
-        if self.preview_running():
-            if self.configuration == Resolutions.FULL:
-                self.picam2.stop()
-                self.configure_still()
-                self.picam2.start()
-        else:
-            self.picam2.stop()
-            if self.configuration == Resolutions.FULL:
-                self.configure_still()
-           
+        upload(data, name)       
 
     def preview_start(self) -> bool:
         if self.preview_running():
