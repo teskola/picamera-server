@@ -23,7 +23,9 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
     
     def do_GET(self):   
         if self.path == '/status':
+            camera.lock.acquire()
             response = camera.status()
+            camera.lock.release()
             json_string = json.dumps(response)
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
