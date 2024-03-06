@@ -54,7 +54,7 @@ class Timelapse:
         logging.info("capture_and_upload")
         if self.limit == 0 or self.count < self.limit:
             logging.info("schedule next")
-            self.event = scheduler.enter(self.interval, 1, self.cpture_and_upload, argument=(capture, stop, name, upload, ))    
+            self.event = scheduler.enter(self.interval, 1, self.capture_and_upload, argument=(capture, stop, name, upload, ))    
         logging.info("capture")
         capture(upload, name, self.full_res, self.keep_alive())   
         self.count += 1 
