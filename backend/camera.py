@@ -150,7 +150,7 @@ class Camera:
                               "AeEnable": False,
                               "AwbEnable": False},
                               
-                    buffer_count = 2
+                    buffer_count = 4
                 )
               
                                     
