@@ -175,7 +175,7 @@ class Camera:
         logging.info(pformat(self.picam2.camera_configuration()))
         self.picam2.start()
         time.sleep(1)        
-        image = self.picam2.capture_array("raw")
+        image = self.picam2.capture_array("main")
         cv2.imwrite("image.jpg", image)
         
 
