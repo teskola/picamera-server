@@ -139,7 +139,14 @@ class Camera:
                     buffer_count = 6
                    )               
                 
-            }                          
+            },
+            'timelapse': {
+                self.picam2.create_video_configuration(
+                    main={"size": Resolutions.LOW},
+                    controls={"FrameDurationLimtis": (10000, 10000)}
+                )
+            }  
+                                    
         }          
    
     def __init__(self) -> None:
@@ -157,6 +164,7 @@ class Camera:
         return self.picam2.camera_configuration()["main"]["size"]   
     
     def timelapse_test(self):
+        self.picam2.configure(self.configurations["timelapse"])
         logging.info(pformat(self.picam2.camera_configuration()))
     
     def configure_still(self, full_res : bool = False):
