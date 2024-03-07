@@ -67,6 +67,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
         elif self.path == '/timelapse':
             camera.lock.acquire()
             camera.timelapse_test()
+            minio.upload_file('image.jpg')
             camera.lock.release()
             self.send_response(200)
             self.end_headers()
