@@ -168,6 +168,8 @@ class Camera:
     def timelapse_test(self):
         self.picam2.configure(self.configurations["timelapse"])
         logging.info(pformat(self.picam2.camera_configuration()))
+        self.picam2.start()
+        time.sleep(1)
         logging.info(pformat(self.picam2.capture_metadata()))
     
     def configure_still(self, full_res : bool = False):
