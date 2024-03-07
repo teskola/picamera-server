@@ -148,8 +148,7 @@ class Camera:
                          "format": 'SRGGB10_CSI2P'},
                     controls={"FrameDurationLimits": (10000, 10000),
                               "NoiseReductionMode": controls.draft.NoiseReductionModeEnum.Fast,
-                              "AeEnable": False,
-                              "AwbEnable": False},
+                              },
                               
                     buffer_count = 4
                 )
