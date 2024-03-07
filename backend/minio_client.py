@@ -28,7 +28,7 @@ class MinioClient:
         self.bucket = os.getenv("BUCKET")
     
     def upload_file(self, file):
-        self.client.fput_object(self.bucket, file, 'raw.jpg')
+        self.client.fput_object(self.bucket, 'raw.jpg', file)
 
     def upload_image(self, data : io.BytesIO, filename : str):
         logging.info("Uploading image...")
