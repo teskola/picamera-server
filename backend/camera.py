@@ -142,7 +142,8 @@ class Camera:
             },
             'timelapse': 
                 self.picam2.create_video_configuration(
-                    main={"size": Resolutions.LOW},
+                    raw={"size": Resolutions.LOW,
+                         "format": 'SRGGB10_CSI2P'},
                     controls={"FrameDurationLimits": (10000, 10000)}
                 )
               
