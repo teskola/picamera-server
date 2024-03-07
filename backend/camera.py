@@ -134,7 +134,8 @@ class Camera:
                 ),
                 'full':
                    self.picam2.create_still_configuration(
-                    main={"size": Resolutions.FULL},
+                    main={"size": Resolutions.FULL,
+                          "format": "YUV420"},
                     lores={"size": Resolutions.STREAM_4_3},
                     controls={"FrameDurationLimits": (100000, 100000)},
                     buffer_count = 6
@@ -175,6 +176,11 @@ class Camera:
         logging.info(pformat(self.picam2.camera_configuration()))
         self.picam2.start()
         time.sleep(1)        
+        started = time.time()
+        for i in range (100):
+            self.picam2.capture_array()
+        stopped = time.time()
+        logging.info(f"Time elapsed: {stopped - started}")
         image = self.picam2.capture_array("main")
         cv2.imwrite("image.jpg", image)
         
