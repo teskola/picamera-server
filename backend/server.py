@@ -52,14 +52,14 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
 
         elif self.path == '/still_start':
             camera.lock.acquire()
-            camera.timelapse_start(interval=1, name="testi", limit=0, full_res=False, upload=minio.upload_image)
+            camera.still_start(interval=1, name="testi", limit=0, full_res=False, upload=minio.upload_image)
             camera.lock.release()
             self.send_response(200)
             self.end_headers()
 
         elif self.path == '/still_stop':
             camera.lock.acquire()
-            camera.timelapse_stop()
+            camera.still_stop()
             camera.lock.release()
             self.send_response(200)
             self.end_headers()

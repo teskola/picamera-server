@@ -10,7 +10,7 @@ from picamera2.encoders import MJPEGEncoder, H264Encoder, Quality
 from picamera2.outputs import FileOutput
 
 STREAM_BITRATE = 2400000
-TIMELAPSE_INTERVAL = 20
+KEEP_ALIVE_LIMIT = 20
 scheduler = sched.scheduler(time.monotonic, time.sleep)
 
 def quality_to_int(quality : Quality) -> int:
@@ -35,7 +35,7 @@ class Resolutions:
     P720 = (1280, 720)
     P1080 = (1920, 1080)
 
-class Timelapse:
+class Still:
     def __init__(self, limit, interval, full_res, name) -> None:
         self.limit = limit
         self.interval = interval
@@ -47,15 +47,15 @@ class Timelapse:
         self.stopped = 0
     
     def start(self, capture, stop, upload):
-        logging.info("Timelapse started.")
+        logging.info("Still scheduler started.")
         self.event = scheduler.enter(1, 1, self.tick, argument=(capture, stop, self.name, upload, ))
         Thread(target=scheduler.run).start()        
     
     def keep_alive(self):
-        return self.interval < TIMELAPSE_INTERVAL
+        return self.interval < KEEP_ALIVE_LIMIT
     
     def stop(self, func):
-        logging.info("Timelapse stopped.")
+        logging.info("Still scheduler stopped.")
         self.stopped = time.time()
         if self.event in scheduler.queue:
             scheduler.cancel(self.event)                     
@@ -149,8 +149,11 @@ class Camera:
         self.streaming_output : StreamingOutput = StreamingOutput()
         self.picam2.configure(self.configurations["still"]["half"])
         self.video : Video = None
-        self.timelapse : Timelapse = None
+        self.still : Still = None
         self.lock = Lock()     
+    
+    def timelapse_test(self):
+        logging.info(pformat(self.picam2.camera_configuration()))
     
     def configure_still(self, full_res : bool = False):        
         if full_res:
@@ -204,7 +207,7 @@ class Camera:
         self.picam2.close()
     
     def running(self):
-        return self._encoders_running() or (self.timelapse is not None and self.timelapse.running())
+        return self._encoders_running() or (self.still is not None and self.still.running())
     
     def status(self):
         result = {}
@@ -218,20 +221,21 @@ class Camera:
                 'quality': quality_to_int(self.video.quality),
                 'started': self.video.started,
                 'stopped': self.video.stopped,
-                'size': self.video.size()
+                'size': self.video.size(),
+                'running': self.recording_running()
             }
 
-        timelapse = {}
-        if self.timelapse is not None:
-            timelapse = {
-                'limit': self.timelapse.limit,
-                'interval': self.timelapse.interval,
-                'full_res': self.timelapse.full_res,
-                'name': self.timelapse.name,
-                'count': self.timelapse.count,
-                'running': self.timelapse.running(),
-                'started': self.timelapse.started,
-                'stopped': self.timelapse.stopped
+        still = {}
+        if self.still is not None:
+            still = {
+                'limit': self.still.limit,
+                'interval': self.still.interval,
+                'full_res': self.still.full_res,
+                'name': self.still.name,
+                'count': self.still.count,
+                'running': self.still.running(),
+                'started': self.still.started,
+                'stopped': self.still.stopped
             } 
          
         config = self.picam2.camera_configuration().copy()
@@ -240,21 +244,21 @@ class Camera:
         del config["transform"]
         result["configration"] = config
         result["video"] = video
-        result["timelapse"] = timelapse
+        result["still"] = still
         return result
 
-    def timelapse_start(self, limit, interval, full_res, name, upload):
-        if self.timelapse is not None and self.timelapse.running():
-            logging.warn("Timelapse already running!")
+    def still_start(self, limit, interval, full_res, name, upload):
+        if self.still is not None and self.still.running():
+            logging.warn("Still scheduler already running!")
         
-        self.timelapse = Timelapse(
+        self.still = Still(
             limit=limit, 
             interval=interval, 
             full_res=full_res, 
             name=name)
-        if self.timelapse.keep_alive():
+        if self.still.keep_alive():
             self.start()            
-        self.timelapse.start(
+        self.still.start(
             capture=self.capture_still, 
             stop=self.reconfig_after_stop,
             upload=upload)
@@ -273,9 +277,9 @@ class Camera:
             if resolution == Resolutions.FULL:
                 self.configure_still()
     
-    def timelapse_stop(self):
-        if self.timelapse is not None:
-            self.timelapse.stop(self.reconfig_after_stop) 
+    def still_stop(self):
+        if self.still is not None:
+            self.still.stop(self.reconfig_after_stop) 
         
           
 
@@ -283,8 +287,8 @@ class Camera:
         if self.recording_running():
             logging.warn("Recording already running.")
             return False
-        if self.timelapse is not None and self.timelapse.interval < TIMELAPSE_INTERVAL:
-            logging.warn("Recording cancelled: Timelapse running.")
+        if self.still is not None and self.still.interval < KEEP_ALIVE_LIMIT:
+            logging.warn("Recording cancelled: Still scheduler running.")
             return False
         stream_paused = False
         if self.preview_running():
