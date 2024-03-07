@@ -173,9 +173,9 @@ class Camera:
         time.sleep(1)
         started = time.time()
         for i in range (100):
-            self.picam2.capture_array()
+            self.picam2.capture_array("raw")
         stopped = time.time()
-        logging.info(f"Time elapsed: {started - stopped}")
+        logging.info(f"Time elapsed: {stopped - started}")
 
         
     
