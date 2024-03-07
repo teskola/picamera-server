@@ -145,7 +145,8 @@ class Camera:
                     main={"size": Resolutions.LOW},
                     raw={"size": Resolutions.LOW,
                          "format": 'SRGGB10_CSI2P'},
-                    controls={"FrameDurationLimits": (10000, 10000)}
+                    controls={"FrameDurationLimits": (10000, 10000),
+                              "NoiseReductionMode": controls.draft.NoiseReductionModeEnum.Fast}
                 )
               
                                     
@@ -170,7 +171,13 @@ class Camera:
         logging.info(pformat(self.picam2.camera_configuration()))
         self.picam2.start()
         time.sleep(1)
-        logging.info(pformat(self.picam2.capture_metadata()))
+        started = time.time()
+        for i in range (100):
+            self.picam2.capture_array()
+        stopped = time.time()
+        logging.info(f"Time elapsed: {started - stopped}")
+
+        
     
     def configure_still(self, full_res : bool = False):
         if self.recording_running():
