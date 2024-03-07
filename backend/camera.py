@@ -267,7 +267,8 @@ class Camera:
             limit=limit, 
             interval=interval, 
             full_res=full_res, 
-            name=name).start(
+            name=name)
+        self.still.start(
             capture=self.capture_still, 
             stop=self.reconfig_after_stop,
             upload=upload)
