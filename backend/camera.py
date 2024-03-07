@@ -10,7 +10,7 @@ from picamera2.encoders import MJPEGEncoder, H264Encoder, Quality
 from picamera2.outputs import FileOutput
 
 STREAM_BITRATE = 2400000
-KEEP_ALIVE_LIMIT = 20
+KEEP_ALIVE_LIMIT = 60
 scheduler = sched.scheduler(time.monotonic, time.sleep)
 
 def quality_to_int(quality : Quality) -> int:
@@ -147,27 +147,38 @@ class Camera:
         self.configurations = self._create_configurations()
         self.encoders = {'preview': MJPEGEncoder(bitrate=STREAM_BITRATE), 'video': H264Encoder()}
         self.streaming_output : StreamingOutput = StreamingOutput()
-        #self.picam2.configure(self.configurations["still"]["half"])
         self.video : Video = None
         self.still : Still = None
-        self.lock = Lock()     
+        self.lock = Lock()  
+
+    def current_resolution(self):
+        if self.picam2.camera_configuration() is None:
+            return None
+        return self.picam2.camera_configuration()["main"]["size"]   
     
     def timelapse_test(self):
         logging.info(pformat(self.picam2.camera_configuration()))
     
-    def configure_still(self, full_res : bool = False):        
-        if full_res:
+    def configure_still(self, full_res : bool = False):
+        if self.recording_running():
+            logging.warn("Recording video => Capturing lower resolution image.")                               
+        elif full_res and self.current_resolution() != Resolutions.FULL:
             logging.info(f"Configure to: full resolution")
+            self.picam2.stop()
             self.picam2.configure(self.configurations["still"]["full"])
-        else:
+        elif not full_res and self.current_resolution() != Resolutions.HALF:
             logging.info(f"Configure to: half resolution")
+            self.picam2.stop()
             self.picam2.configure(self.configurations["still"]["half"])
+            
     
     def configure_video(self, resolution):
         logging.info(f"Configure to: {resolution}")
-        if resolution == '720p':
+        if resolution == '720p' and self.current_resolution() != Resolutions.P720:
+            self.picam2.stop()
             self.picam2.configure(self.configurations["video"]["720p"])
-        elif resolution == '1080p':
+        elif resolution == '1080p' and self.current_resolution() != Resolutions.P1080:
+            self.picam2.stop()
             self.picam2.configure(self.configurations["video"]["1080p"])
     
     def _encoders_running(self) -> bool:
@@ -250,32 +261,21 @@ class Camera:
     def still_start(self, limit, interval, full_res, name, upload):
         if self.still is not None and self.still.running():
             logging.warn("Still scheduler already running!")
+            return
         
         self.still = Still(
             limit=limit, 
             interval=interval, 
             full_res=full_res, 
-            name=name)
-        if self.still.keep_alive():
-            self.start()            
-        self.still.start(
+            name=name).start(
             capture=self.capture_still, 
             stop=self.reconfig_after_stop,
             upload=upload)
     
     def reconfig_after_stop(self):
-        if self.recording_running():
-            return
-        resolution = self.picam2.camera_configuration()["main"]["size"]
-        if self.preview_running():
-            if resolution == Resolutions.FULL:
-                self.picam2.stop()
-                self.configure_still()
-                self.picam2.start()
-        else:
+        self.configure_still()
+        if not self._encoders_running():
             self.picam2.stop()
-            if resolution == Resolutions.FULL:
-                self.configure_still()
     
     def still_stop(self):
         if self.still is not None:
@@ -286,10 +286,7 @@ class Camera:
     def recording_start(self, resolution, quality) -> bool:
         if self.recording_running():
             logging.warn("Recording already running.")
-            return False
-        if self.still is not None and self.still.interval < KEEP_ALIVE_LIMIT:
-            logging.warn("Recording cancelled: Still scheduler running.")
-            return False
+            return False        
         stream_paused = False
         if self.preview_running():
             self.picam2.stop_encoder()
@@ -299,18 +296,13 @@ class Camera:
         self.configure_video(resolution=resolution)
         self.video = Video(resolution=resolution, quality=quality)        
         self._start_video_encoder()
+        self.picam2.start()
+        self.video.started = time.time()
         logging.info("Recording started.")
         if stream_paused:
             self._start_preview_encoder()
-            logging.info("Stream resumed.")
-        self.picam2.start()
-        self.video.started = time.time()
-        return True
-
-    def _recording_resume(self):
-        self.configure_video(self.video.resolution)
-        self._start_video_encoder()
-        logging.info("Recording resumed.")
+            logging.info("Stream resumed.")        
+        return True   
 
     def recording_stop(self) -> io.BytesIO:
         if not self.recording_running():
@@ -329,45 +321,14 @@ class Camera:
             self.picam2.start()
         data = self.video.data
         data.seek(0)
-        return data    
-
-    # Pause video/stream if running. Configure to half/full still. Return paused encoders.
-
-    def pause_encoders(self, full_res : bool = False) -> list:
-        paused_encoders = self.picam2.encoders.copy()
-        if self.recording_running():
-            self.picam2.stop_encoder()
-            self.picam2.stop()
-            logging.info("Recording/streaming paused.")
-            self.configure_still(full_res=full_res)
-            self.picam2.start()
-        else:
-            if full_res:
-                self.picam2.stop()
-                self.configure_still(full_res=True)
-                self.picam2.start()
-        self.picam2.start()
-        return paused_encoders
-    
-    def restart_paused_encoders(self, paused_encoders : list, full_res : bool = False):
-        if self.encoders['video'] in paused_encoders:
-            self.picam2.stop()
-            self._recording_resume()
-            if self.encoders["preview"] in paused_encoders:
-                self.preview_start()
-            self.picam2.start()
-        elif full_res:
-            self.picam2.stop()
-            self.configure_still()
-            self.picam2.start()        
+        return data      
              
-        
     def capture_still(self, upload, name, full_res : bool = False, keep_alive : bool = False) -> io.BytesIO:
-        if not keep_alive:
-            paused_encoders = self.pause_encoders(full_res=full_res)        
+        self.configure_still(full_res=full_res)
+        self.picam2.start()
         Thread(target=self.capture_and_upload, args=(upload, name, )).start()
         if not keep_alive:
-            self.restart_paused_encoders(paused_encoders=paused_encoders, full_res=full_res)
+            self.reconfig_after_stop()
 
     def capture_and_upload(self, upload, name):
         data = io.BytesIO()
@@ -381,10 +342,11 @@ class Camera:
         if self.preview_running():
             logging.warn("Stream already running.")
             return False
+        if self.current_resolution() is None:
+            self.picam2.configure(self.configurations["still"]["half"])
         self._start_preview_encoder()
-        logging.info("Streaming started.")
-        if not self.running():
-            self.picam2.start()        
+        self.picam2.start()
+        logging.info("Streaming started.")            
         return True   
 
     def preview_stop(self) -> bool:
