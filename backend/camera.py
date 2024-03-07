@@ -142,6 +142,7 @@ class Camera:
             },
             'timelapse': 
                 self.picam2.create_still_configuration(
+                    main={"size": Resolutions.LOW},
                     raw={"size": Resolutions.LOW,
                          "format": 'SRGGB10_CSI2P'},
                     controls={"FrameDurationLimits": (10000, 10000)}
@@ -167,6 +168,7 @@ class Camera:
     def timelapse_test(self):
         self.picam2.configure(self.configurations["timelapse"])
         logging.info(pformat(self.picam2.camera_configuration()))
+        logging.info(pformat(self.picam2.capture_metadata()))
     
     def configure_still(self, full_res : bool = False):
         if self.recording_running():
