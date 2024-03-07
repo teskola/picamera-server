@@ -146,7 +146,7 @@ class Camera:
                     main={"size": Resolutions.LOW},
                     raw={"size": Resolutions.LOW,
                          "format": 'SRGGB10_CSI2P'},
-                    controls={"FrameDurationLimits": (20000, 20000),
+                    controls={"FrameDurationLimits": (33333, 33333),
                               "NoiseReductionMode": controls.draft.NoiseReductionModeEnum.Fast,
                               },
                               
@@ -176,7 +176,7 @@ class Camera:
         self.picam2.start()
         time.sleep(1)        
         started = time.time()
-        for i in range (50):
+        for i in range (30):
             self.picam2.capture_array()
         stopped = time.time()
         logging.info(f"Time elapsed: {stopped - started}")
