@@ -146,7 +146,8 @@ class Camera:
                     raw={"size": Resolutions.LOW,
                          "format": 'SRGGB10_CSI2P'},
                     controls={"FrameDurationLimits": (10000, 10000),
-                              "NoiseReductionMode": controls.draft.NoiseReductionModeEnum.Fast}
+                              "NoiseReductionMode": controls.draft.NoiseReductionModeEnum.Fast},
+                    buffer_count = 10
                 )
               
                                     
