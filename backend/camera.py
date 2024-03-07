@@ -151,7 +151,7 @@ class Camera:
                               "NoiseReductionMode": controls.draft.NoiseReductionModeEnum.Fast,
                               },
                               
-                    buffer_count = 4
+                    buffer_count = 24
                 )
               
                                     
