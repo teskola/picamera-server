@@ -147,7 +147,7 @@ class Camera:
         self.configurations = self._create_configurations()
         self.encoders = {'preview': MJPEGEncoder(bitrate=STREAM_BITRATE), 'video': H264Encoder()}
         self.streaming_output : StreamingOutput = StreamingOutput()
-        self.picam2.configure(self.configurations["still"]["half"])
+        #self.picam2.configure(self.configurations["still"]["half"])
         self.video : Video = None
         self.still : Still = None
         self.lock = Lock()     
