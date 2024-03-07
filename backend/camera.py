@@ -2,6 +2,7 @@ import logging
 import io
 import sched
 import time
+import cv2
 from pprint import pformat
 from threading import Condition, Lock, Thread
 from libcamera import controls
@@ -174,12 +175,10 @@ class Camera:
         self.picam2.configure(self.configurations["timelapse"])
         logging.info(pformat(self.picam2.camera_configuration()))
         self.picam2.start()
-        time.sleep(1)
-        started = time.time()
-        for i in range (100):
-            self.picam2.capture_array("raw")
-        stopped = time.time()
-        logging.info(f"Time elapsed: {stopped - started}")
+        time.sleep(1)        
+        image = self.picam2.capture_array("raw")
+        cv2.imwrite("image.jpg", image)
+        
 
         
     
