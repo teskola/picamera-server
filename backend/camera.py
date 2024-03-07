@@ -2,7 +2,6 @@ import logging
 import io
 import sched
 import time
-import cv2
 from pprint import pformat
 from threading import Condition, Lock, Thread
 from libcamera import controls
@@ -147,7 +146,7 @@ class Camera:
                     main={"size": Resolutions.LOW},
                     raw={"size": Resolutions.LOW,
                          "format": 'SRGGB10_CSI2P'},
-                    controls={"FrameDurationLimits": (10000, 10000),
+                    controls={"FrameDurationLimits": (20000, 20000),
                               "NoiseReductionMode": controls.draft.NoiseReductionModeEnum.Fast,
                               },
                               
@@ -177,12 +176,11 @@ class Camera:
         self.picam2.start()
         time.sleep(1)        
         started = time.time()
-        for i in range (100):
+        for i in range (50):
             self.picam2.capture_array()
         stopped = time.time()
         logging.info(f"Time elapsed: {stopped - started}")
-        image = self.picam2.capture_array("main")
-        cv2.imwrite("image.jpg", image)
+        
         
 
         
