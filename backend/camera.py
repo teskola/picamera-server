@@ -143,7 +143,7 @@ class Camera:
             'timelapse': 
                 self.picam2.create_video_configuration(
                     main={"size": Resolutions.LOW},
-                    controls={"FrameDurationLimtis": (10000, 10000)}
+                    controls={"FrameDurationLimits": (10000, 10000)}
                 )
               
                                     
