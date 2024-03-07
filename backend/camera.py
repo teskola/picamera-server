@@ -150,7 +150,7 @@ class Camera:
                               "AeEnable": False,
                               "AwbEnable": False},
                               
-                    buffer_count = 10
+                    buffer_count = 5
                 )
               
                                     
@@ -177,7 +177,7 @@ class Camera:
         time.sleep(1)
         started = time.time()
         for i in range (100):
-            self.picam2.capture_array("main")
+            self.picam2.capture_array("raw")
         stopped = time.time()
         logging.info(f"Time elapsed: {stopped - started}")
 
