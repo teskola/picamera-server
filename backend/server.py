@@ -64,6 +64,13 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.send_response(200)
             self.end_headers()
 
+        elif self.path == '/timelapse':
+            camera.lock.acquire()
+            camera.timelapse_test()
+            camera.lock.release()
+            self.send_response(200)
+            self.end_headers()
+
         elif self.path == '/stream.mjpg':            
             if not camera.preview_running():
                 camera.lock.acquire()
