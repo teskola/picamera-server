@@ -391,7 +391,7 @@ class Camera:
             logging.warn("Stream already running.")
             return False
         if self.current_resolution() is None or not self.running():
-            self.configure_preview()
+            self.configure_still()
         self._start_preview_encoder()
         self.picam2.start()
         logging.info("Streaming started.")            
