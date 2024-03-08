@@ -154,7 +154,8 @@ class Camera:
                 ),
             'preview':
                 self.picam2.create_preview_configuration(
-                    lores={"size": Resolutions.STREAM_4_3}
+                    lores={"size": Resolutions.STREAM_4_3},
+                    display=None
                 )
             
               
@@ -164,7 +165,7 @@ class Camera:
     def __init__(self) -> None:
         self.picam2 = Picamera2()        
         self.configurations = self._create_configurations()
-        self.encoders = {'preview': MJPEGEncoder(bitrate=STREAM_BITRATE), 'video': H264Encoder()}
+        self.encoders = {'preview': MJPEGEncoder(), 'video': H264Encoder()}
         self.streaming_output : StreamingOutput = StreamingOutput()
         self.video : Video = None
         self.still : Still = None
@@ -212,6 +213,12 @@ class Camera:
             self.picam2.stop()
             self.picam2.configure(self.configurations["video"]["1080p"])
     
+    def configure_preview(self):
+        logging.info("Configure to preview.")
+        self.picam2.stop()
+        self.picam2.configure(self.configurations["preview"])
+        logging.info(pformat(self.picam2.camera_configuration()))
+
     def _encoders_running(self) -> bool:
         return len(self.picam2.encoders) > 0
     
@@ -305,8 +312,12 @@ class Camera:
             upload=upload)
     
     def reconfig_after_stop(self):
-        self.configure_still()
-        if not self._encoders_running():
+        if self.recording_running():
+            return
+        if self.preview_running():
+            self.configure_preview()
+            self.picam2.start()
+        else:
             self.picam2.stop()
     
     def still_stop(self):
@@ -375,7 +386,7 @@ class Camera:
             logging.warn("Stream already running.")
             return False
         if self.current_resolution() is None or not self.running():
-            self.picam2.configure(self.configurations["still"]["half"])
+            self.configure_preview()
         self._start_preview_encoder()
         self.picam2.start()
         logging.info("Streaming started.")            
