@@ -276,7 +276,6 @@ class Camera:
                 'stopped': self.video.stopped,
                 'size': self.video.size(),
                 'running': self.recording_running(),
-                'fps': self.encoders["video"].framerate
             }
 
         still = {}
@@ -301,6 +300,7 @@ class Camera:
          
         if self.picam2.camera_configuration() is not None:
             config = self.picam2.camera_configuration().copy()
+            logging.info(pformat(config["controls"]))
             del config["controls"]
             del config["colour_space"]
             del config["transform"]
