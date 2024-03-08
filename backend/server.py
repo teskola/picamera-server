@@ -49,7 +49,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
 
         elif self.path == '/still_start':
             camera.lock.acquire()
-            camera.still_start(interval=2, name="testi", limit=0, full_res=True, upload=minio.upload_image)
+            camera.still_start(interval=2, name="testi", limit=0, full_res=False, upload=minio.upload_image)
             camera.lock.release()
             self.send_response(200)
             self.end_headers()
