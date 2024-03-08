@@ -166,7 +166,7 @@ class Camera:
     def __init__(self) -> None:
         self.picam2 = Picamera2()        
         self.configurations = self._create_configurations()
-        self.encoders = {'preview': MJPEGEncoder(), 'video': H264Encoder()}
+        self.encoders = {'preview': MJPEGEncoder(bitrate=STREAM_BITRATE), 'video': H264Encoder()}
         self.streaming_output : StreamingOutput = StreamingOutput()
         self.video : Video = None
         self.still : Still = None
