@@ -1,10 +1,7 @@
 import logging
 import socketserver
 import json
-import sched
-import time
 from http import server
-from threading import Lock, Thread
 from picamera2.encoders import Quality
 
 from minio_client import MinioClient
@@ -122,6 +119,10 @@ def run_server():
         address = ('', 5000)
         server = StreamingServer(address, StreamingHandler)
         server.serve_forever()
+        logging.info("Server start.")
+    
+    except KeyboardInterrupt:
+        logging.info("Server shutdown.")
         
     finally:    
         camera.stop()        
