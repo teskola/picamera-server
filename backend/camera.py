@@ -151,7 +151,12 @@ class Camera:
                               },
                               
                     buffer_count = 4
+                ),
+            'preview':
+                self.picam2.create_preview_configuration(
+                    lores={"size": Resolutions.STREAM_4_3}
                 )
+            
               
                                     
         }          
@@ -369,8 +374,8 @@ class Camera:
         if self.preview_running():
             logging.warn("Stream already running.")
             return False
-        if self.current_resolution() is None:
-            self.picam2.configure(self.configurations["still"]["half"])
+        if self.current_resolution() is None or not self.running():
+            self.picam2.configure(self.configurations["preview"])
         self._start_preview_encoder()
         self.picam2.start()
         logging.info("Streaming started.")            
