@@ -263,7 +263,7 @@ class Camera:
         return self._encoders_running() or (self.still is not None and self.still.running())
     
     def status(self):
-        result = {}
+        result = {}        
         result["running"] = self.running()
 
         video = {}
@@ -275,7 +275,8 @@ class Camera:
                 'started': self.video.started,
                 'stopped': self.video.stopped,
                 'size': self.video.size(),
-                'running': self.recording_running()
+                'running': self.recording_running(),
+                'fps': self.encoders["video"].framerate
             }
 
         still = {}
@@ -290,6 +291,14 @@ class Camera:
                 'started': self.still.started,
                 'stopped': self.still.stopped
             } 
+        
+        result["preview"] = {
+            'running': self.preview_running(),
+            'fps': self.encoders['preview'].framerate
+        }
+
+        if self.running():
+            result["metadata"] = self.picam2.capture_metadata()
          
         config = self.picam2.camera_configuration().copy()
         del config["controls"]
