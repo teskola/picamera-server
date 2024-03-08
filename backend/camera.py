@@ -135,8 +135,7 @@ class Camera:
                    self.picam2.create_still_configuration(
                     main={"size": Resolutions.FULL},
                     lores={"size": Resolutions.STREAM_4_3},
-                    controls={"FrameDurationLimits": (100000, 100000),
-                              "AeEnable": True},
+                    controls={"FrameDurationLimits": (100000, 100000)},
                     buffer_count = 6
                    )               
                 
@@ -146,7 +145,7 @@ class Camera:
                     main={"size": Resolutions.LOW},
                     raw={"size": Resolutions.LOW,
                          "format": 'SRGGB10_CSI2P'},
-                    controls={"FrameDurationLimits": (33333, 33333),
+                    controls={"FrameDurationLimits": (10000, 10000),
                               "NoiseReductionMode": controls.draft.NoiseReductionModeEnum.Minimal,
                               },
                               
@@ -185,12 +184,13 @@ class Camera:
         self.picam2.configure(self.configurations["timelapse"])
         logging.info(pformat(self.picam2.camera_configuration()))
         self.picam2.start()
-        time.sleep(1)        
-        started = time.time()
+        time.sleep(1)     
+        logging.info(pformat(self.status()))   
+        """ started = time.time()
         for i in range (30):
             self.picam2.capture_array()
         stopped = time.time()
-        logging.info(f"Time elapsed: {stopped - started}")
+        logging.info(f"Time elapsed: {stopped - started}") """
         
         
 
@@ -301,7 +301,6 @@ class Camera:
          
         if self.picam2.camera_configuration() is not None:
             config = self.picam2.camera_configuration().copy()
-            logging.info(pformat(config["controls"]))
             del config["controls"]
             del config["colour_space"]
             del config["transform"]
