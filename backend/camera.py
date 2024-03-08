@@ -186,6 +186,7 @@ class Camera:
         self.picam2.start()
         time.sleep(1)     
         logging.info(pformat(self.status()))   
+        logging.info(self.picam2.capture_metadata())
         """ started = time.time()
         for i in range (30):
             self.picam2.capture_array()
