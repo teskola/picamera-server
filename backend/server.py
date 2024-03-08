@@ -118,9 +118,9 @@ def run_server():
     try:
         address = ('', 5000)
         server = StreamingServer(address, StreamingHandler)
-        server.serve_forever()
         logging.info("Server start.")
-    
+        server.serve_forever()
+            
     except KeyboardInterrupt:
         logging.info("Server shutdown.")
         
