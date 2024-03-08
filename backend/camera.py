@@ -154,7 +154,8 @@ class Camera:
                 ),
             'preview':
                 self.picam2.create_preview_configuration(
-                    main={"size": Resolutions.STREAM_4_3},
+                    main={"size": Resolutions.STREAM_4_3,
+                          "format": "YUV420"},
                     lores={"size": Resolutions.STREAM_4_3},
                     controls={"FrameDurationLimits": (33333, 33333)},
                     display=None,
@@ -169,7 +170,7 @@ class Camera:
     def __init__(self) -> None:
         self.picam2 = Picamera2()        
         self.configurations = self._create_configurations()
-        self.encoders = {'preview': MJPEGEncoder(), 'video': H264Encoder()}
+        self.encoders = {'preview': MJPEGEncoder(bitrate=STREAM_BITRATE), 'video': H264Encoder()}
         self.streaming_output : StreamingOutput = StreamingOutput()
         self.video : Video = None
         self.still : Still = None
@@ -320,7 +321,7 @@ class Camera:
         if self.recording_running():
             return
         if self.preview_running():
-            self.configure_still()
+            self.configure_preview()
             self.picam2.start()
         else:
             self.picam2.stop()
@@ -391,7 +392,7 @@ class Camera:
             logging.warn("Stream already running.")
             return False
         if self.current_resolution() is None or not self.running():
-            self.configure_still()
+            self.configure_preview()
         self._start_preview_encoder()
         self.picam2.start()
         logging.info("Streaming started.")            
