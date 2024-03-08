@@ -147,16 +147,19 @@ class Camera:
                     raw={"size": Resolutions.LOW,
                          "format": 'SRGGB10_CSI2P'},
                     controls={"FrameDurationLimits": (33333, 33333),
-                              "NoiseReductionMode": controls.draft.NoiseReductionModeEnum.Fast,
+                              "NoiseReductionMode": controls.draft.NoiseReductionModeEnum.Minimal,
                               },
                               
                     buffer_count = 4
                 ),
             'preview':
                 self.picam2.create_preview_configuration(
+                    main={"size": Resolutions.STREAM_4_3},
                     lores={"size": Resolutions.STREAM_4_3},
+                    controls={"FrameDurationLimits": (33333, 33333)},
                     display=None,
-                    encode=None
+                    encode=None,
+                    buffer_count = 6
                 )
             
               
@@ -317,7 +320,7 @@ class Camera:
         if self.recording_running():
             return
         if self.preview_running():
-            self.configure_still()
+            self.configure_preview()
             self.picam2.start()
         else:
             self.picam2.stop()
@@ -388,7 +391,7 @@ class Camera:
             logging.warn("Stream already running.")
             return False
         if self.current_resolution() is None or not self.running():
-            self.configure_still()
+            self.configure_preview()
         self._start_preview_encoder()
         self.picam2.start()
         logging.info("Streaming started.")            
