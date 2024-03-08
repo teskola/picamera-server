@@ -155,7 +155,8 @@ class Camera:
             'preview':
                 self.picam2.create_preview_configuration(
                     lores={"size": Resolutions.STREAM_4_3},
-                    display=None
+                    display=None,
+                    encode=None
                 )
             
               
