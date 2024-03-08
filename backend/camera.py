@@ -201,14 +201,7 @@ class Camera:
         elif full_res and self.current_resolution() != Resolutions.FULL:
             logging.info(f"Configure to: full resolution")
             self.picam2.stop()
-            preview_paused = self.preview_running()
-            if preview_paused:
-                logging.info("Preview paused.")
-                self.picam2.stop_encoder(encoders=[self.encoders["preview"]])
-            self.picam2.encoders["preview"].framerate = 10
-            self._start_preview_encoder()
             self.picam2.configure(self.configurations["still"]["full"])
-            
         elif not full_res and self.current_resolution() != Resolutions.HALF:
             logging.info(f"Configure to: half resolution")
             self.picam2.stop()
@@ -301,7 +294,6 @@ class Camera:
         
         result["preview"] = {
             'running': self.preview_running(),
-            'fps': self.encoders['preview'].framerate
         }
 
         if self.running():
