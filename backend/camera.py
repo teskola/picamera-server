@@ -320,7 +320,7 @@ class Camera:
         if self.recording_running():
             return
         if self.preview_running():
-            self.configure_preview()
+            self.configure_still()
             self.picam2.start()
         else:
             self.picam2.stop()
@@ -391,7 +391,7 @@ class Camera:
             logging.warn("Stream already running.")
             return False
         if self.current_resolution() is None or not self.running():
-            self.configure_preview()
+            self.configure_still()
         self._start_preview_encoder()
         self.picam2.start()
         logging.info("Streaming started.")            
