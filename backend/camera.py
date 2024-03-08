@@ -129,14 +129,14 @@ class Camera:
                     main={"size": Resolutions.HALF},
                     lores={"size": Resolutions.STREAM_4_3},
                     controls={"FrameDurationLimits": (33333, 33333)},
-                    buffer_count = 6,
+                    buffer_count = 8,
                 ),
                 'full':
                    self.picam2.create_still_configuration(
                     main={"size": Resolutions.FULL},
                     lores={"size": Resolutions.STREAM_4_3},
                     controls={"FrameDurationLimits": (100000, 100000)},
-                    buffer_count = 6
+                    buffer_count = 8
                    )               
                 
             },
@@ -206,7 +206,6 @@ class Camera:
             logging.info(f"Configure to: half resolution")
             self.picam2.stop()
             self.picam2.configure(self.configurations["still"]["half"])
-        logging.info(pformat(self.picam2.camera_configuration()))
             
     
     def configure_video(self, resolution):
@@ -320,7 +319,7 @@ class Camera:
         if self.recording_running():
             return
         if self.preview_running():
-            self.configure_preview()
+            self.configure_still()
             self.picam2.start()
         else:
             self.picam2.stop()
