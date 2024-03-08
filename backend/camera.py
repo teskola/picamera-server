@@ -300,11 +300,12 @@ class Camera:
         if self.running():
             result["metadata"] = self.picam2.capture_metadata()
          
-        config = self.picam2.camera_configuration().copy()
-        del config["controls"]
-        del config["colour_space"]
-        del config["transform"]
-        result["configration"] = config
+        if self.picam2.camera_configuration() is not None:
+            config = self.picam2.camera_configuration().copy()
+            del config["controls"]
+            del config["colour_space"]
+            del config["transform"]
+            result["configration"] = config
         result["video"] = video
         result["still"] = still
         return result
