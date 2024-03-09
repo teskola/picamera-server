@@ -5,7 +5,7 @@ from http import server
 from picamera2.encoders import Quality
 
 from minio_client import MinioClient
-from camera import Camera
+from camera import Camera, AlreadyRunningError, NotRunningError
 
 logging.basicConfig(
     format='%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s',
@@ -16,50 +16,97 @@ camera = Camera()
 minio = MinioClient()
 stream_clients = set()
 
-class StreamingHandler(server.BaseHTTPRequestHandler):
+class StreamingHandler(server.BaseHTTPRequestHandler):    
+
+    def send(self, code : int, response : dict):
+        if int(code / 100) == 2:
+            self.send_response(code)
+        else:
+            self.send_error(code)
+        self.send_header('Content-Type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps(response).encode(encoding='utf_8'))
     
     def do_GET(self):   
         if self.path == '/status':
             camera.lock.acquire()
-            response = camera.status()
+            cam_response = camera.status()
             camera.lock.release()
-            json_string = json.dumps(response)
-            self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json_string.encode(encoding='utf_8'))
+            if "error" in cam_response:
+                code = 500
+                cam_response["error"] = "Something went wrong!"    
+            else:
+                code = 200       
+            self.send(code, cam_response)
 
         elif self.path == '/video_start':            
-            self.send_response(200)
-            self.end_headers()
             camera.lock.acquire()
-            camera.recording_start(resolution='720p', quality=Quality.MEDIUM)
+            cam_response = camera.recording_start(resolution='720p', quality=Quality.MEDIUM)
             camera.lock.release()
+            if "error" in cam_response:
+                if cam_response["error"] is AlreadyRunningError:
+                    code = 409
+                    cam_response["error"] = "Already recording."
+                else:
+                    code = 500
+                    cam_response["error"] = "Something went wrong!"
+            else:
+                code = 200
+            self.send(code, cam_response)
 
         elif self.path == '/video_stop':                       
             camera.lock.acquire()
-            data = camera.recording_stop()
+            cam_response = camera.recording_stop()
             camera.lock.release()
-            if data is None:
-                self.send_response(409)                
-            else:
-                self.send_response(200)
-                minio.upload_video(data, 'video') 
-            self.end_headers()           
+            response = {}
+            code = 200
+            if "error" in cam_response:
+                if cam_response["error"] is NotRunningError:
+                    code = 409
+                    response["error"] = "Not recording."
+                else:
+                    code = 500
+                    response["error"] = "Something went wrong!"
+            if "status" in cam_response:
+                response['status'] = cam_response['status']
+
+            if "data" not in cam_response or cam_response['data'] is None:                
+                code = 500
+                response["error"] = "Something went wrong!"
+            if code == 200:
+                minio.upload_video(cam_response["data"], 'video') 
+            self.send(code, response)   
 
         elif self.path == '/still_start':
             camera.lock.acquire()
-            camera.still_start(interval=2, name="testi", limit=0, full_res=False, upload=minio.upload_image)
+            cam_response = camera.still_start(interval=2, name="testi", limit=0, full_res=False, upload=minio.upload_image)
             camera.lock.release()
-            self.send_response(200)
-            self.end_headers()
+            if "error" in cam_response:
+                if cam_response["error"] is AlreadyRunningError:
+                    code = 409
+                    cam_response["error"] = "Already recording."
+                else:
+                    code = 500
+                    cam_response["error"] = "Something went wrong!"
+            else:
+                code = 200
+            self.send(code, cam_response)            
 
         elif self.path == '/still_stop':
             camera.lock.acquire()
-            camera.still_stop()
+            cam_response = camera.still_stop()
             camera.lock.release()
-            self.send_response(200)
-            self.end_headers()
+            if "error" in cam_response:
+                if cam_response["error"] is NotRunningError:
+                    code = 409
+                    cam_response["error"] = "No stills scheduled."
+                else:
+                    code = 500
+                    cam_response["error"] = "Something went wrong!"
+            else:
+                code = 200
+            self.send(code, cam_response)
+
 
         elif self.path == '/timelapse':
             camera.lock.acquire()

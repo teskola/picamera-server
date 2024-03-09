@@ -2,6 +2,7 @@ import logging
 import io
 import sched
 import time
+import traceback
 from pprint import pformat
 from threading import Condition, Lock, Thread
 from libcamera import controls
@@ -25,6 +26,12 @@ def quality_to_int(quality : Quality) -> int:
     elif quality == Quality.VERY_HIGH:
         return 5
 
+class AlreadyRunningError (Exception):
+    pass
+
+class NotRunningError (Exception):
+    pass
+
 class Resolutions:
     FULL = (4056, 3040)
     HALF = (2028, 1520)
@@ -45,6 +52,18 @@ class Still:
         self.event = None
         self.started = 0
         self.stopped = 0
+    
+    def status(self):
+        return {
+                'limit': self.limit,
+                'interval': self.interval,
+                'full_res': self.full_res,
+                'name': self.name,
+                'count': self.count,
+                'running': self.running(),
+                'started': self.started,
+                'stopped': self.stopped
+            }
     
     def start(self, capture, stop, upload):
         logging.info("Still scheduler started.")
@@ -265,65 +284,64 @@ class Camera:
         return self._encoders_running() or (self.still is not None and self.still.running())
     
     def status(self):
-        result = {}        
-        result["running"] = self.running()
+        try:
+            result = {}        
+            result["running"] = self.running()
 
-        video = {}
-        if self.video is not None:
-            
-            video = {
-                'resolution': self.video.resolution,
-                'quality': quality_to_int(self.video.quality),
-                'started': self.video.started,
-                'stopped': self.video.stopped,
-                'size': self.video.size(),
-                'running': self.recording_running(),
+            result["video"]["running"] = self.recording_running()
+            if self.video is not None:                    
+                result["video"]['resolution'] = self.video.resolution,
+                result["video"]['quality'] = quality_to_int(self.video.quality)
+                result["video"]['started'] = self.video.started
+                result["video"]['stopped'] = self.video.stopped
+                result["video"]['size'] = self.video.size()              
+
+            if self.still is not None:
+                result["still"] = self.still.status()
+                    
+            result["preview"] = {
+                'running': self.preview_running(),
             }
 
-        still = {}
-        if self.still is not None:
-            still = {
-                'limit': self.still.limit,
-                'interval': self.still.interval,
-                'full_res': self.still.full_res,
-                'name': self.still.name,
-                'count': self.still.count,
-                'running': self.still.running(),
-                'started': self.still.started,
-                'stopped': self.still.stopped
-            } 
-        
-        result["preview"] = {
-            'running': self.preview_running(),
-        }
+            if self.running():
+                result["metadata"] = self.picam2.capture_metadata()
+            
+            if self.picam2.camera_configuration() is not None:
+                config = self.picam2.camera_configuration().copy()
+                del config["controls"]
+                del config["colour_space"]
+                del config["transform"]
+                result["configration"] = config
+            return result
+        except Exception as e:
+            traceback.print_exc()
+            logging.error(str(e))
+            return {"error": e}
 
-        if self.running():
-            result["metadata"] = self.picam2.capture_metadata()
-         
-        if self.picam2.camera_configuration() is not None:
-            config = self.picam2.camera_configuration().copy()
-            del config["controls"]
-            del config["colour_space"]
-            del config["transform"]
-            result["configration"] = config
-        result["video"] = video
-        result["still"] = still
-        return result
+    def still_start(self, limit, interval, full_res, name, upload) -> dict:
+        try:
 
-    def still_start(self, limit, interval, full_res, name, upload):
-        if self.still is not None and self.still.running():
-            logging.warn("Still scheduler already running!")
-            return
-        
-        self.still = Still(
-            limit=limit, 
-            interval=interval, 
-            full_res=full_res, 
-            name=name)
-        self.still.start(
-            capture=self.capture_still, 
-            stop=self.reconfig_after_stop,
-            upload=upload)
+            if self.still is not None and self.still.running():
+                logging.warn("Still scheduler already running!")            
+                raise AlreadyRunningError
+            
+            self.still = Still(
+                limit=limit, 
+                interval=interval, 
+                full_res=full_res, 
+                name=name)
+            self.still.start(
+                capture=self.capture_still, 
+                stop=self.reconfig_after_stop,
+                upload=upload)
+            return {"status": self.status()}
+        except AlreadyRunningError as e:
+            return {"error": e,
+                    "status": self.status()}
+        except Exception as e:
+            traceback.print_exc()
+            logging.error(str(e))
+            return {"error": e}    
     
     def reconfig_after_stop(self):
         if self.recording_running():
@@ -334,51 +352,79 @@ class Camera:
         else:
             self.picam2.stop()
     
-    def still_stop(self):
-        if self.still is not None:
-            self.still.stop(self.reconfig_after_stop) 
+    def still_stop(self) -> dict:
+        try:
+            if self.still is None:
+                raise NotRunningError
+            else:
+                self.still.stop(self.reconfig_after_stop) 
+                return  {"status": self.status()}
+        except NotRunningError as e:
+            return {"error": e,
+                    "status": self.status()}
+        except Exception as e:
+            traceback.print_exc()
+            logging.error(str(e))
+            return {"error": e}
         
           
 
-    def recording_start(self, resolution, quality) -> bool:
-        if self.recording_running():
-            logging.warn("Recording already running.")
-            return False        
-        stream_paused = False
-        if self.preview_running():
-            self.picam2.stop_encoder()
-            logging.info("Stream paused.")
-            stream_paused = True
-            self.picam2.stop()
-        self.configure_video(resolution=resolution)
-        self.video = Video(resolution=resolution, quality=quality)        
-        self._start_video_encoder()
-        self.picam2.start()
-        self.video.started = time.time()
-        logging.info("Recording started.")
-        if stream_paused:
-            self._start_preview_encoder()
-            logging.info("Stream resumed.")        
-        return True   
-
-    def recording_stop(self) -> io.BytesIO:
-        if not self.recording_running():
-            logging.warn("Recording not running.")
-            return None
-        stream_running = self.preview_running()
-        self.picam2.stop_encoder()
-        self.picam2.stop()
-        self.video.stopped = time.time()
-        logging.info("Recording stopped.")        
-        self.configure_still()
-
-        if stream_running:            
-            self._start_preview_encoder()
-            logging.info("Streaming resumed.")
+    def recording_start(self, resolution, quality) -> dict:
+        try:
+            if self.recording_running():
+                logging.warn("Recording already running.")
+                raise AlreadyRunningError
+            stream_paused = False
+            if self.preview_running():
+                self.picam2.stop_encoder()
+                logging.info("Stream paused.")
+                stream_paused = True
+                self.picam2.stop()
+            self.configure_video(resolution=resolution)
+            self.video = Video(resolution=resolution, quality=quality)        
+            self._start_video_encoder()
             self.picam2.start()
-        data = self.video.data
-        data.seek(0)
-        return data      
+            self.video.started = time.time()
+            logging.info("Recording started.")
+            if stream_paused:
+                self._start_preview_encoder()
+                logging.info("Stream resumed.")        
+            return {"status": self.status()}
+        except AlreadyRunningError as e:
+            return {"error": e,
+                    "status": self.status()}
+        except Exception as e:
+            traceback.print_exc()
+            logging.error(str(e))
+            return {"error": e} 
+
+    def recording_stop(self) -> dict:
+        try:                
+            if not self.recording_running():
+                logging.warn("Recording not running.")
+                raise NotRunningError
+            stream_running = self.preview_running()
+            self.picam2.stop_encoder()
+            self.picam2.stop()
+            self.video.stopped = time.time()
+            logging.info("Recording stopped.")        
+            self.configure_still()
+
+            if stream_running:            
+                self._start_preview_encoder()
+                logging.info("Streaming resumed.")
+                self.picam2.start()
+            data = self.video.data
+            data.seek(0)
+            return {"data": data,
+                    "status": self.status()}
+        except NotRunningError as e:
+            return {"error": e,
+                    "status": self.status()}
+        except Exception as e:
+            traceback.print_exc()
+            logging.error(str(e))
+            return {"error": e}
              
     def capture_still(self, upload, name, full_res : bool = False, keep_alive : bool = False) -> io.BytesIO:
         self.configure_still(full_res=full_res)
