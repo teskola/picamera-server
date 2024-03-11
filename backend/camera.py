@@ -307,9 +307,10 @@ class Camera:
     
     def status(self):
         try:
-            result = {}        
+            result = {"video": {},
+                      "still": {},
+                      "preview": {}}        
             result["running"] = self.running()
-
             result["video"]["running"] = self.recording_running()
             if self.video is not None:                    
                 result["video"]['resolution'] = self.video.resolution,
