@@ -82,7 +82,7 @@ class Still:
                 'stopped': self.stopped
             }
     
-    def start(self, capture, stop, upload, delay : float = 1.0, epoch : float | None = None):
+    def start(self, capture, stop, upload, delay : float = 1.0, epoch : float = None):
         if epoch is not None:   
             if time.time() > epoch:
                 raise ValueError('Scheduled time is in the past')
@@ -340,7 +340,7 @@ class Camera:
             logging.error(str(e))
             return {"error": e}
 
-    def still_start(self, limit, interval, full_res, name, upload, delay : float = 1.0, epoch : float | None = None) -> dict:
+    def still_start(self, limit, interval, full_res, name, upload, delay : float = 1.0, epoch : float = None) -> dict:
         try:
 
             if self.still is not None and self.still.running():
