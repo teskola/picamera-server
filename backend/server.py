@@ -1,11 +1,12 @@
 import logging
 import socketserver
 import json
+from urllib import parse
 from http import server
 from picamera2.encoders import Quality
 
 from minio_client import MinioClient
-from camera import Camera, AlreadyRunningError, NotRunningError
+from camera import Camera, AlreadyRunningError, NotRunningError, Resolutions
 
 logging.basicConfig(
     format='%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s',
@@ -16,7 +17,7 @@ camera = Camera()
 minio = MinioClient()
 stream_clients = set()
 
-class StreamingHandler(server.BaseHTTPRequestHandler):    
+class CameraHandler(server.BaseHTTPRequestHandler):    
 
     def send(self, code : int, response : dict):
         if int(code / 100) == 2:
@@ -27,21 +28,36 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(json.dumps(response).encode(encoding='utf_8'))
     
-    def do_GET(self):   
-        if self.path == '/status':
-            camera.lock.acquire()
-            cam_response = camera.status()
-            camera.lock.release()
-            if "error" in cam_response:
-                code = 500
-                cam_response["error"] = "Something went wrong!"    
-            else:
-                code = 200       
-            self.send(code, cam_response)
+    def do_POST(self):
+        length = int(self.headers.get('content-length'))
+        field_data = self.rfile.read(length)
+        fields = parse.parse_qs(str(field_data,"UTF-8"))
 
-        elif self.path == '/video_start':            
+        if fields["action"] == "video_start":
+            if fields["resolution"] == "720p":
+                resolution = Resolutions.P720
+            elif fields["resolution"] == "1080p":
+                resolution = Resolutions.P1080
+            else:
+                self.send_error(400)
+                self.end_headers()
+                return
+            if fields["quality"] == 1:
+                quality = Quality.VERY_LOW
+            elif fields["quality"] == 2:
+                quality = Quality.LOW
+            elif fields["quality"] == 3:
+                quality = Quality.MEDIUM
+            elif fields["quality"] == 4:
+                quality = Quality.HIGH
+            elif fields["quality"] == 5:
+                quality = Quality.VERY_HIGH
+            else:
+                self.send_error(400)
+                self.end_headers()
+                return
             camera.lock.acquire()
-            cam_response = camera.recording_start(resolution='720p', quality=Quality.MEDIUM)
+            cam_response = camera.recording_start(resolution=resolution, quality=quality)
             camera.lock.release()
             if "error" in cam_response:
                 if cam_response["error"] is AlreadyRunningError:
@@ -54,7 +70,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                 code = 200
             self.send(code, cam_response)
 
-        elif self.path == '/video_stop':                       
+        elif fields["action"] == "video_stop":
             camera.lock.acquire()
             cam_response = camera.recording_stop()
             camera.lock.release()
@@ -75,24 +91,34 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                 response["error"] = "Something went wrong!"
             if code == 200:
                 minio.upload_video(cam_response["data"], 'video') 
-            self.send(code, response)   
+            self.send(code, response)  
 
-        elif self.path == '/still_start':
+        elif fields["action"] == "still_start":
+            
             camera.lock.acquire()
-            cam_response = camera.still_start(interval=2, name="testi", limit=0, full_res=False, upload=minio.upload_image)
+            cam_response = camera.still_start(interval=fields["interval"], 
+                                              name=fields["name"], 
+                                              limit=fields["limit"], 
+                                              full_res=fields["full_res"], 
+                                              upload=minio.upload_image,
+                                              epoch=fields["epoch"],
+                                              delay=fields["delay"])
             camera.lock.release()
             if "error" in cam_response:
                 if cam_response["error"] is AlreadyRunningError:
                     code = 409
                     cam_response["error"] = "Already recording."
+                elif cam_response["error"] is ValueError:
+                    code = 409
+                    cam_response["error"] = str(cam_response["error"])
                 else:
                     code = 500
                     cam_response["error"] = "Something went wrong!"
             else:
                 code = 200
-            self.send(code, cam_response)            
-
-        elif self.path == '/still_stop':
+            self.send(code, cam_response)
+        
+        elif fields["action"] == "still_stop":
             camera.lock.acquire()
             cam_response = camera.still_stop()
             camera.lock.release()
@@ -106,7 +132,22 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             else:
                 code = 200
             self.send(code, cam_response)
+        else:
+            self.send_error(400)
+            self.end_headers()
 
+    
+    def do_GET(self):   
+        if self.path == '/status':
+            camera.lock.acquire()
+            cam_response = camera.status()
+            camera.lock.release()
+            if "error" in cam_response:
+                code = 500
+                cam_response["error"] = "Something went wrong!"    
+            else:
+                code = 200       
+            self.send(code, cam_response)
 
         elif self.path == '/timelapse':
             camera.lock.acquire()
@@ -154,7 +195,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.end_headers()
 
 
-class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
+class CameraServer(socketserver.ThreadingMixIn, server.HTTPServer):
         
     allow_reuse_address = True
     daemon_threads = True
@@ -164,7 +205,7 @@ def run_server():
        
     try:
         address = ('', 5000)
-        server = StreamingServer(address, StreamingHandler)
+        server = CameraServer(address, CameraHandler)
         logging.info("Server start.")
         server.serve_forever()
             

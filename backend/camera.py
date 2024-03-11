@@ -12,7 +12,7 @@ from picamera2.outputs import FileOutput
 
 STREAM_BITRATE = 2400000
 KEEP_ALIVE_LIMIT = 60
-scheduler = sched.scheduler(time.monotonic, time.sleep)
+scheduler = sched.scheduler(time.time, time.sleep)
 
 def quality_to_int(quality : Quality) -> int:
     if quality == Quality.VERY_LOW:
@@ -42,11 +42,28 @@ class Resolutions:
     P720 = (1280, 720)
     P1080 = (1920, 1080)
 
+def resolution_to_str(resolution : Resolutions) -> str:
+    return f"{resolution[1]}p"
+
 class Still:
     def __init__(self, limit, interval, full_res, name) -> None:
+        if not isinstance(limit, int):
+            raise AttributeError('Limit not a number.')
+        if (limit < 0):
+            raise ValueError('Negative limit.')
         self.limit = limit
+        if not isinstance(interval, float):
+            raise AttributeError('Interval not a number.')
+        if (interval < 1.0):
+            raise ValueError('Interval under one second.')
+        elif (interval > 60 * 60 * 6):
+            raise ValueError('Interval over 6 hours.')
         self.interval = interval
+        if not isinstance(full_res, bool):
+            raise AttributeError('Full_res not a boolean.')
         self.full_res = full_res
+        if not isinstance(name, str):
+            raise AttributeError('Name not a string.')
         self.name = name
         self.count = 0
         self.event = None
@@ -65,9 +82,16 @@ class Still:
                 'stopped': self.stopped
             }
     
-    def start(self, capture, stop, upload):
+    def start(self, capture, stop, upload, delay : float = 1.0, epoch : float | None = None):
+        if epoch is not None:   
+            if time.time() > epoch:
+                raise ValueError('Scheduled time is in the past')
+            self.event = scheduler.enterabs(epoch, 1, self.tick, argument=(capture, stop, self.name, upload, ))    
+        else:
+            if delay < 1.0:
+                delay = 1.0
+            self.event = scheduler.enter(delay, 1, self.tick, argument=(capture, stop, self.name, upload, ))
         logging.info("Still scheduler started.")
-        self.event = scheduler.enter(1, 1, self.tick, argument=(capture, stop, self.name, upload, ))
         Thread(target=scheduler.run).start()        
     
     def keep_alive(self):
@@ -95,7 +119,7 @@ class Still:
 
 
 class Video:
-    def __init__(self, resolution, quality) -> None:
+    def __init__(self, resolution : str, quality : int) -> None:
         self.resolution = resolution
         self.quality = quality
         self.data = io.BytesIO() 
@@ -229,14 +253,12 @@ class Camera:
             self.picam2.configure(self.configurations["still"]["half"])
             
     
-    def configure_video(self, resolution):
-        logging.info(f"Configure to: {resolution}")
-        if resolution == '720p' and self.current_resolution() != Resolutions.P720:
+    def configure_video(self, resolution : Resolutions):        
+        if self.current_resolution() != resolution:            
             self.picam2.stop()
-            self.picam2.configure(self.configurations["video"]["720p"])
-        elif resolution == '1080p' and self.current_resolution() != Resolutions.P1080:
-            self.picam2.stop()
-            self.picam2.configure(self.configurations["video"]["1080p"])
+            res_str = resolution_to_str(resolution)
+            logging.info(f"Configure to: {res_str}")
+            self.picam2.configure(self.configurations["video"][res_str])            
     
     def configure_preview(self):
         logging.info("Configure to preview.")
@@ -318,7 +340,7 @@ class Camera:
             logging.error(str(e))
             return {"error": e}
 
-    def still_start(self, limit, interval, full_res, name, upload) -> dict:
+    def still_start(self, limit, interval, full_res, name, upload, delay : float = 1.0, epoch : float | None = None) -> dict:
         try:
 
             if self.still is not None and self.still.running():
@@ -331,13 +353,15 @@ class Camera:
                 full_res=full_res, 
                 name=name)
             self.still.start(
+                delay=delay,
+                epoch=epoch,
                 capture=self.capture_still, 
                 stop=self.reconfig_after_stop,
                 upload=upload)
             return {"status": self.status()}
-        except AlreadyRunningError as e:
+        except AlreadyRunningError | ValueError as e:
             return {"error": e,
-                    "status": self.status()}
+                    "status": self.status()}        
         except Exception as e:
             traceback.print_exc()
             logging.error(str(e))
@@ -369,7 +393,7 @@ class Camera:
         
           
 
-    def recording_start(self, resolution, quality) -> dict:
+    def recording_start(self, resolution : Resolutions, quality : Quality) -> dict:        
         try:
             if self.recording_running():
                 logging.warn("Recording already running.")
