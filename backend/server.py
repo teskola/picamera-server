@@ -35,7 +35,7 @@ class CameraHandler(server.BaseHTTPRequestHandler):
         
         # refuse to receive non-json content
         if ctype != 'application/json':
-            logging.warn("Refused non-json content")
+            logging.warning(f"Refused non-json content: {ctype}")
             self.send_response(400)
             self.end_headers()
             return
