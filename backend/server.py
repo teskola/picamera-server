@@ -31,7 +31,7 @@ class CameraHandler(server.BaseHTTPRequestHandler):
     # https://gist.github.com/nitaku/10d0662536f37a087e1b
     
     def do_POST(self):
-        ctype = cgi.parse_header(self.headers.get('Content-Type'))
+        ctype, pdict = cgi.parse_header(self.headers.get('Content-Type'))
         
         # refuse to receive non-json content
         if ctype != 'application/json':
