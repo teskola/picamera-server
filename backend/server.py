@@ -28,7 +28,6 @@ class CameraHandler(server.BaseHTTPRequestHandler):
         self.send_header('Content-Type', 'application/json')
         self.end_headers()
         self.wfile.write(json.dumps(response).encode(encoding='utf_8'))
-        self.wfile.close()
 
     # https://gist.github.com/nitaku/10d0662536f37a087e1b
     
