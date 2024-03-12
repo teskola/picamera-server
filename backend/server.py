@@ -31,7 +31,7 @@ class CameraHandler(server.BaseHTTPRequestHandler):
     # https://gist.github.com/nitaku/10d0662536f37a087e1b
     
     def do_POST(self):
-        ctype = cgi.parse_header(self.headers.getheader('content-type'))
+        ctype = cgi.parse_header(self.headers.get('content-type'))
         
         # refuse to receive non-json content
         if ctype != 'application/json':
@@ -40,7 +40,7 @@ class CameraHandler(server.BaseHTTPRequestHandler):
             return
             
         # read the message and convert it into a python dictionary
-        length = int(self.headers.getheader('content-length'))
+        length = int(self.headers.get('content-length'))
         fields = json.loads(self.rfile.read(length))       
         
         
