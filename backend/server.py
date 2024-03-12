@@ -47,7 +47,6 @@ class CameraHandler(server.BaseHTTPRequestHandler):
         
         
         if fields["action"] == "video_start":
-            logging.info("video_start")
             if fields["resolution"] == "720p":
                 resolution = Resolutions.P720
             elif fields["resolution"] == "1080p":
@@ -85,7 +84,6 @@ class CameraHandler(server.BaseHTTPRequestHandler):
             self.send(code, cam_response)
 
         elif fields["action"] == "video_stop":
-            logging.info("video_stop")
             camera.lock.acquire()
             cam_response = camera.recording_stop()
             camera.lock.release()
@@ -104,9 +102,9 @@ class CameraHandler(server.BaseHTTPRequestHandler):
             if "data" not in cam_response or cam_response['data'] is None:                
                 code = 500
                 response["error"] = "Something went wrong!"
+            self.send(code, response)
             if code == 200:
                 Thread(target=minio.upload_video(cam_response["data"], 'video')).start()
-            self.send(code, response)
 
         elif fields["action"] == "still_start":
             logging.info("still_start")            
