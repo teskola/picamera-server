@@ -1,7 +1,7 @@
 import logging
 import socketserver
 import json
-from urllib import parse
+import cgi
 from http import server
 from picamera2.encoders import Quality
 
@@ -27,12 +27,23 @@ class CameraHandler(server.BaseHTTPRequestHandler):
         self.send_header('Content-Type', 'application/json')
         self.end_headers()
         self.wfile.write(json.dumps(response).encode(encoding='utf_8'))
+
+    # https://gist.github.com/nitaku/10d0662536f37a087e1b
     
     def do_POST(self):
-        length = int(self.headers.get('content-length'))
-        field_data = self.rfile.read(length)
-        fields = parse.parse_qs(str(field_data,"UTF-8"))
-
+        ctype = cgi.parse_header(self.headers.getheader('content-type'))
+        
+        # refuse to receive non-json content
+        if ctype != 'application/json':
+            self.send_response(400)
+            self.end_headers()
+            return
+            
+        # read the message and convert it into a python dictionary
+        length = int(self.headers.getheader('content-length'))
+        fields = json.loads(self.rfile.read(length))       
+        
+        
         if fields["action"] == "video_start":
             if fields["resolution"] == "720p":
                 resolution = Resolutions.P720
