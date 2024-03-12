@@ -2,6 +2,7 @@ import logging
 import socketserver
 import json
 import cgi
+from threading import Thread
 from http import server
 from picamera2.encoders import Quality
 
@@ -104,8 +105,8 @@ class CameraHandler(server.BaseHTTPRequestHandler):
                 code = 500
                 response["error"] = "Something went wrong!"
             if code == 200:
-                minio.upload_video(cam_response["data"], 'video') 
-            self.send(code, response)  
+                Thread(target=minio.upload_video(cam_response["data"], 'video')).start()
+            self.send(code, response)
 
         elif fields["action"] == "still_start":
             logging.info("still_start")            
