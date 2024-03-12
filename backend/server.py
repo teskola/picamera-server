@@ -103,8 +103,8 @@ class CameraHandler(server.BaseHTTPRequestHandler):
                 code = 500
                 response["error"] = "Something went wrong!"
             self.send(code, response)
-            if code == 200:
-                Thread(target=minio.upload_video(cam_response["data"], 'video')).start()
+            # if code == 200:
+               # Thread(target=minio.upload_video(cam_response["data"], 'video')).start()
 
         elif fields["action"] == "still_start":
             logging.info("still_start")            
