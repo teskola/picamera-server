@@ -35,6 +35,7 @@ class CameraHandler(server.BaseHTTPRequestHandler):
         
         # refuse to receive non-json content
         if ctype != 'application/json':
+            logging.warn("Refused non-json content")
             self.send_response(400)
             self.end_headers()
             return
@@ -45,6 +46,7 @@ class CameraHandler(server.BaseHTTPRequestHandler):
         
         
         if fields["action"] == "video_start":
+            logging.info("video_start")
             if fields["resolution"] == "720p":
                 resolution = Resolutions.P720
             elif fields["resolution"] == "1080p":
@@ -82,6 +84,7 @@ class CameraHandler(server.BaseHTTPRequestHandler):
             self.send(code, cam_response)
 
         elif fields["action"] == "video_stop":
+            logging.info("video_stop")
             camera.lock.acquire()
             cam_response = camera.recording_stop()
             camera.lock.release()
@@ -105,7 +108,7 @@ class CameraHandler(server.BaseHTTPRequestHandler):
             self.send(code, response)  
 
         elif fields["action"] == "still_start":
-            
+            logging.info("still_start")            
             camera.lock.acquire()
             cam_response = camera.still_start(interval=fields["interval"], 
                                               name=fields["name"], 
@@ -130,6 +133,7 @@ class CameraHandler(server.BaseHTTPRequestHandler):
             self.send(code, cam_response)
         
         elif fields["action"] == "still_stop":
+            logging.info("still_stop")
             camera.lock.acquire()
             cam_response = camera.still_stop()
             camera.lock.release()
