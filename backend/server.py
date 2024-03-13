@@ -18,7 +18,16 @@ camera = Camera()
 minio = MinioClient()
 stream_clients = set()
 
-class CameraHandler(server.BaseHTTPRequestHandler):    
+class CameraHandler(server.BaseHTTPRequestHandler): 
+
+    def do_OPTIONS(self):
+        self.send_response(200, "ok")
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS', 'POST')
+        self.send_header("Access-Control-Allow-Headers", "X-Requested-With")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.end_headers()
+   
 
     def send(self, code : int, response : dict):
         if int(code / 100) == 2:

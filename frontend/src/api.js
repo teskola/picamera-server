@@ -1,6 +1,6 @@
 export const startStill = async ({ interval, path, limit, full_res, epoch, delay }) => {
     const res = await fetch(
-        `${import.meta.env.VITE_RASPBERRY_URL}:${import.meta.env.VITE_PORT}/api`, {
+        `http://${import.meta.env.VITE_RASPBERRY_URL}:${import.meta.env.VITE_PORT}/api`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -22,7 +22,7 @@ export const startStill = async ({ interval, path, limit, full_res, epoch, delay
 
 export const stopStill = async () => {
     const res = await fetch(
-        `${import.meta.env.VITE_RASPBERRY_URL}:${import.meta.env.VITE_PORT}/api`, {
+        `http://${import.meta.env.VITE_RASPBERRY_URL}:${import.meta.env.VITE_PORT}/api`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
