@@ -17,8 +17,8 @@ const StillPage = (props) => {
     const [multiplier, setMultiplier] = useState(1)
     const [delayMode, setDelayMode] = useState('seconds')
     const [resolution, setResolution] = useState('half')
-    const limitRef = useRef()
-    const delayRef = useRef()
+    const limitRef = useRef(0)
+    const delayRef = useRef(1)
     const dateTimeRef = useRef()
     const intervalInSeconds = Math.floor(interval * multiplier)
 
