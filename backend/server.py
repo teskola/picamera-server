@@ -135,13 +135,14 @@ class CameraHandler(server.BaseHTTPRequestHandler):
         elif fields["action"] == "still_start":
             if self.field_check_failed(["interval", "name", "limit", "full_res", "epoch", "delay"], fields):
                 return
+            logging.info(pformat(fields))
             camera.lock.acquire()
             cam_response = camera.still_start(interval=int(fields["interval"]), 
                                               name=fields["name"], 
                                               limit=int(fields["limit"]), 
                                               full_res=fields["full_res"], 
                                               upload=minio.upload_image,
-                                              epoch=int(fields["epoch"]),
+                                              epoch=fields["epoch"],
                                               delay=float(fields["delay"]))
             camera.lock.release()
             if "error" in cam_response:
