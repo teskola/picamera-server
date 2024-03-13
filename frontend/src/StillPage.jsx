@@ -8,7 +8,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import { Radio, Typography } from "@mui/material";
 import { startStill, stopStill } from "./api";
-import unix from "moment";
+import moment from "moment";
 
 const StillPage = (props) => {
 
@@ -17,8 +17,8 @@ const StillPage = (props) => {
     const [multiplier, setMultiplier] = useState(1)
     const [delayMode, setDelayMode] = useState('seconds')
     const [resolution, setResolution] = useState('half')
-    const limitRef = useRef(0)
-    const delayRef = useRef(1)
+    const limitRef = useRef()
+    const delayRef = useRef()
     const dateTimeRef = useRef()
     const intervalInSeconds = Math.floor(interval * multiplier)
 
@@ -49,20 +49,21 @@ const StillPage = (props) => {
     }
 
     const onStart = async (_) => {
-        res = await startStill({
+        console.log(limitRef.current.value)
+        const res = await startStill({
             interval: intervalInSeconds,
             path: path,
-            limit: 0,
+            limit: limitRef.current.value,
             full_res: resolution === 'full',
-            epoch: delayMode === 'epoch' ? dateTimeRef.current.value.unix() : null,
-            delay: delayMode === 'seconds' ? 1 : null
+            epoch: delayMode === 'epoch' ? moment.unix(dateTimeRef.current.value) : null,
+            delay: delayMode === 'seconds' ? delayRef.current.value : null
         }
         )
         console.log(res)
     }
 
     const onStop = async (_) => {
-        res = await stopStill()
+        const res = await stopStill()
         console.log(res)
     }
 
@@ -88,13 +89,13 @@ const StillPage = (props) => {
                         <MenuItem value={3600}>hours</MenuItem>
                     </Select>
                 </div>
-                <TextField className="column_item" id="limit" ref={limitRef} defaultValue={limitRef.current} variant="outlined" label="Number of images" fullWidth />
+                <TextField className="column_item" id="limit" inputRef={limitRef} defaultValue={0} variant="outlined" label="Number of images" fullWidth />
                 <Typography variant="caption">0 = unlimited</Typography>
                 <div className="column_item">
                     <Radio checked={delayMode === 'seconds'} onChange={onDelayModeChange} value="seconds" />
                     <TextField disabled={delayMode !== 'seconds'}
-                        id="delay" ref={delayRef}
-                        defaultValue={delayRef.current}
+                        id="delay" inputRef={delayRef}
+                        defaultValue={1}
                         variant="outlined"
                         label="First image delay in seconds"
                     />
@@ -102,7 +103,7 @@ const StillPage = (props) => {
                 <div className="column_item">
                     <Radio checked={delayMode === 'epoch'} onChange={onDelayModeChange} value="epoch" />
                     <LocalizationProvider adapterLocale="fi" dateAdapter={AdapterMoment}>
-                        <DateTimePicker ref={dateTimeRef} format='DD/MM/YYYY HH:mm' ampm={false} disabled={delayMode !== 'epoch'} label="First image at" />
+                        <DateTimePicker inputRef={dateTimeRef} format='DD/MM/YYYY HH:mm' ampm={false} disabled={delayMode !== 'epoch'} label="First image at" />
                     </LocalizationProvider>
                 </div>
 
