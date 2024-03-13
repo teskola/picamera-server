@@ -52,8 +52,10 @@ def resolution_to_str(resolution : Resolutions) -> str:
 
 class Still:
     def __init__(self, limit, interval, full_res, name) -> None:
-        if not isinstance(limit, int):
-            raise AttributeError(f'Limit not an integer: {str(limit)}')
+        if not isinstance(limit, (int, float)):
+            raise AttributeError(f'Limit not a number: {str(limit)}')
+        if (limit < 1.0):
+            raise ValueError(f'Limit under 1.0: {str(limit)}')
         if (limit < 0):
             raise ValueError('Negative limit.')
         self.limit = limit
