@@ -25,7 +25,6 @@ class CameraHandler(server.BaseHTTPRequestHandler):
         self.send_response(200, "ok")
         self.send_header('Access-Control-Allow-Origin', 'http://localhost:5173')
         self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS, POST')
-        self.send_header("Access-Control-Allow-Headers", "X-Requested-With")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.end_headers()
    
