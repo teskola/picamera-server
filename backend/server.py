@@ -22,14 +22,14 @@ stream_clients = set()
 class CameraHandler(server.BaseHTTPRequestHandler): 
 
     def do_OPTIONS(self):
-        self.send_response(200, "ok")
+        self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', 'http://localhost:5173')
         self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS, POST')
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.end_headers()
    
 
-    def send(self, code : int, response : dict):
+    def send(self, code : int, response : dict = {}):
         if int(code / 100) == 2:
             self.send_response(code)
         else:
@@ -41,13 +41,18 @@ class CameraHandler(server.BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(json.dumps(response).encode(encoding='utf_8'))
 
+    def field_check_failed(self, list : list, payload : dict):
+        for item in list:
+            if item not in payload:
+                self.send(400, {"error": f"Missing field: {item}"})
+                return True
+        return False
     # https://gist.github.com/nitaku/10d0662536f37a087e1b
     
     def do_POST(self):
 
         if self.path != '/api':
-            self.send_response(404)
-            self.end_headers()
+            self.send(404)
             return
 
         ctype, pdict = cgi.parse_header(self.headers.get('Content-Type'))
@@ -55,24 +60,26 @@ class CameraHandler(server.BaseHTTPRequestHandler):
         # refuse to receive non-json content
         if ctype != 'application/json':
             logging.warning(f"Refused non-json content: {ctype}")
-            self.send_response(400)
-            self.end_headers()
+            self.send(400, {"error": "Refused non-json content"})
             return
             
         # read the message and convert it into a python dictionary
         length = int(self.headers.get('content-length'))
         fields = json.loads(self.rfile.read(length))       
         
+        if self.field_check_failed(["action"], fields):
+            return
         
-        if fields["action"] == "video_start":
-            if fields["resolution"] == "720p":
+        elif fields["action"] == "video_start":
+            if self.field_check_failed(["resolution", "quality"], fields):                
+                return            
+            elif fields["resolution"] == "720p":
                 resolution = Resolutions.P720
             elif fields["resolution"] == "1080p":
                 resolution = Resolutions.P1080
             else:
-                self.send_error(400)
-                self.end_headers()
-                return
+                self.send(400, {"error": "Invalid resolution."})
+                return            
             if fields["quality"] == 1:
                 quality = Quality.VERY_LOW
             elif fields["quality"] == 2:
@@ -84,8 +91,7 @@ class CameraHandler(server.BaseHTTPRequestHandler):
             elif fields["quality"] == 5:
                 quality = Quality.VERY_HIGH
             else:
-                self.send_error(400)
-                self.end_headers()
+                self.send(400, {"error": "Invalid quality."})
                 return
             camera.lock.acquire()
             cam_response = camera.recording_start(resolution=resolution, quality=quality)
@@ -126,7 +132,8 @@ class CameraHandler(server.BaseHTTPRequestHandler):
                 
 
         elif fields["action"] == "still_start":
-            logging.info(pformat(fields))            
+            if self.field_check_failed(["interval", "name", "limit", "full_res", "epoch", "delay"], fields):
+                return
             camera.lock.acquire()
             cam_response = camera.still_start(interval=fields["interval"], 
                                               name=fields["name"], 
@@ -166,8 +173,7 @@ class CameraHandler(server.BaseHTTPRequestHandler):
                 code = 200
             self.send(code, cam_response)
         else:
-            self.send_error(400)
-            self.end_headers()
+            self.send(400)
 
     
     def do_GET(self):   
@@ -224,8 +230,7 @@ class CameraHandler(server.BaseHTTPRequestHandler):
                     camera.preview_stop()
                 
         else:
-            self.send_error(404)
-            self.end_headers()
+            self.send(404)
 
 
 class CameraServer(socketserver.ThreadingMixIn, server.HTTPServer):
