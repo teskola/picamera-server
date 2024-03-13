@@ -136,13 +136,13 @@ class CameraHandler(server.BaseHTTPRequestHandler):
             if self.field_check_failed(["interval", "name", "limit", "full_res", "epoch", "delay"], fields):
                 return
             camera.lock.acquire()
-            cam_response = camera.still_start(interval=fields["interval"], 
+            cam_response = camera.still_start(interval=int(fields["interval"]), 
                                               name=fields["name"], 
                                               limit=int(fields["limit"]), 
                                               full_res=fields["full_res"], 
                                               upload=minio.upload_image,
-                                              epoch=fields["epoch"],
-                                              delay=fields["delay"])
+                                              epoch=int(fields["epoch"]),
+                                              delay=float(fields["delay"]))
             camera.lock.release()
             if "error" in cam_response:
                 if cam_response["error"] is AlreadyRunningError:
