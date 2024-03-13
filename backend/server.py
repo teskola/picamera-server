@@ -147,7 +147,7 @@ class CameraHandler(server.BaseHTTPRequestHandler):
                 if cam_response["error"] is AlreadyRunningError:
                     code = 409
                     cam_response["error"] = "Already recording."
-                elif cam_response["error"] is ValueError:
+                elif cam_response["error"] is (ValueError or AttributeError):
                     code = 409
                     cam_response["error"] = str(cam_response["error"])
                 else:
