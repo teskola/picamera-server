@@ -138,7 +138,7 @@ class CameraHandler(server.BaseHTTPRequestHandler):
             camera.lock.acquire()
             cam_response = camera.still_start(interval=fields["interval"], 
                                               name=fields["name"], 
-                                              limit=fields["limit"], 
+                                              limit=int(fields["limit"]), 
                                               full_res=fields["full_res"], 
                                               upload=minio.upload_image,
                                               epoch=fields["epoch"],
