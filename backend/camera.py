@@ -57,7 +57,7 @@ class Still:
         if (limit < 0):
             raise ValueError('Negative limit.')
         self.limit = limit
-        if not isinstance(interval, float):
+        if not isinstance(interval, int):
             raise AttributeError('Interval not a number.')
         if (interval < 1.0):
             raise ValueError('Interval under one second.')
@@ -375,7 +375,10 @@ class Camera:
                 stop=self.reconfig_after_stop,
                 upload=upload)
             return {"status": self.status()}
-        except AlreadyRunningError | ValueError as e:
+        except ValueError as e:
+            return {"error": e,
+                    "status": self.status()}    
+        except AlreadyRunningError as e:
             return {"error": e,
                     "status": self.status()}        
         except Exception as e:
