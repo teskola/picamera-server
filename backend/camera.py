@@ -375,6 +375,9 @@ class Camera:
                 stop=self.reconfig_after_stop,
                 upload=upload)
             return {"status": self.status()}
+        except AttributeError as e:
+            return {"error": e,
+                    "status": self.status()} 
         except ValueError as e:
             return {"error": e,
                     "status": self.status()}    
