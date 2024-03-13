@@ -34,6 +34,9 @@ class CameraHandler(server.BaseHTTPRequestHandler):
             self.send_response(code)
         else:
             self.send_error(code)
+        self.send_header('Access-Control-Allow-Origin', 'http://localhost:5173')
+        self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS, POST')
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.send_header('Content-Type', 'application/json')
         self.end_headers()
         self.wfile.write(json.dumps(response).encode(encoding='utf_8'))
