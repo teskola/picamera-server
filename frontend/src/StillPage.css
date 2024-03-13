@@ -6,24 +6,33 @@
 }
 
 .startbutton {
-    margin-bottom: 10px;
+    margin-bottom: 20px;
 }
 
+.path {
+    display: flex;
+}
+
+.input {
+    flex-grow: 1;
+}
+
+.format {
+    width: 163.333px;
+}
 
 .form {
     margin: 10px;
 }
 
-.select {
+.column_item {
     display: flex;
-    margin-top: 10px;
-    margin-bottom: 10px;
+    margin-top: 20px;
+    margin-bottom: 20px;
 }
 
-.input {
-    flex: 2;
-}
-
-.selector {
-    flex: 3;
+.buttons {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
 }
