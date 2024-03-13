@@ -27,6 +27,7 @@ class CameraHandler(server.BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS, POST')
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.end_headers()
+        
    
 
     def send(self, code : int, response : dict = {}):

@@ -376,12 +376,15 @@ class Camera:
                 upload=upload)
             return {"status": self.status()}
         except AttributeError as e:
+            traceback.print_exc()
             return {"error": e,
                     "status": self.status()} 
         except ValueError as e:
+            traceback.print_exc()
             return {"error": e,
                     "status": self.status()}    
         except AlreadyRunningError as e:
+            traceback.print_exc()
             return {"error": e,
                     "status": self.status()}        
         except Exception as e:
