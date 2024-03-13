@@ -4,6 +4,7 @@ import json
 import cgi
 from threading import Thread
 from http import server
+from pprint import pformat
 from picamera2.encoders import Quality
 
 from minio_client import MinioClient
@@ -123,7 +124,7 @@ class CameraHandler(server.BaseHTTPRequestHandler):
                 
 
         elif fields["action"] == "still_start":
-            logging.info("still_start")            
+            logging.info(pformat(fields))            
             camera.lock.acquire()
             cam_response = camera.still_start(interval=fields["interval"], 
                                               name=fields["name"], 

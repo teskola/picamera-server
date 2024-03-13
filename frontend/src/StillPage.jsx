@@ -52,10 +52,10 @@ const StillPage = (props) => {
         res = await startStill({
             interval: intervalInSeconds,
             path: path,
-            limit: limitRef.current.value,
+            limit: 0,
             full_res: resolution === 'full',
             epoch: delayMode === 'epoch' ? dateTimeRef.current.value.unix() : null,
-            delay: delayMode === 'seconds' ? delayRef.current.value : null
+            delay: delayMode === 'seconds' ? 1 : null
         }
         )
         console.log(res)
