@@ -32,6 +32,12 @@ class CameraHandler(server.BaseHTTPRequestHandler):
     # https://gist.github.com/nitaku/10d0662536f37a087e1b
     
     def do_POST(self):
+
+        if self.path != '/api':
+            self.send_response(404)
+            self.end_headers()
+            return
+
         ctype, pdict = cgi.parse_header(self.headers.get('Content-Type'))
         
         # refuse to receive non-json content
@@ -103,8 +109,8 @@ class CameraHandler(server.BaseHTTPRequestHandler):
                 code = 500
                 response["error"] = "Something went wrong!"
             self.send(code, response)
-            if code == 200:
-                Thread(target=minio.upload_video(cam_response["data"], 'video')).start()
+            #if code == 200:
+            #    minio.upload_video(cam_response["data"], 'video')
                 
 
         elif fields["action"] == "still_start":

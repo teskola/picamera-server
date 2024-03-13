@@ -7,6 +7,8 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import { Radio, Typography } from "@mui/material";
+import { startStill, stopStill } from "./api";
+import unix from "moment";
 
 const StillPage = (props) => {
 
@@ -14,6 +16,7 @@ const StillPage = (props) => {
     const [interval, setInterval] = useState(1)
     const [multiplier, setMultiplier] = useState(1)
     const [delayMode, setDelayMode] = useState('seconds')
+    const [resolution, setResolution] = useState('half')
     const limitRef = useRef(0)
     const delayRef = useRef(1)
     const dateTimeRef = useRef()
@@ -28,11 +31,15 @@ const StillPage = (props) => {
         }
     }
 
+    const onResolutionChange = (event) => {
+        setResolution(event.target.value)
+    }
+
     const onIntervalChange = (event) => {
         setInterval(event.target.value)
     }
 
-    const onUnitChange = (event) => {
+    const onUnitChange = (event) =>  {
         setInterval(intervalInSeconds / event.target.value)
         setMultiplier(event.target.value)
     }
@@ -41,15 +48,33 @@ const StillPage = (props) => {
         setDelayMode(event.target.value)
     }
 
-    const onDateTimeChange = (date, oldDate) => {
-        console.log(date)
+    const onStart = async (_) => {
+        res = await startStill({
+            interval: intervalInSeconds,
+            path: path,
+            limit: limitRef.current.value,
+            full_res: resolution === 'full',
+            epoch: delayMode === 'epoch' ? dateTimeRef.current.value.unix() : null,
+            delay: delayMode === 'seconds' ? delayRef.current.value : null
+        }
+        )
+        console.log(res)
     }
 
-
+    const onStop = async (_) => {
+        res = await stopStill()
+        console.log(res)
+    }
 
     return (
         <div className="page">
-            <form className="form">
+            <div className="form">
+                <div className="column_item">
+                    <TextField label="Resolution" value={resolution} onChange={onResolutionChange} select fullWidth>
+                        <MenuItem value='half'>Half resolution : 2028x1520</MenuItem>
+                        <MenuItem value='full'>Full resolution : 4056x3040</MenuItem>
+                    </TextField>
+                </div>
                 <div className="path">
                     <TextField className="input" id="path" onChange={onPathChange} value={path} variant="outlined" label="Path" />
                     <TextField className="format" id="format" value='.jpg' variant="outlined" label="Format" disabled />
@@ -81,10 +106,10 @@ const StillPage = (props) => {
                     </LocalizationProvider>
                 </div>
 
-            </form>
+            </div>
             <div className="buttons">
-                <button>Start</button>
-                <button>Stop</button>
+                <button onClick={onStart}>Start</button>
+                <button onClick={onStop}>Stop</button>
             </div>
         </div>
     )

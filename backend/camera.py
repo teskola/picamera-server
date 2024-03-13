@@ -3,6 +3,7 @@ import io
 import sched
 import time
 import traceback
+from datetime import datetime
 from pprint import pformat
 from threading import Condition, Lock, Thread
 from libcamera import controls
@@ -13,6 +14,10 @@ from picamera2.outputs import FileOutput
 STREAM_BITRATE = 2400000
 KEEP_ALIVE_LIMIT = 60
 scheduler = sched.scheduler(time.time, time.sleep)
+
+def insert_datetime(name : str) -> str:
+    now = datetime.now()
+    return name.replace('[year]', str(now.year)).replace('[month]', str(now.month)).replace('[day]', str(now.date)).replace('[HH]', str(now.hour).zfill(2)).replace('[mm]', str(now.minute).zfill(2)).replace('[ss]', str(now.second).zfill(2))
 
 def quality_to_int(quality : Quality) -> int:
     if quality == Quality.VERY_LOW:
@@ -70,6 +75,11 @@ class Still:
         self.started = 0
         self.stopped = 0
     
+    def fill(self):
+        if self.limit > 0:
+            return len(str(self.limit))
+        return None
+    
     def status(self):
         return {
                 'limit': self.limit,
@@ -111,9 +121,14 @@ class Still:
         if self.limit == 0 or self.count < self.limit:
             self.event = scheduler.enter(self.interval, 1, self.tick, argument=(capture, stop, name, upload, ))
         if self.count == 0:
-            self.started = time.time()    
-        capture(upload, name, self.full_res, self.keep_alive())   
+            self.started = time.time()          
         self.count += 1 
+        upload_name = insert_datetime(name)
+        if self.fill() is None:
+            upload_name = upload_name.replace('[count]', str(self.count))
+        else:
+            upload_name = upload_name.replace('[count]', str(self.count).zfill(self.fill()))
+        capture(upload, upload_name, self.full_res, self.keep_alive())   
         if self.limit != 0 and self.count == self.limit and self.keep_alive():
             self.stop(stop)
 
