@@ -53,22 +53,20 @@ def resolution_to_str(resolution : Resolutions) -> str:
 class Still:
     def __init__(self, limit, interval, full_res, name) -> None:
         if not isinstance(limit, int):
-            raise AttributeError('Limit not a number.')
+            raise AttributeError(f'Limit not an integer: {str(limit)}')
         if (limit < 0):
             raise ValueError('Negative limit.')
         self.limit = limit
         if not isinstance(interval, int):
-            raise AttributeError('Interval not a number.')
-        if (interval < 1.0):
-            raise ValueError('Interval under one second.')
+            raise AttributeError(f'Interval not a number: {str(interval)}')        
         elif (interval > 60 * 60 * 6):
             raise ValueError('Interval over 6 hours.')
         self.interval = interval
         if not isinstance(full_res, bool):
-            raise AttributeError('Full_res not a boolean.')
+            raise AttributeError(f'Full_res not a boolean: {str(full_res)}')
         self.full_res = full_res
         if not isinstance(name, str):
-            raise AttributeError('Name not a string.')
+            raise AttributeError(f'Name not a string: {str(name)}')
         self.name = name
         self.count = 0
         self.event = None
