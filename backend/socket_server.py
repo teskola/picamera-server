@@ -18,7 +18,7 @@ class CameraServer(socketserver.TCPServer):
 class CameraHandler(socketserver.StreamRequestHandler):   
         
     def action(self) -> dict:
-        if (self.data[0] == 'status'):
+        if (self.data == 'status'):
             camera.lock.acquire()
             response = camera.status()
             camera.lock.release()
@@ -58,8 +58,8 @@ class CameraHandler(socketserver.StreamRequestHandler):
         self.data = self.request.recv(1024).strip().decode('utf-8').split()
         print("Recieved one request from {}".format(self.client_address[0]))
         self.request.send(self.data)
-        #response = self.action()     
-        #self.request.sendall(json.dumps(response).encode(encoding='utf_8'))
+        response = self.action()     
+        self.request.sendall(json.dumps(response).encode(encoding='utf_8'))
 
 def run_server():          
        
