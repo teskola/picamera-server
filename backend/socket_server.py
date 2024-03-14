@@ -55,7 +55,7 @@ class CameraHandler(socketserver.StreamRequestHandler):
             logging.error(f'unkown command: {self.data}')
  
     def handle(self):
-        self.data = self.request.recv(1024).strip().decode('utf-8')
+        self.data = self.request.recv(1024)
         print("Recieved one request from {}".format(self.client_address[0]))
         self.request.send(self.data)
         response = self.action()     
