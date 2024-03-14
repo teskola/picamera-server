@@ -26,8 +26,8 @@ const stillStart = (req, res) => {
         name: name,
         limit: limit,
         full_res: full_res,
-        epoch: epoch,
-        delay: delay
+        epoch: epoch ?? null,
+        delay: delay ?? null
     }
 
     console.log(action)
