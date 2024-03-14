@@ -1,14 +1,7 @@
 const express = require("express");
 const cors = require("cors");
-const net = require("net")
 const app = express();
-const socket = net.createConnection({
-    port: 9090,
-    host: 'localhost',
-}, function () {
-    console.log('connected');
-})
-
+const status = require('./routes/status')
 
 app.use(
     cors({
@@ -16,6 +9,7 @@ app.use(
     })
 );
 app.use(express.json());
+app.use("api/status", status);
 app.get("/health", (req, res) => {
     res.send("OK");
 });
