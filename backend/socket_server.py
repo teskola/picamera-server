@@ -31,7 +31,6 @@ class CameraHandler(socketserver.StreamRequestHandler):
                                               name=self.data[2], 
                                               limit=int(self.data[3]), 
                                               full_res=self.data[4] == 'true',                                               
-                                              epoch=int(self.data[5]),
                                               delay=float(self.data[6]),
                                               upload=minio.upload_image,
                                               )

@@ -356,7 +356,7 @@ class Camera:
             logging.error(str(e))
             return {"error": str(e)}
 
-    def still_start(self, limit, interval, full_res, name, upload, delay : float = 1.0, epoch : float = None) -> dict:
+    def still_start(self, limit, interval, full_res, name, upload, delay : float = 1.0, epoch : int = None) -> dict:
         try:
 
             if self.still is not None and self.still.running():
