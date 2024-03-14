@@ -53,6 +53,9 @@ def resolution_to_str(resolution : Resolutions) -> str:
 class Still:
     def __init__(self, limit, interval, full_res, name) -> None:        
         self.name = name
+        self.limit = limit
+        self.interval = interval
+        self.full_res = full_res
         self.count = 0
         self.event = None
         self.started = 0
