@@ -5,7 +5,9 @@ const getStatus = (res) => {
     const request = socket.write(JSON.stringify({'action': 'status'}));
     if (request) {
       socket.once('data', (stream) => {
-        return res.send(stream.toString())
+        string = stream.toString()
+        console.log(string)
+        return res.send(string)
       })
     }
     else {
