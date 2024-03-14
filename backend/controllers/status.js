@@ -4,7 +4,7 @@ const getStatus = async (req, res) => {
   try {
     const response = socket.write('status');
     socket.on('data', (stream) => {
-      console.log(stream)
+      console.log(stream.toString())
     })
     //return res.send(response);
 
