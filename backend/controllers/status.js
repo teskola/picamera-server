@@ -2,11 +2,20 @@ const socket = require('../socket')
 
 const getStatus = async (req, res) => {
   try {
-    const response = socket.write('status');
-    socket.on('data', (stream) => {
-      console.log(stream.toString())
-    })
-    //return res.send(response);
+    const request = socket.write('status');
+    if (request) {
+      socket.once('data', (stream) => {
+        return res.send(stream.toString())
+      })
+    }
+    else {
+      const response = {
+        OK: false,
+        statusCode: 500,
+        error: err,
+      };
+      return res.status(500).send(response);
+    }    
 
   } catch (err) {
     console.log(err);
