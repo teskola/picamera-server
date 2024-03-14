@@ -27,13 +27,14 @@ class CameraHandler(socketserver.StreamRequestHandler):
             if len(self.data) != 7:
                 return {"error": f"Expected 7 arguments, got {len(self.data)}"}                
             camera.lock.acquire()
-            response = camera.still_start(interval=self.data[1], 
+            response = camera.still_start(interval=int(self.data[1]), 
                                               name=self.data[2], 
-                                              limit=self.data[3], 
-                                              full_res=self.data[4], 
+                                              limit=int(self.data[3]), 
+                                              full_res=self.data[4] == 'true',                                               
+                                              epoch=int(self.data[5]),
+                                              delay=float(self.data[6]),
                                               upload=minio.upload_image,
-                                              epoch=self.data[5],
-                                              delay=self.data[6])
+                                              )
             camera.lock.release()
             return response
         elif (self.data[0] == 'still_stop'):
