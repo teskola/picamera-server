@@ -12,6 +12,9 @@ logging.basicConfig(
 camera = Camera()
 minio = MinioClient()
 
+class CameraServer(socketserver.TCPServer):
+    allow_reuse_address = True
+
 class CameraHandler(socketserver.StreamRequestHandler):
 
     def action(self) -> dict:
@@ -46,6 +49,6 @@ class CameraHandler(socketserver.StreamRequestHandler):
         self.data = self.request.recv(1024).strip().decode('utf-8').split()
         response = self.action()     
         self.request.sendall(json.dumps(response).encode(encoding='utf_8'))
-            
-controlServer = socketserver.TCPServer(("", 9090), CameraHandler)
+
+controlServer = CameraServer(("", 9090), CameraHandler)
 controlServer.serve_forever()
