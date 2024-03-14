@@ -15,8 +15,8 @@ minio = MinioClient()
 class CameraServer(socketserver.TCPServer):
     allow_reuse_address = True
 
-class CameraHandler(socketserver.StreamRequestHandler):
-
+class CameraHandler(socketserver.StreamRequestHandler):   
+        
     def action(self) -> dict:
         if (self.data[0] == 'status'):
             camera.lock.acquire()
@@ -25,13 +25,22 @@ class CameraHandler(socketserver.StreamRequestHandler):
             return response
         if (self.data[0] == 'still_start'):
             if len(self.data) != 7:
-                return {"error": f"Expected 7 arguments, got {len(self.data)}"}                
+                return {"error": f"Expected 7 arguments, got {len(self.data)}"}  
+            if (self.data[5] == 'null'):
+                epoch = None
+            else:
+                epoch = int(self.data[5])
+            if (self.data[6] == 'null'):
+                delay = None
+            else:
+                delay = float(self.data[6])
             camera.lock.acquire()
             response = camera.still_start(interval=int(self.data[1]), 
                                               name=self.data[2], 
                                               limit=int(self.data[3]), 
-                                              full_res=self.data[4] == 'true',                                               
-                                              delay=float(self.data[6]),
+                                              full_res=self.data[4] == 'true',  
+                                              epoch = epoch,                                          
+                                              delay = delay,
                                               upload=minio.upload_image,
                                               )
             camera.lock.release()
@@ -47,8 +56,24 @@ class CameraHandler(socketserver.StreamRequestHandler):
  
     def handle(self):
         self.data = self.request.recv(1024).strip().decode('utf-8').split()
-        response = self.action()     
-        self.request.sendall(json.dumps(response).encode(encoding='utf_8'))
+        print("Recieved one request from {}".format(self.client_address[0]))
+        self.request.send(self.data)
+        #response = self.action()     
+        #self.request.sendall(json.dumps(response).encode(encoding='utf_8'))
 
-controlServer = CameraServer(("", 9090), CameraHandler)
-controlServer.serve_forever()
+def run_server():          
+       
+    try:
+        address = ('', 9090)
+        server = CameraServer(address, CameraHandler)
+        logging.info("Server start.")
+        server.serve_forever()
+            
+    except KeyboardInterrupt:
+        logging.info("Server shutdown.")
+        
+    finally:    
+        camera.stop()        
+
+if __name__ == "__main__":    
+    run_server()

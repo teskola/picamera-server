@@ -51,24 +51,7 @@ def resolution_to_str(resolution : Resolutions) -> str:
     return f"{resolution[1]}p"
 
 class Still:
-    def __init__(self, limit, interval, full_res, name) -> None:
-        if not isinstance(limit, int):
-            raise AttributeError(f'Limit not an integer: {str(limit)}')        
-        if (limit < 0):
-            raise ValueError('Negative limit.')
-        self.limit = limit
-        if not isinstance(interval, int):
-            raise AttributeError(f'Interval not an integer: {str(interval)}')     
-        elif (interval < 1):
-            raise ValueError(f'Interval under 1.0: {str(interval)}')   
-        elif (interval > 60 * 60 * 6):
-            raise ValueError('Interval over 6 hours.')
-        self.interval = interval
-        if not isinstance(full_res, bool):
-            raise AttributeError(f'Full_res not a boolean: {str(full_res)}')
-        self.full_res = full_res
-        if not isinstance(name, str):
-            raise AttributeError(f'Name not a string: {str(name)}')
+    def __init__(self, limit, interval, full_res, name) -> None:        
         self.name = name
         self.count = 0
         self.event = None
@@ -373,24 +356,14 @@ class Camera:
                 capture=self.capture_still, 
                 stop=self.reconfig_after_stop,
                 upload=upload)
-            return {"status": self.status()}
-        except AttributeError as e:
-            traceback.print_exc()
-            return {"error": str(e),
-                    "status": self.status()} 
+            return {"status": self.status()}        
         except ValueError as e:
-            traceback.print_exc()
             return {"error": str(e),
                     "status": self.status()}    
-        except AlreadyRunningError as e:
-            traceback.print_exc()
-            return {"error": str(e),
-                    "status": self.status()}        
-        except Exception as e:
-            traceback.print_exc()
-            logging.error(str(e))
-            return {"error": str(e)}    
-    
+        except AlreadyRunningError:
+            return {"error": "Still already running.",
+                    "status": self.status()}      
+        
     def reconfig_after_stop(self):
         if self.recording_running():
             return
