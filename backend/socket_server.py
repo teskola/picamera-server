@@ -21,7 +21,7 @@ class CameraHandler(socketserver.StreamRequestHandler):
             camera.lock.release()
             return response
         if (self.data[0] == 'still_start'):
-            if len(self.data != 7):
+            if len(self.data) != 7:
                 return {"error": f"Expected 7 arguments, got {len(self.data)}"}                
             camera.lock.acquire()
             response = camera.still_start(interval=self.data[1], 
