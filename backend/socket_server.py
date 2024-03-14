@@ -13,16 +13,26 @@ camera = Camera()
 minio = MinioClient()
 
 class CameraHandler(socketserver.StreamRequestHandler):
- 
-    def handle(self):
-        self.data = self.request.recv(1024).strip().decode('utf-8').split()
-        response = ''
+
+    def action(self) -> dict:
         if (self.data[0] == 'status'):
             camera.lock.acquire()
             response = camera.status()
             camera.lock.release()
-        elif (self.data[0] == 'still_start'):
-            logging.info('still_start')
+            return response
+        if (self.data[0] == 'still_start'):
+            if len(self.data != 7):
+                return {"error": f"Expected 7 arguments, got {len(self.data)}"}                
+            camera.lock.acquire()
+            response = camera.still_start(interval=self.data[1], 
+                                              name=self.data[2], 
+                                              limit=self.data[3], 
+                                              full_res=self.data[4], 
+                                              upload=minio.upload_image,
+                                              epoch=self.data[5],
+                                              delay=self.data[6])
+            camera.lock.release()
+            return response
         elif (self.data[0] == 'still_stop'):
             logging.info('still_stop')
         elif (self.data[0] == 'video_start'):
@@ -31,8 +41,10 @@ class CameraHandler(socketserver.StreamRequestHandler):
             logging.info('video_stop')
         else:
             logging.error(f'unkown command: {self.data}')
-            
-        
+ 
+    def handle(self):
+        self.data = self.request.recv(1024).strip().decode('utf-8').split()
+        response = self.action()     
         self.request.sendall(json.dumps(response).encode(encoding='utf_8'))
             
 controlServer = socketserver.TCPServer(("", 9090), CameraHandler)
