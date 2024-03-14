@@ -15,7 +15,7 @@ minio = MinioClient()
 class CameraHandler(socketserver.StreamRequestHandler):
  
     def handle(self):
-        self.data = self.request.recv(1024).strip()
+        self.data = self.request.recv(1024).strip().decode('utf-8')
         response = ''
         if (self.data == 'status'):
             camera.lock.acquire()
