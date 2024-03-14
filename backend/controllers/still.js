@@ -30,10 +30,11 @@ const stillStart = (req, res) => {
         delay: delay
     }
 
-
-    const request = socket.write(JSON.stringify(action));
+    const connection = socket.createConnection()
+    const request = connection.write(JSON.stringify(action));
     if (request) {
-        socket.once('data', (stream) => {
+        connection.once('data', (stream) => {
+            connection.end()
             const string = stream.toString()
             const json = JSON.parse(string)
             if (json.error) {                
