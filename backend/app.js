@@ -9,7 +9,7 @@ app.use(
     })
 );
 app.use(express.json());
-app.use("api/status", status);
+app.use("/api/status", status);
 app.get("/health", (req, res) => {
     res.send("OK");
 });
