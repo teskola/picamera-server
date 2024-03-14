@@ -360,8 +360,8 @@ class Camera:
         try:
 
             if self.still is not None and self.still.running():
-                logging.warn("Still scheduler already running!")            
-                raise AlreadyRunningError
+                return {"error": AlreadyRunningError(),
+                        "status": self.status()}
             
             self.still = Still(
                 limit=limit, 

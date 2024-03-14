@@ -49,14 +49,13 @@ const StillPage = (props) => {
     }
 
     const onStart = async (_) => {
-        console.log(limitRef.current.value)
         const res = await startStill({
             interval: intervalInSeconds,
             path: path,
-            limit: limitRef.current.value,
+            limit: parseInt(limitRef.current.value),
             full_res: resolution === 'full',
-            epoch: delayMode === 'epoch' ? moment.unix(dateTimeRef.current.value) : null,
-            delay: delayMode === 'seconds' ? delayRef.current.value : null
+            epoch: delayMode === 'epoch' ? moment.unix(parseInt(dateTimeRef.current.value)) : null,
+            delay: delayMode === 'seconds' ? parseInt(delayRef.current.value) : null
         }
         )
         console.log(res)
@@ -89,13 +88,13 @@ const StillPage = (props) => {
                         <MenuItem value={3600}>hours</MenuItem>
                     </Select>
                 </div>
-                <TextField className="column_item" id="limit" inputRef={limitRef} defaultValue={0} variant="outlined" label="Number of images" fullWidth />
+                <TextField className="column_item" id="limit" inputRef={limitRef} defaultValue={limitRef.current} variant="outlined" label="Number of images" fullWidth />
                 <Typography variant="caption">0 = unlimited</Typography>
                 <div className="column_item">
                     <Radio checked={delayMode === 'seconds'} onChange={onDelayModeChange} value="seconds" />
                     <TextField disabled={delayMode !== 'seconds'}
                         id="delay" inputRef={delayRef}
-                        defaultValue={1}
+                        defaultValue={delayRef.current}
                         variant="outlined"
                         label="First image delay in seconds"
                     />
