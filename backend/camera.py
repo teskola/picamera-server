@@ -360,8 +360,7 @@ class Camera:
         try:
 
             if self.still is not None and self.still.running():
-                return {"error": AlreadyRunningError(),
-                        "status": self.status()}
+                raise AlreadyRunningError
             
             self.still = Still(
                 limit=limit, 
@@ -377,20 +376,20 @@ class Camera:
             return {"status": self.status()}
         except AttributeError as e:
             traceback.print_exc()
-            return {"error": e,
+            return {"error": str(e),
                     "status": self.status()} 
         except ValueError as e:
             traceback.print_exc()
-            return {"error": e,
+            return {"error": str(e),
                     "status": self.status()}    
         except AlreadyRunningError as e:
             traceback.print_exc()
-            return {"error": e,
+            return {"error": str(e),
                     "status": self.status()}        
         except Exception as e:
             traceback.print_exc()
             logging.error(str(e))
-            return {"error": e}    
+            return {"error": str(e)}    
     
     def reconfig_after_stop(self):
         if self.recording_running():
