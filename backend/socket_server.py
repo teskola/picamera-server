@@ -19,11 +19,9 @@ class CameraHandler(socketserver.StreamRequestHandler):
         
     def action(self) -> dict:
         if (self.data == 'status'):
-            print("status")
             camera.lock.acquire()
             response = camera.status()
             camera.lock.release()
-            print("got response")
             return response
         if (self.data[0] == 'still_start'):
             if len(self.data) != 7:
@@ -60,8 +58,7 @@ class CameraHandler(socketserver.StreamRequestHandler):
         self.data = self.request.recv(1024).decode('utf-8')
         print("Recieved one request from {}".format(self.client_address[0]))
         response = self.action()    
-        print("send response....") 
-        self.request.sendall(json.dumps(response).encode(encoding='utf-8'))
+        self.request.sendall(json.dumps(response).encode(encoding='utf_8'))
 
 def run_server():          
        
