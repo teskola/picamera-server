@@ -304,41 +304,36 @@ class Camera:
         return self._encoders_running() or (self.still is not None and self.still.running())
     
     def status(self):
-        try:
-            result = {"video": {},
-                      "still": {},
-                      "preview": {}}        
-            result["running"] = self.running()
-            result["video"]["running"] = self.recording_running()
-            if self.video is not None:                    
-                result["video"]['resolution'] = self.video.resolution,
-                result["video"]['quality'] = quality_to_int(self.video.quality)
-                result["video"]['started'] = self.video.started
-                result["video"]['stopped'] = self.video.stopped
-                result["video"]['size'] = self.video.size()              
+        result = {"video": {},
+                    "still": {},
+                    "preview": {}}        
+        result["running"] = self.running()
+        result["video"]["running"] = self.recording_running()
+        if self.video is not None:                    
+            result["video"]['resolution'] = self.video.resolution,
+            result["video"]['quality'] = quality_to_int(self.video.quality)
+            result["video"]['started'] = self.video.started
+            result["video"]['stopped'] = self.video.stopped
+            result["video"]['size'] = self.video.size()              
 
-            if self.still is not None:
-                result["still"] = self.still.status()
-                    
-            result["preview"] = {
-                'running': self.preview_running(),
-            }
+        if self.still is not None:
+            result["still"] = self.still.status()
+                
+        result["preview"] = {
+            'running': self.preview_running(),
+        }
 
-            if self.running():
-                result["metadata"] = self.picam2.capture_metadata()
-            
-            if self.picam2.camera_configuration() is not None:
-                config = self.picam2.camera_configuration().copy()
-                del config["controls"]
-                del config["colour_space"]
-                del config["transform"]
-                result["configration"] = config
-            return result
-        except Exception as e:
-            traceback.print_exc()
-            logging.error(str(e))
-            return {"error": str(e)}
-
+        if self.running():
+            result["metadata"] = self.picam2.capture_metadata()
+        
+        if self.picam2.camera_configuration() is not None:
+            config = self.picam2.camera_configuration().copy()
+            del config["controls"]
+            del config["colour_space"]
+            del config["transform"]
+            result["configration"] = config
+        return result
+        
     def still_start(self, limit, interval, full_res, name, upload, delay : float = 1.0, epoch : int = None) -> dict:
         try:
 

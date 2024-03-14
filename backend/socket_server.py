@@ -18,12 +18,12 @@ class CameraServer(socketserver.TCPServer):
 class CameraHandler(socketserver.StreamRequestHandler):   
         
     def action(self) -> dict:
-        if (self.data == 'status'):
+        if (self.data["action"] == 'status'):
             camera.lock.acquire()
             response = camera.status()
             camera.lock.release()
             return response
-        if (self.data[0] == 'still_start'):
+        if (self.data["action"] == 'still_start'):
             if len(self.data) != 7:
                 return {"error": f"Expected 7 arguments, got {len(self.data)}"}  
             if (self.data[5] == 'null'):
@@ -45,18 +45,18 @@ class CameraHandler(socketserver.StreamRequestHandler):
                                               )
             camera.lock.release()
             return response
-        elif (self.data[0] == 'still_stop'):
+        elif (self.data["action"] == 'still_stop'):
             logging.info('still_stop')
-        elif (self.data[0] == 'video_start'):
+        elif (self.data["action"] == 'video_start'):
             logging.info('video_start')
-        elif (self.data[0] == 'video_stop'):
+        elif (self.data["action"] == 'video_stop'):
             logging.info('video_stop')
         else:
-            logging.error(f'unkown command: {self.data}')
+            logging.error(f'unkown command: {self.data["action"]}')
  
     def handle(self):
-        self.data = self.request.recv(1024).decode('utf-8')
-        print("Recieved one request from {}".format(self.client_address[0]))
+        self.data = json.loads(self.request.recv(1024).decode('utf-8'))
+        print(f"Recieved request: {self.data["action"]} from {self.client_address[0]}")
         response = self.action()    
         self.request.sendall(json.dumps(response).encode(encoding='utf_8'))
 
