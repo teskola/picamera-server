@@ -30,6 +30,8 @@ const stillStart = (req, res) => {
         delay: delay
     }
 
+    console.log(action)
+
     const connection = socket.createConnection()
     const request = connection.write(JSON.stringify(action));
     if (request) {
