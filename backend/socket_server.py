@@ -16,7 +16,7 @@ class CameraHandler(socketserver.StreamRequestHandler):
  
     def handle(self):
         self.data = self.request.recv(1024).strip()
-
+        response = ''
         if (self.data == 'status'):
             camera.lock.acquire()
             response = camera.status()
