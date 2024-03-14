@@ -2,7 +2,7 @@ const socket = require('../socket')
 
 const getStatus = async (req, res) => {
     try {
-        const response = socket.write('data');
+        const response = socket.write('status');
         if (response.length === 1) {
           return res.send(response[0]);
         }
