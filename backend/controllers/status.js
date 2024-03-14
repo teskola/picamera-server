@@ -1,13 +1,11 @@
 const socket = require('../socket')
 
-const getStatus = (res) => {
+const getStatus = (req, res) => {
   try {
     const request = socket.write(JSON.stringify({'action': 'status'}));
     if (request) {
       socket.once('data', (stream) => {
-        string = stream.toString()
-        console.log(string)
-        return res.send(string)
+        return res.send(stream.toString())
       })
     }
     else {
