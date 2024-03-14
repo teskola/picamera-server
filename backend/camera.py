@@ -354,7 +354,7 @@ class Camera:
         except Exception as e:
             traceback.print_exc()
             logging.error(str(e))
-            return {"error": e}
+            return {"error": str(e)}
 
     def still_start(self, limit, interval, full_res, name, upload, delay : float = 1.0, epoch : float = None) -> dict:
         try:
