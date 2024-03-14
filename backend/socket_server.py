@@ -15,20 +15,19 @@ minio = MinioClient()
 class CameraHandler(socketserver.StreamRequestHandler):
  
     def handle(self):
-        self.data = self.request.recv(1024).strip().decode('utf-8')
+        self.data = self.request.recv(1024).strip().decode('utf-8').split()
         response = ''
-        if (self.data == 'status'):
+        if (self.data[0] == 'status'):
             camera.lock.acquire()
             response = camera.status()
             camera.lock.release()
-            logging.info('status')
-        elif (self.data == 'still_start'):
+        elif (self.data[0] == 'still_start'):
             logging.info('still_start')
-        elif (self.data == 'still_stop'):
+        elif (self.data[0] == 'still_stop'):
             logging.info('still_stop')
-        elif (self.data == 'video_start'):
+        elif (self.data[0] == 'video_start'):
             logging.info('video_start')
-        elif (self.data == 'video_stop'):
+        elif (self.data[0] == 'video_stop'):
             logging.info('video_stop')
         else:
             logging.error(f'unkown command: {self.data}')
