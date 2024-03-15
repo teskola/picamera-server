@@ -1,8 +1,8 @@
-const socket = require('../socket')
 const Joi = require('joi')
+const still = require('../models/still')
 
 
-const stillStart = (req, res) => {
+const stillStart = async (req, res) => {
 
     const { interval, name, limit, full_res, epoch, delay } = req.body
     const schema = Joi.object({
@@ -20,7 +20,8 @@ const stillStart = (req, res) => {
         return res.status(400).send({ error: error.details })
     }
 
-    const action = {
+
+    const params = {
         action: 'still_start',
         interval: interval,
         name: name,
@@ -30,55 +31,38 @@ const stillStart = (req, res) => {
         delay: delay ?? null
     }
 
-    console.log(action)
-
-    const connection = socket.createConnection()
-    const request = connection.write(JSON.stringify(action));
-    if (request) {
-        connection.once('data', (stream) => {
-            connection.end()
-            const string = stream.toString()
-            const json = JSON.parse(string)
-            if (json.error) {                
-                return res.status(409).send(string);
+    try {
+        const response = await still.start(params)
+        if (response) {
+            if (response.error) {
+                return res.status(409).send(response)
             }
-            return res.send(string)
-        })
-    }
-    else {
-        console.log("Writing still_start to socket failed")
-        return res.status(500).send({ error: 'Something went wrong!' });
-    }
+            return res.send(response)
+        } else {
+            throw new Error('Null response.')
+        }
 
-
+    }
+    catch (err) {
+        console.log(err)
+        return res.status(500).send({ error: 'Something went wrong!' })
+    }  
 }
 
-const stillStop = (res) => {
+const stillStop = async (req, res) => {
     try {
-        const request = socket.write('still_stop');
-        if (request) {
-            socket.once('data', (stream) => {
-                return res.send(stream.toString())
-            })
+        const response = await still.stop()
+        if (response) {
+          return res.send(response)
+        } else {
+          throw new Error('Null response.')
         }
-        else {
-            const response = {
-                OK: false,
-                statusCode: 500,
-                error: err,
-            };
-            return res.status(500).send(response);
-        }
-
-    } catch (err) {
-        console.log(err);
-        const response = {
-            OK: false,
-            statusCode: 500,
-            error: err,
-        };
-        return res.status(500).send(response);
-    }
+    
+      }
+      catch (err) {
+        console.log(err)
+        return res.status(500).send({ error: 'Something went wrong!' })
+      }
 }
 
 module.exports = {
