@@ -12,7 +12,7 @@ const status = {
             const listener = (stream) => {
                 connection.off('data', listener)
                 connection.end()
-                resolve(stream.toString())
+                resolve(JSON.parse(stream.toString()))
             }
             connection.on('data', listener)
         }
