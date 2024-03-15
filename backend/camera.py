@@ -15,6 +15,7 @@ STREAM_BITRATE = 2400000
 KEEP_ALIVE_LIMIT = 60
 scheduler = sched.scheduler(time.time, time.sleep)
 
+
 def insert_datetime(name : str) -> str:
     now = datetime.now()
     return name.replace('[year]', str(now.year)).replace('[month]', str(now.month)).replace('[day]', str(now.date)).replace('[HH]', str(now.hour).zfill(2)).replace('[mm]', str(now.minute).zfill(2)).replace('[ss]', str(now.second).zfill(2))
@@ -35,6 +36,9 @@ class AlreadyRunningError (Exception):
     pass
 
 class NotRunningError (Exception):
+    pass
+
+class VideoNotFoundError (Exception):
     pass
 
 class Resolutions:
@@ -120,7 +124,8 @@ class Still:
 
 
 class Video:
-    def __init__(self, resolution : str, quality : int) -> None:
+    def __init__(self, id : str, resolution : str, quality : int) -> None:
+        self.id = id
         self.resolution = resolution
         self.quality = quality
         self.data = io.BytesIO() 
@@ -215,9 +220,15 @@ class Camera:
         self.configurations = self._create_configurations()
         self.encoders = {'preview': MJPEGEncoder(bitrate=STREAM_BITRATE), 'video': H264Encoder()}
         self.streaming_output : StreamingOutput = StreamingOutput()
-        self.video : Video = None
+        self.videos : list[Video] = []
         self.still : Still = None
         self.lock = Lock()  
+    
+    def find_video_by_id(self, id: str) -> Video | None:
+        for video in self.videos:
+            if video.id == id:
+                return video
+        return None
 
     def current_resolution(self):
         if self.picam2.camera_configuration() is None:
@@ -275,11 +286,11 @@ class Camera:
     def recording_running(self) -> bool:
         return self.encoders["video"] in self.picam2.encoders
 
-    def _start_video_encoder(self):
+    def _start_video_encoder(self, video):
         self.picam2.start_encoder(
             encoder=self.encoders['video'],
-            output=FileOutput(self.video.data),
-            quality=self.video.quality,
+            output=FileOutput(video.data),
+            quality=video.quality,
             name="main"
         )        
 
@@ -312,12 +323,12 @@ class Camera:
                     "preview": {}}        
         result["running"] = self.running()
         result["video"]["running"] = self.recording_running()
-        if self.video is not None:                    
-            result["video"]['resolution'] = self.video.resolution,
-            result["video"]['quality'] = quality_to_int(self.video.quality)
-            result["video"]['started'] = self.video.started
-            result["video"]['stopped'] = self.video.stopped
-            result["video"]['size'] = self.video.size()              
+        if self.videos is not None:                    
+            result["video"]['resolution'] = self.videos.resolution,
+            result["video"]['quality'] = quality_to_int(self.videos.quality)
+            result["video"]['started'] = self.videos.started
+            result["video"]['stopped'] = self.videos.stopped
+            result["video"]['size'] = self.videos.size()              
 
         if self.still is not None:
             result["still"] = self.still.status()
@@ -388,8 +399,8 @@ class Camera:
         
           
 
-    def recording_start(self, resolution : Resolutions, quality : Quality) -> dict:        
-        try:
+    def recording_start(self, id: str, resolution : Resolutions, quality : Quality) -> dict:        
+        try:            
             if self.recording_running():
                 logging.warn("Recording already running.")
                 raise AlreadyRunningError
@@ -400,32 +411,36 @@ class Camera:
                 stream_paused = True
                 self.picam2.stop()
             self.configure_video(resolution=resolution)
-            self.video = Video(resolution=resolution, quality=quality)        
+            video = Video(id=id, resolution=resolution, quality=quality)
+            self.videos.append(video)     
             self._start_video_encoder()
             self.picam2.start()
-            self.video.started = time.time()
-            logging.info("Recording started.")
+            video.started = time.time()
+            logging.info(f"Started recording video: {video.id}")
             if stream_paused:
                 self._start_preview_encoder()
                 logging.info("Stream resumed.")        
             return {"status": self.status()}
-        except AlreadyRunningError as e:
-            return {"error": e,
+        except AlreadyRunningError:
+            return {"error": "Recording already running.",
                     "status": self.status()}
         except Exception as e:
             traceback.print_exc()
             logging.error(str(e))
             return {"error": e} 
 
-    def recording_stop(self) -> dict:
+    def recording_stop(self, id : str) -> dict:
         try:                
+            video = self.find_video_by_id(id)
+            if video is None:
+                raise VideoNotFoundError
             if not self.recording_running():
                 logging.warn("Recording not running.")
                 raise NotRunningError
             stream_running = self.preview_running()
             self.picam2.stop_encoder()
             self.picam2.stop()
-            self.video.stopped = time.time()
+            video.stopped = time.time()
             logging.info("Recording stopped.")        
             self.configure_still()
 
@@ -433,12 +448,15 @@ class Camera:
                 self._start_preview_encoder()
                 logging.info("Streaming resumed.")
                 self.picam2.start()
-            data = self.video.data
+            data = video.data
             data.seek(0)
             return {"data": data,
                     "status": self.status()}
-        except NotRunningError as e:
-            return {"error": e,
+        except VideoNotFoundError:
+            return {"error": f"Video not found: {id}",
+                    "status": self.status()}
+        except NotRunningError:
+            return {"error": "Recording not running.",
                     "status": self.status()}
         except Exception as e:
             traceback.print_exc()

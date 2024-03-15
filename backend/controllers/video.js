@@ -1,14 +1,14 @@
 const Joi = require('joi')
 const video = require('../models/video')
+const {v1} = require('uuid')
 
 
 const videoStart = async (req, res) => {
 
-  const { resolution, quality, name } = req.body
+  const { resolution, quality } = req.body
 
   const schema = Joi.object({
     quality: Joi.number().integer().min(1).max(5).required(),
-    name: Joi.string().min(1).max(100).required(),
     resolution: Joi.string().valid(["720p", "1080p"]).required()
   })
 
@@ -21,7 +21,7 @@ const videoStart = async (req, res) => {
 
   const params = {
     action: 'video_start',
-    name: name,
+    id: v1(),
     resolution: resolution,
     quality: quality
   }
@@ -60,8 +60,42 @@ const videoStop = async (req, res) => {
   }
 }
 
+const videoPause = async (req, res) => {
+  try {
+    const response = await video.pause()
+    if (response) {
+      return res.send(response)
+    } else {
+      throw new Error('Null response.')
+    }
+
+  }
+  catch (err) {
+    console.log(err)
+    return res.status(500).send({ error: 'Something went wrong!' })
+  }
+}
+
+const videoDelete = async (req, res) => {
+  try {
+    const response = await video.delete()
+    if (response) {
+      return res.send(response)
+    } else {
+      throw new Error('Null response.')
+    }
+
+  }
+  catch (err) {
+    console.log(err)
+    return res.status(500).send({ error: 'Something went wrong!' })
+  }
+}
+
 
 module.exports = {
   videoStart,
-  videoStop
+  videoStop,
+  videoPause,
+  videoDelete
 }
