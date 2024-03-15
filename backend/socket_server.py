@@ -35,10 +35,15 @@ class CameraHandler(socketserver.BaseRequestHandler):
                                               )
             camera.lock.release()
             return response
-        elif (self.data["action"] == 'still_stop'):
-            logging.info('still_stop')
+        if (self.data["action"] == 'still_stop'):
+            camera.lock.acquire()
+            response = camera.still_stop()
+            camera.lock.release()
+            return response
         elif (self.data["action"] == 'video_start'):
-            logging.info('video_start')
+            camera.lock.acquire()
+            response = camera.recording_start(resolution=resolution, quality=quality)
+            camera.lock.release()
         elif (self.data["action"] == 'video_stop'):
             logging.info('video_stop')
         else:
