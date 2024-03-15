@@ -6,7 +6,7 @@ const getStatus = async (req, res) => {
     if (response) {
       return res.send(response)
     } else {
-      return res.status(500).send({ error: 'Something went wrong!' });
+      throw new Error('Null response.')
     }
 
   }
