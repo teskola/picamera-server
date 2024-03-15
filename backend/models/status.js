@@ -3,7 +3,7 @@ const socket = require('../socket')
 const status = {
     fetch: () => new Promise((resolve, reject) => {
         const connection = socket.createConnection()
-        const request = connection.write(JSON.stringify({ action: 'status' }), (err) => {
+        const request = connection.write(JSON.stringify({ action: 'statu' }), (err) => {
             if (err) {
                 reject(err)
             }
