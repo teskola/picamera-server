@@ -1,87 +1,201 @@
 import logging
 import socketserver
 import json
-import sched
-import time
+import cgi
+from threading import Thread
 from http import server
-from threading import Lock, Thread
+from pprint import pformat
 from picamera2.encoders import Quality
 
 from minio_client import MinioClient
-from camera import Camera
+from camera import Camera, AlreadyRunningError, NotRunningError, Resolutions
 
 logging.basicConfig(
     format='%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s',
     level=logging.INFO,
     datefmt='%Y-%m-%d %H:%M:%S')
 
-scheduler = sched.scheduler(time.time, time.sleep)
-task = None
-count = 0
-limit = 0
-interval = 0
-full_res = False
-lock = Lock()
 camera = Camera()
 minio = MinioClient()
 stream_clients = set()
 
-def capture_and_upload(name : str):
-    global count, task, full_res
-    if limit == 0 or count < limit:
-        task = scheduler.enter(interval, 1, capture_and_upload, argument=(name, ))
-    keep_alive = interval < 20
-    camera.lock.acquire()
-    data = camera.capture_still(minio.upload_image, name, keep_alive=keep_alive, full_res=full_res) 
-    count += 1 
-    if limit != 0 and count == limit and keep_alive:
-        camera.stop_timelapse()
-    camera.lock.release()
+class CameraHandler(server.BaseHTTPRequestHandler): 
 
-def set_capture_timer(_interval : int, name : str, _limit : int = 0, _full_res : bool = False):
-    global limit, interval, task, full_res
-    limit = _limit
-    interval = _interval
-    full_res = _full_res
-    if scheduler.empty():
-        if interval < 20:
-            camera.start(full_res=full_res)
-        task = scheduler.enter(1, 1, capture_and_upload, argument=(name, ))
-        scheduler.run()
-
-def stop_capture_timer():
-    global task, count, limit
-    scheduler.cancel(task)
-    task = None
-    count = 0
-    limit = 0  
-    camera.stop_timelapse() 
-
-
-class StreamingHandler(server.BaseHTTPRequestHandler):
-    
-    def do_GET(self):        
-        if self.path == '/video_start':            
-            self.send_response(200)
-            self.end_headers()
-            camera.lock.acquire()
-            camera.recording_start(resolution='720p', quality=Quality.MEDIUM)
-            camera.lock.release()
-        elif self.path == '/video_stop':                       
-            camera.lock.acquire()
-            data = camera.recording_stop()
-            camera.lock.release()
-            if data is None:
-                self.send_response(409)                
-            else:
-                self.send_response(200)
-                minio.upload_video(data, 'video') 
-            self.end_headers()           
-        elif self.path == '/still':
-            set_capture_timer(1, "testi", 0, False)
-            self.send_response(200)
-            self.end_headers()
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', 'http://localhost:5173')
+        self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS, POST')
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.end_headers()
         
+   
+
+    def send(self, code : int, response : dict = {}):
+        if int(code / 100) == 2:
+            self.send_response(code)
+        else:
+            self.send_error(code)
+        self.send_header('Access-Control-Allow-Origin', 'http://localhost:5173')
+        self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS, POST')
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header('Content-Type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps(response).encode(encoding='utf_8'))
+
+    def field_check_failed(self, list : list, payload : dict):
+        for item in list:
+            if item not in payload:
+                self.send(400, {"error": f"Missing field: {item}"})
+                return True
+        return False
+    # https://gist.github.com/nitaku/10d0662536f37a087e1b
+    
+    def do_POST(self):
+
+        if self.path != '/api':
+            self.send(404)
+            return
+
+        ctype, pdict = cgi.parse_header(self.headers.get('Content-Type'))
+        
+        # refuse to receive non-json content
+        if ctype != 'application/json':
+            logging.warning(f"Refused non-json content: {ctype}")
+            self.send(400, {"error": "Refused non-json content"})
+            return
+            
+        # read the message and convert it into a python dictionary
+        length = int(self.headers.get('content-length'))
+        fields = json.loads(self.rfile.read(length))       
+        
+        if self.field_check_failed(["action"], fields):
+            return
+        
+        elif fields["action"] == "video_start":
+            if self.field_check_failed(["resolution", "quality"], fields):                
+                return            
+            elif fields["resolution"] == "720p":
+                resolution = Resolutions.P720
+            elif fields["resolution"] == "1080p":
+                resolution = Resolutions.P1080
+            else:
+                self.send(400, {"error": "Invalid resolution."})
+                return            
+            if fields["quality"] == 1:
+                quality = Quality.VERY_LOW
+            elif fields["quality"] == 2:
+                quality = Quality.LOW
+            elif fields["quality"] == 3:
+                quality = Quality.MEDIUM
+            elif fields["quality"] == 4:
+                quality = Quality.HIGH
+            elif fields["quality"] == 5:
+                quality = Quality.VERY_HIGH
+            else:
+                self.send(400, {"error": "Invalid quality."})
+                return
+            camera.lock.acquire()
+            cam_response = camera.recording_start(resolution=resolution, quality=quality)
+            camera.lock.release()
+            if "error" in cam_response:
+                if cam_response["error"] is AlreadyRunningError:
+                    code = 409
+                    cam_response["error"] = "Already recording."
+                else:
+                    code = 500
+                    cam_response["error"] = "Something went wrong!"
+            else:
+                code = 200
+            self.send(code, cam_response)
+
+        elif fields["action"] == "video_stop":
+            camera.lock.acquire()
+            cam_response = camera.recording_stop()
+            camera.lock.release()
+            response = {}
+            code = 200
+            if "error" in cam_response:
+                if cam_response["error"] is NotRunningError:
+                    code = 409
+                    response["error"] = "Not recording."
+                else:
+                    code = 500
+                    response["error"] = "Something went wrong!"
+            if "status" in cam_response:
+                response['status'] = cam_response['status']
+
+            if "data" not in cam_response or cam_response['data'] is None:                
+                code = 500
+                response["error"] = "Something went wrong!"
+            self.send(code, response)
+            #if code == 200:
+            #    minio.upload_video(cam_response["data"], 'video')
+                
+
+        elif fields["action"] == "still_start":
+            if self.field_check_failed(["interval", "name", "limit", "full_res", "epoch", "delay"], fields):
+                return
+            logging.info(pformat(fields))
+            camera.lock.acquire()
+            cam_response = camera.still_start(interval=fields["interval"], 
+                                              name=fields["name"], 
+                                              limit=fields["limit"], 
+                                              full_res=fields["full_res"], 
+                                              upload=minio.upload_image,
+                                              epoch=fields["epoch"],
+                                              delay=fields["delay"])
+            camera.lock.release()
+            if "error" in cam_response:
+                if cam_response["error"] is AlreadyRunningError:
+                    code = 409
+                    cam_response["error"] = "Already recording."
+                elif cam_response["error"] is (ValueError or AttributeError):
+                    code = 409
+                    cam_response["error"] = str(cam_response["error"])
+                else:
+                    code = 500
+                    cam_response["error"] = "Something went wrong!"
+            else:
+                code = 200
+            self.send(code, cam_response)
+        
+        elif fields["action"] == "still_stop":
+            logging.info("still_stop")
+            camera.lock.acquire()
+            cam_response = camera.still_stop()
+            camera.lock.release()
+            if "error" in cam_response:
+                if cam_response["error"] is NotRunningError:
+                    code = 409
+                    cam_response["error"] = "No stills scheduled."
+                else:
+                    code = 500
+                    cam_response["error"] = "Something went wrong!"
+            else:
+                code = 200
+            self.send(code, cam_response)
+        else:
+            self.send(400)
+
+    
+    def do_GET(self):   
+        if self.path == '/status':
+            camera.lock.acquire()
+            cam_response = camera.status()
+            camera.lock.release()
+            if "error" in cam_response:
+                code = 500
+                cam_response["error"] = "Something went wrong!"    
+            else:
+                code = 200       
+            self.send(code, cam_response)
+
+        elif self.path == '/timelapse':
+            camera.lock.acquire()
+            camera.timelapse_test()
+            camera.lock.release()
+            self.send_response(200)
+            self.end_headers()
 
         elif self.path == '/stream.mjpg':            
             if not camera.preview_running():
@@ -118,11 +232,10 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                     camera.preview_stop()
                 
         else:
-            self.send_error(404)
-            self.end_headers()
+            self.send(404)
 
 
-class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
+class CameraServer(socketserver.ThreadingMixIn, server.HTTPServer):
         
     allow_reuse_address = True
     daemon_threads = True
@@ -132,8 +245,12 @@ def run_server():
        
     try:
         address = ('', 5000)
-        server = StreamingServer(address, StreamingHandler)
+        server = CameraServer(address, CameraHandler)
+        logging.info("Server start.")
         server.serve_forever()
+            
+    except KeyboardInterrupt:
+        logging.info("Server shutdown.")
         
     finally:    
         camera.stop()        
