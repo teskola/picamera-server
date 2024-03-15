@@ -49,7 +49,7 @@ class CameraHandler(socketserver.StreamRequestHandler):
         action = self.data["action"]
         print(f"Recieved request: {action} from {self.client_address[0]}")
         response = self.action()    
-        self.request.sendall(json.dumps(response).encode(encoding='utf_8'))
+        self.request.send(json.dumps(response).encode(encoding='utf-8'))
 
 def run_server():          
        
