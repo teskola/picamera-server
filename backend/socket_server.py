@@ -15,7 +15,7 @@ minio = MinioClient()
 class CameraServer(socketserver.TCPServer):
     allow_reuse_address = True
 
-class CameraHandler(socketserver.StreamRequestHandler):   
+class CameraHandler(socketserver.BaseRequestHandler):   
         
     def action(self) -> dict:
         if (self.data["action"] == 'status'):
