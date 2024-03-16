@@ -52,9 +52,8 @@ app.get("/stream", (req, res) => {
     console.log("Streaming started.")
     res.writeHead(200, {
         'Content-Type': 'multipart/x-mixed-replace;boundary=FRAME',
-        'Connection': 'keep-alive',
-        'Expires': 'Fri, 27 May 1977 00:00:00 GMT',
-        'Cache-Control': 'no-cache, no-store, max-age=0, must-revalidate',
+        'Age': 0,
+        'Cache-Control': 'no-cache',
         'Pragma': 'no-cache'
     })
 
