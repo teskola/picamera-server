@@ -32,12 +32,11 @@ app.get("/stream", (req, res) => {
         'Content-Type': 'multipart/x-mixed-replace; boundary=FRAME'
     })
     const listener = (frame) => {
-        res.write(Buffer.from('--FRAME\r\n'))
+        res.write('--FRAME\r\n')
         res.write('Content-Type: image/jpeg\r\n')
         res.write('Content-Length: ' + Object.keys(frame).length)
         res.write("\r\n")
         res.write(Buffer.from(frame, 'utf-8'))
-        res.write(Buffer.from("\r\n"))
     }
     try {
         connection.on('data', listener)
