@@ -24,7 +24,6 @@ app.get("/stream", (req, res) => {
             res.status(500).send({ error: 'Something went wrong!' })
         }
     });
-    res.status(200)
     res.setHeader('Age', 0)
     res.setHeader('Cache-Control', 'no-cache, private')
     res.setHeader('Pragma', 'no-cache')
