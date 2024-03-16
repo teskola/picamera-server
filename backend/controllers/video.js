@@ -9,7 +9,7 @@ const videoStart = async (req, res) => {
 
   const schema = Joi.object({
     quality: Joi.number().integer().min(1).max(5).required(),
-    resolution: Joi.string().valid(["720p", "1080p"]).required()
+    resolution: Joi.string().valid("720p", "1080p").required()
   })
 
   const { error } = schema.validate(req.body)
