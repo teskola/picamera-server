@@ -24,11 +24,11 @@ app.get("/frame", (req, res) => {
             console.log(err)
             res.status(500).send({ error: 'Something went wrong!' })
         }
-    });    
+    });
     const listener = (frame) => {
         connection.off('data', listener)
         connection.end()
-        res.contentType('image/jpeg');
+        res.contentType('text/plain');
         res.send(Buffer.from(frame, 'binary'))
     }
     try {
