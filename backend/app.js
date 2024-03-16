@@ -36,7 +36,7 @@ app.get("/stream", (req, res) => {
         res.write('Content-Type: image/jpeg\r\n')
         res.write('Content-Length: ' + Object.keys(frame).length)
         res.write("\r\n")
-        res.write(Buffer.from(frame))
+        res.write(Buffer.from(frame, 'base64'))
         res.write(Buffer.from("\r\n"))
     }
     try {
