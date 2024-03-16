@@ -46,59 +46,61 @@ class CameraHandler(socketserver.StreamRequestHandler):
             return Quality.VERY_HIGH
         raise ValueError('Invalid quality')
         
-    def action(self) -> dict:
-        if (self.data["action"] == 'status'):
+    def action(self, data) -> dict:
+        if (data["action"] == 'status'):
             camera.lock.acquire()
             response = camera.status()
             camera.lock.release()
             return response
-        if (self.data["action"] == 'still_start'):            
+        if (data["action"] == 'still_start'):            
             camera.lock.acquire()
-            response = camera.still_start(interval=self.data["interval"], 
-                                              name=self.data["name"], 
-                                              limit=self.data["limit"], 
-                                              full_res=self.data["full_res"],  
-                                              epoch = self.data["epoch"],                                          
-                                              delay = self.data["delay"],
+            response = camera.still_start(interval=data["interval"], 
+                                              name=data["name"], 
+                                              limit=data["limit"], 
+                                              full_res=data["full_res"],  
+                                              epoch = data["epoch"],                                          
+                                              delay = data["delay"],
                                               upload=minio.upload_image,
                                               )
             camera.lock.release()
             return response
-        if (self.data["action"] == 'still_stop'):
+        if (data["action"] == 'still_stop'):
             camera.lock.acquire()
             response = camera.still_stop()
             camera.lock.release()
             return response
-        if (self.data["action"] == 'video_start'):
+        if (data["action"] == 'video_start'):
             camera.lock.acquire()
-            response = camera.recording_start(resolution=self.resolution(self.data["resolution"]), 
-                                              quality=self.quality(self.data["quality"]), 
-                                              id=self.data["id"])
+            response = camera.recording_start(resolution=self.resolution(data["resolution"]), 
+                                              quality=self.quality(data["quality"]), 
+                                              id=data["id"])
             camera.lock.release()
             return response
-        if (self.data["action"] == 'video_stop'):
+        if (data["action"] == 'video_stop'):
             camera.lock.acquire()
-            response = camera.recording_stop(id=self.data["id"])
+            response = camera.recording_stop(id=data["id"])
             camera.lock.release()
             return response
-        if (self.data["action"] == 'video_upload'):
+        if (data["action"] == 'video_upload'):
             camera.lock.acquire()
-            video = camera.find_video_by_id(self.data["id"])
+            video = camera.find_video_by_id(data["id"])
             camera.lock.release()
             return minio.upload_video(data=video.data, 
-                                      filename=self.data["name"], 
-                                      cb=self.delete(self.data["id"]))            
-        if (self.data["action"] == 'video_delete'):
-            return self.delete(self.data["id"])
+                                      filename=data["name"], 
+                                      cb=self.delete(data["id"]))            
+        if (data["action"] == 'video_delete'):
+            return self.delete(data["id"])
         else:
-            logging.error(f'unkown command: {self.data["action"]}')
+            logging.error(f'unkown command: {data["action"]}')
  
     def handle(self):
-        self.data = json.loads(self.rfile.readline().strip())
-        action = self.data["action"]
-        print(f"Recieved request: {action} from {self.client_address[0]}")
-        response = self.action()    
+        logging.info(f"Recieved request from {self.client_address[0]}")
+        data = json.loads(self.rfile.readline().strip())
+        logging.info("Request loaded.")
+        response = self.action(data)   
+        logging.info("Got response.") 
         self.wfile.write(json.dumps(response).encode(encoding='utf-8'))
+        logging.info("Sent response.")
 
 def run_server():          
        
