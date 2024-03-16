@@ -87,7 +87,8 @@ class CameraHandler(socketserver.StreamRequestHandler):
             camera.lock.release()
             return minio.upload_video(data=video.data, 
                                       filename=data["name"], 
-                                      cb=self.delete(data["id"]))            
+                                      on_complete=self.delete,
+                                      args = data["id"])            
         if (data["action"] == 'video_delete'):
             return self.delete(data["id"])
         else:

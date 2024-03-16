@@ -46,8 +46,10 @@ class MinioClient:
             data.seek(0)
             data.truncate()
     
-    def upload_video(self, data : io.BytesIO, filename : str, cb):
-        # TODO: check if already uploading video, delete video, return error
+    def upload_video(self, data : io.BytesIO, filename : str, on_complete, args : str):
+        # TODO: connection error
+        # What happens if delete while uploading?
+        # TODO: prevent multiple uploads of same data
         logging.info("Uploading video...")
         try:
             result = self.client.put_object(
@@ -58,7 +60,7 @@ class MinioClient:
             return self.result_dict(result)
         except S3Error as e:
             logging.error("Video upload failed: %s", str(e))
-        finally:
-            cb()
+        finally:            
+            on_complete(args)
     
 

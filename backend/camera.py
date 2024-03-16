@@ -84,12 +84,10 @@ class Still:
         if epoch is not None:   
             if time.time() > epoch:
                 raise ValueError('Scheduled time is in the past')
-            self.event = scheduler.enterabs(epoch, 1, self.tick, argument=(capture, stop, self.name, upload, ))    
-        else:
-            if delay < 1.0:
-                delay = 1.0
+            self.event = scheduler.enterabs(0, 1, self.tick, argument=(capture, stop, self.name, upload, ))    
+        else:            
             self.event = scheduler.enter(delay, 1, self.tick, argument=(capture, stop, self.name, upload, ))
-        logging.info("Still scheduler started.")
+        logging.info(f"Still scheduler started. {self.event.time}")
         Thread(target=scheduler.run).start()        
     
     def keep_alive(self):
@@ -405,8 +403,10 @@ class Camera:
             video = self.find_video_by_id(id)
             self.videos.remove(video)  
             del video   
+            logging.info(f"Video deleted: {id}")
             return {"status": self.status()}
         except ValueError as e:
+            logging.warn(f"Failed to delete video: {id}")
             return {"error": str(e),
                     "status": self.status()}        
 
