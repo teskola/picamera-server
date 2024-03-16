@@ -31,8 +31,8 @@ app.get("/stream", (req, res) => {
     res.setHeader('Content-Type', 'multipart/x-mixed-replace; boundary=FRAME')
     res.write(Buffer.from('--FRAME\r\n'))
     const listener = (frame) => {
-        res.write('Content-Type', 'image/jpeg\r\n')
-        res.write('Content-Length', Object.keys(frame).length) + "\r\n"
+        res.setHeader('Content-Type', 'image/jpeg\r\n')
+        res.setHeader('Content-Length', Object.keys(frame).length) + "\r\n"
         res.write("\r\n")
         res.write(frame)
         res.write(Buffer.from('--FRAME\r\n'))
