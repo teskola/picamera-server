@@ -101,6 +101,7 @@ class CameraHandler(socketserver.StreamRequestHandler):
                         camera.streaming_output.condition.wait()
                         frame = camera.streaming_output.frame
                     self.wfile.write(frame)
+                    logging.info("Frame sent.")
 
         else:
             logging.error(f'unkown command: {data["action"]}')
