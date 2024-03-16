@@ -33,9 +33,7 @@ app.get("/stream", (req, res) => {
     })
     const listener = (frame) => {
         res.set({ 'Content-Type': 'image/jpeg' }, 'Content-Length', Object.keys(frame).length)
-        res.send(Buffer.from('--FRAME\r\n'))
-        res.send(frame)
-        res.send(Buffer.from('\r\n'))
+        res.send(Buffer.from('--FRAME\r\n') + frame + Buffer.from('\r\n'))        
     }
     try {
         connection.on('data', listener)
