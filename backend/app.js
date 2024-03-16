@@ -32,6 +32,7 @@ app.get("/stream", (req, res) => {
         'Content-Type': 'multipart/x-mixed-replace; boundary=FRAME'
     })
     const listener = (frame) => {
+        console.log('Frame received')
         res.set({ 'Content-Type': 'image/jpeg' }, 'Content-Length', Object.keys(frame).length)
         res.send(Buffer.from('--FRAME\r\n') + frame + Buffer.from('\r\n'))        
     }
