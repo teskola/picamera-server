@@ -4,7 +4,7 @@ const app = express();
 const status = require('./routes/status')
 const still = require('./routes/still')
 const video = require('./routes/video')
-const socket = require('/socket')
+const socket = require('./socket')
 
 
 app.use(
@@ -34,7 +34,7 @@ app.get("/stream", (req, res) => {
     res.send()
     const listener = (frame) => {
         res.send('--FRAME\r\n')
-        res.header({'Content-Type': 'image/jpeg'}, 'Content-Length', Object.keys(frame).length)
+        res.header({ 'Content-Type': 'image/jpeg' }, 'Content-Length', Object.keys(frame).length)
         res.send(frame)
         res.send('\r\n')
     }
