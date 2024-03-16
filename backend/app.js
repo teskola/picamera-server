@@ -24,7 +24,7 @@ app.get("/frame", (req, res) => {
             console.log(err)
             res.status(500).send({ error: 'Something went wrong!' })
         }
-    });    
+    });
     const listener = (frame) => {
         connection.off('data', listener)
         connection.end()
@@ -57,12 +57,19 @@ app.get("/stream", (req, res) => {
         'Content-Type': 'multipart/x-mixed-replace; boundary=FRAME'
     })
     const listener = (frame) => {
+        console.log(1)
         res.write(Buffer.from('--FRAME\r\n', 'binary'))
+        console.log(2)
         res.write('Content-Type: image/jpeg\r\n')
+        console.log(3)
         res.write('Content-Length: ' + Object.keys(frame).length)
+        console.log(4)
         res.write("\r\n")
+        console.log(5)
         res.write(Buffer.from(frame, 'binary'))
+        console.log(6)
         res.write(Buffer.from("\r\n", 'binary'))
+        console.log(7)
     }
     try {
         connection.on('data', listener)
