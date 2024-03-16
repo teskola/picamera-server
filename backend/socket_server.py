@@ -14,8 +14,9 @@ logging.basicConfig(
 camera = Camera()
 minio = MinioClient()
 
-class CameraServer(socketserver.TCPServer):
+class CameraServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     allow_reuse_address = True
+    daemon_threads = True
 
 class CameraHandler(socketserver.StreamRequestHandler):   
 
