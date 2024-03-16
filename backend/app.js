@@ -49,6 +49,7 @@ app.get("/stream", (req, res) => {
             res.status(500).send({ error: 'Something went wrong!' })
         }
     });
+    console.log("Streaming started.")
     res.writeHead(200, {
         'Content-Type': 'multipart/x-mixed-replace;boundary=FRAME',
         'Age': 0,
@@ -61,11 +62,15 @@ app.get("/stream", (req, res) => {
         res.write('Content-Type: image/jpeg\r\n')
         res.write('Content-Length: ' + frame.length + '\r\n')
         res.write("\r\n")
-        res.write(Buffer(frame), 'binary')
+        res.write(Buffer.from(frame, 'binary'))
         res.write("\r\n")
     }
     try {
         connection.on('data', listener)
+        connection.on('close', () => {
+            console.log("Streaming ended.")
+            res.end()
+        })
 
     } catch (err) {
         console.log('Streaming ended:')
