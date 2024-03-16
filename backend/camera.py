@@ -81,10 +81,8 @@ class Still:
             }
     
     def start(self, capture, stop, upload, delay : float = 1.0, epoch : float = None):
-        if epoch is not None:   
-            if time.time() > epoch:
-                raise ValueError('Scheduled time is in the past')
-            self.event = scheduler.enterabs(0, 1, self.tick, argument=(capture, stop, self.name, upload, ))    
+        if epoch is not None:               
+            self.event = scheduler.enterabs(epoch, 1, self.tick, argument=(capture, stop, self.name, upload, ))    
         else:            
             self.event = scheduler.enter(delay, 1, self.tick, argument=(capture, stop, self.name, upload, ))
         logging.info(f"Still scheduler started. {self.event.time}")
