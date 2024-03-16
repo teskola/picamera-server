@@ -426,7 +426,7 @@ class Camera:
             self.configure_video(resolution=resolution)
             video = Video(id=id, resolution=resolution, quality=quality)
             self.videos.append(video)     
-            self._start_video_encoder()
+            self._start_video_encoder(video)
             self.picam2.start()
             video.started = time.time()
             logging.info(f"Started recording video: {video.id}")
