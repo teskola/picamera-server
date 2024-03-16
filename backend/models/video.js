@@ -1,9 +1,9 @@
 const socket = require('../socket')
 
 const video = {
-    pause: () => new Promise((resolve, reject) => {
+    upload: (id) => new Promise((resolve, reject) => {
         const connection = socket.createConnection()
-        const request = connection.write(JSON.stringify({ action: 'video_pause' }), (err) => {
+        const request = connection.write(JSON.stringify({ action: 'video_upload', id: id }), (err) => {
             if (err) {
                 reject(err)
             }
@@ -17,9 +17,9 @@ const video = {
             connection.on('data', listener)
         }
     }),
-    delete: (params) => new Promise((resolve, reject) => {
+    delete: (id) => new Promise((resolve, reject) => {
         const connection = socket.createConnection()
-        const request = connection.write(JSON.stringify(params), (err) => {
+        const request = connection.write(JSON.stringify({action: 'video_delete', id: id}), (err) => {
             if (err) {
                 reject(err)
             }
@@ -33,9 +33,9 @@ const video = {
             connection.on('data', listener)
         }
     }),
-    stop: () => new Promise((resolve, reject) => {
+    stop: (id) => new Promise((resolve, reject) => {
         const connection = socket.createConnection()
-        const request = connection.write(JSON.stringify({ action: 'video_stop' }), (err) => {
+        const request = connection.write(JSON.stringify({ action: 'video_stop', id: id }), (err) => {
             if (err) {
                 reject(err)
             }

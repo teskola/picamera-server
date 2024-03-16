@@ -27,14 +27,15 @@ class MinioClient:
         )
         self.bucket = os.getenv("BUCKET")
     
-    def upload_file(self, file):
+    """ def upload_file(self, file):
         self.client.fput_object(self.bucket, 'raw.jpg', file)
+     """
 
     def upload_image(self, data : io.BytesIO, filename : str):
         logging.info("Uploading image...")
         try:
             result = self.client.put_object(
-                self.bucket, filename + ".jpg", data, len(data.getvalue()),
+                self.bucket, "/still/" + filename + ".jpg", data, len(data.getvalue()),
                 content_type="image/jpg")    
             logging.info("created %s object; etag: %s",
             result.object_name, result.etag)            
@@ -45,11 +46,12 @@ class MinioClient:
             data.seek(0)
             data.truncate()
     
-    def upload_video(self, data : io.BytesIO, filename : str):
+    def upload_video(self, data : io.BytesIO, filename : str, cb):
+        # TODO: check if already uploading video, delete video, return error
         logging.info("Uploading video...")
         try:
             result = self.client.put_object(
-                self.bucket, filename + ".h264", data, len(data.getvalue()),
+                self.bucket, "/video/" + filename + ".h264", data, len(data.getvalue()),
                 content_type="video/h264")
             logging.info("created %s object; etag: %s",
             result.object_name, result.etag)
@@ -57,7 +59,6 @@ class MinioClient:
         except S3Error as e:
             logging.error("Video upload failed: %s", str(e))
         finally:
-            data.seek(0)
-            data.truncate()
+            cb()
     
 

@@ -46,7 +46,7 @@ const videoStart = async (req, res) => {
 
 const videoStop = async (req, res) => {
   try {
-    const response = await video.stop()
+    const response = await video.stop(req.params.id)
     if (response) {
       return res.send(response)
     } else {
@@ -60,9 +60,9 @@ const videoStop = async (req, res) => {
   }
 }
 
-const videoPause = async (req, res) => {
+const videoUpload = async (req, res) => {
   try {
-    const response = await video.pause()
+    const response = await video.upload(req.params.id)
     if (response) {
       return res.send(response)
     } else {
@@ -96,6 +96,6 @@ const videoDelete = async (req, res) => {
 module.exports = {
   videoStart,
   videoStop,
-  videoPause,
+  videoUpload,
   videoDelete
 }

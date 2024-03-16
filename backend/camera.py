@@ -38,8 +38,6 @@ class AlreadyRunningError (Exception):
 class NotRunningError (Exception):
     pass
 
-class VideoNotFoundError (Exception):
-    pass
 
 class Resolutions:
     FULL = (4056, 3040)
@@ -70,7 +68,7 @@ class Still:
             return len(str(self.limit))
         return None
     
-    def status(self):
+    def dict(self):
         return {
                 'limit': self.limit,
                 'interval': self.interval,
@@ -124,13 +122,22 @@ class Still:
 
 
 class Video:
-    def __init__(self, id : str, resolution : str, quality : int) -> None:
+    def __init__(self, id : str, resolution : Resolutions, quality : Quality) -> None:
         self.id = id
         self.resolution = resolution
         self.quality = quality
         self.data = io.BytesIO() 
         self.started = 0
-        self.stopped = 0  
+        self.stopped = 0
+
+    def dict(self):
+        return {
+                "resolution": resolution_to_str(self.resolution),
+                "quality": quality_to_int(self.quality),
+                "started": self.started,
+                "stopped": self.stopped,
+                "size": self.size()}
+         
 
     def size(self):
         return len(self.data.getvalue()) 
@@ -224,11 +231,11 @@ class Camera:
         self.still : Still = None
         self.lock = Lock()  
     
-    def find_video_by_id(self, id: str) -> Video | None:
+    def find_video_by_id(self, id: str) -> Video:
         for video in self.videos:
             if video.id == id:
                 return video
-        return None
+        raise ValueError(f'{id} not found in videos.')
 
     def current_resolution(self):
         if self.picam2.camera_configuration() is None:
@@ -323,15 +330,11 @@ class Camera:
                     "preview": {}}        
         result["running"] = self.running()
         result["video"]["running"] = self.recording_running()
-        if self.videos is not None:                    
-            result["video"]['resolution'] = self.videos.resolution,
-            result["video"]['quality'] = quality_to_int(self.videos.quality)
-            result["video"]['started'] = self.videos.started
-            result["video"]['stopped'] = self.videos.stopped
-            result["video"]['size'] = self.videos.size()              
+        for video in self.videos:
+            result["video"][video.id] = video.dict()                
 
         if self.still is not None:
-            result["still"] = self.still.status()
+            result["still"] = self.still.dict()
                 
         result["preview"] = {
             'running': self.preview_running(),
@@ -396,7 +399,17 @@ class Camera:
             traceback.print_exc()
             logging.error(str(e))
             return {"error": e}
-        
+    
+    def delete_video(self, id: str):
+        try:
+            video = self.find_video_by_id(id)
+            self.videos.remove(video)  
+            del video   
+            return {"status": self.status()}
+        except ValueError as e:
+            return {"error": str(e),
+                    "status": self.status()}        
+
           
 
     def recording_start(self, id: str, resolution : Resolutions, quality : Quality) -> dict:        
@@ -431,9 +444,7 @@ class Camera:
 
     def recording_stop(self, id : str) -> dict:
         try:                
-            video = self.find_video_by_id(id)
-            if video is None:
-                raise VideoNotFoundError
+            video = self.find_video_by_id(id)            
             if not self.recording_running():
                 logging.warn("Recording not running.")
                 raise NotRunningError
@@ -452,8 +463,8 @@ class Camera:
             data.seek(0)
             return {"data": data,
                     "status": self.status()}
-        except VideoNotFoundError:
-            return {"error": f"Video not found: {id}",
+        except ValueError as e:
+            return {"error": str(e),
                     "status": self.status()}
         except NotRunningError:
             return {"error": "Recording not running.",
