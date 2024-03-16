@@ -25,10 +25,12 @@ app.get("/stream", (req, res) => {
         }
     });
     res.status(200)
-    res.setHeader('Age', 0)
-    res.setHeader('Cache-Control', 'no-cache, private')
-    res.setHeader('Pragma', 'no-cache')
-    res.setHeader('Content-Type', 'multipart/x-mixed-replace; boundary=FRAME')
+    res.set({
+        'Age': 0,
+        'Cache-Control': 'no-cache, private',
+        'Pragma': 'no-cache',
+        'Content-Type': 'multipart/x-mixed-replace; boundary=FRAME'
+    })    
     const listener = (frame) => {
         console.log(Object.keys(frame).length)
         /* res.write(Buffer.from('--FRAME\r\n'))
