@@ -95,7 +95,7 @@ class CameraHandler(socketserver.StreamRequestHandler):
  
     def handle(self):
         logging.info(f"Recieved request from {self.client_address[0]}")
-        data = json.loads(self.rfile.readline().strip())
+        data = json.loads(self.request.recv(1024).decode('utf-8'))
         logging.info("Request loaded.")
         response = self.action(data)   
         logging.info("Got response.") 
