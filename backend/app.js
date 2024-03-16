@@ -67,7 +67,7 @@ app.get("/stream", (req, res) => {
     }
     try {
         connection.on('data', listener)
-        connection.on('close', () => {
+        res.on('close', () => {
             console.log("Streaming ended.")
             res.end()
         })
