@@ -24,19 +24,17 @@ app.get("/stream", (req, res) => {
             res.status(500).send({ error: 'Something went wrong!' })
         }
     });
-    res.status(200)
-    res.header({
+    res.writeHead(200, {
         'Age': 0,
         'Cahce-Control': 'no-cache, private',
         'Pragma': 'no-cache',
         'Content-Type': 'multipart/x-mixed-replace; boundary=FRAME'
     })
-    res.send()
     const listener = (frame) => {
-        res.send('--FRAME\r\n')
+        res.write('--FRAME\r\n')
         res.header({ 'Content-Type': 'image/jpeg' }, 'Content-Length', Object.keys(frame).length)
-        res.send(frame)
-        res.send('\r\n')
+        res.write(frame)
+        res.write('\r\n')
     }
     try {
         connection.on('data', listener)
