@@ -33,7 +33,7 @@ app.get("/stream", (req, res) => {
     })
     const listener = (frame) => {
         res.write(Buffer.from('--FRAME\r\n'))
-        res.write('Content-Type: text/plain\r\n')
+        res.write('Content-Type: image/jpeg\r\n')
         res.write('Content-Length: ' + Object.keys(frame).length)
         res.write("\r\n")
         res.write(frame)
