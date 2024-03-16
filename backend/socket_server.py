@@ -96,11 +96,11 @@ class CameraHandler(socketserver.StreamRequestHandler):
                 camera.lock.acquire()
                 camera.preview_start()
                 camera.lock.release()  
-                while True:
-                    with camera.streaming_output.condition:
-                        camera.streaming_output.condition.wait()
-                        frame = camera.streaming_output.frame
-                    self.wfile.write(frame)
+            while True:
+                with camera.streaming_output.condition:
+                    camera.streaming_output.condition.wait()
+                    frame = camera.streaming_output.frame
+                self.wfile.write(frame)
 
         else:
             logging.error(f'unkown command: {data["action"]}')
