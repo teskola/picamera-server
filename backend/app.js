@@ -16,6 +16,31 @@ app.use(express.json())
 app.use("/api/status", status)
 app.use("/api/still", still)
 app.use("/api/video", video)
+app.get("/frame", (req, res) => {
+
+    const connection = socket.createConnection()
+    connection.write(JSON.stringify({ action: 'stream' }), (err) => {
+        if (err) {
+            console.log(err)
+            res.status(500).send({ error: 'Something went wrong!' })
+        }
+    });    
+    const listener = (frame) => {
+        connection.off('data', listener)
+        connection.end()
+        res.contentType('image/jpeg');
+        res.send(Buffer.from(frame, 'binary'))
+    }
+    try {
+        connection.on('data', listener)
+
+    } catch (err) {
+        console.log('Streaming ended:')
+        console.log(err)
+        connection.off('data', listener)
+        connection.end()
+    }
+})
 app.get("/stream", (req, res) => {
     const connection = socket.createConnection()
     connection.write(JSON.stringify({ action: 'stream' }), (err) => {
