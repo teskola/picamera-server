@@ -57,19 +57,14 @@ app.get("/stream", (req, res) => {
         'Content-Type': 'multipart/x-mixed-replace; boundary=FRAME'
     })
     const listener = (frame) => {
-        console.log(1)
-        res.write(Buffer.from('--FRAME\r\n', 'binary'))
-        console.log(2)
+        res.contentType('image/jpeg');
+        res.send(Buffer.from(frame, 'binary'))
+        /* res.write(Buffer.from('--FRAME\r\n', 'binary'))
         res.write('Content-Type: image/jpeg\r\n')
-        console.log(3)
         res.write('Content-Length: ' + Object.keys(frame).length)
-        console.log(4)
         res.write("\r\n")
-        console.log(5)
         res.write(Buffer.from(frame, 'binary'))
-        console.log(6)
-        res.write(Buffer.from("\r\n", 'binary'))
-        console.log(7)
+        res.write(Buffer.from("\r\n", 'binary')) */
     }
     try {
         connection.on('data', listener)
