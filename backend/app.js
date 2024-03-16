@@ -25,15 +25,15 @@ app.get("/stream", (req, res) => {
         }
     });
     res.status(200)
-    res.set({
+    res.setHeader({
         'Age': 0,
         'Cahce-Control': 'no-cache, private',
         'Pragma': 'no-cache',
         'Content-Type': 'multipart/x-mixed-replace; boundary=FRAME'
     })
     const listener = (frame) => {
-        res.set({ 'Content-Type': 'image/jpeg' }, 'Content-Length', Object.keys(frame).length)
-        res.send(Buffer.from('--FRAME\r\n') + frame + Buffer.from('\r\n'))        
+        res.setHeader({ 'Content-Type': 'image/jpeg' }, 'Content-Length', Object.keys(frame).length)
+        res.write(Buffer.from('--FRAME\r\n') + frame + Buffer.from('\r\n'))
     }
     try {
         connection.on('data', listener)
