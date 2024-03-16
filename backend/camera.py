@@ -452,6 +452,7 @@ class Camera:
             self.picam2.stop_encoder()
             self.picam2.stop()
             video.stopped = time.time()
+            video.data.seek(0)
             logging.info("Recording stopped.")        
             self.configure_still()
 
@@ -459,9 +460,8 @@ class Camera:
                 self._start_preview_encoder()
                 logging.info("Streaming resumed.")
                 self.picam2.start()
-            data = video.data
-            data.seek(0)
-            return {"data": data,
+            
+            return {
                     "status": self.status()}
         except ValueError as e:
             return {"error": str(e),

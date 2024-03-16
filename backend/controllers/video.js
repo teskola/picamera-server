@@ -61,8 +61,11 @@ const videoStop = async (req, res) => {
 }
 
 const videoUpload = async (req, res) => {
+
+  const { name } = req.body
+
   try {
-    const response = await video.upload(req.params.id)
+    const response = await video.upload(req.params.id, name)
     if (response) {
       return res.send(response)
     } else {
@@ -78,7 +81,7 @@ const videoUpload = async (req, res) => {
 
 const videoDelete = async (req, res) => {
   try {
-    const response = await video.delete()
+    const response = await video.delete(req.params.id)
     if (response) {
       return res.send(response)
     } else {

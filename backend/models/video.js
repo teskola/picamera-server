@@ -1,9 +1,9 @@
 const socket = require('../socket')
 
 const video = {
-    upload: (id) => new Promise((resolve, reject) => {
+    upload: (id, name) => new Promise((resolve, reject) => {
         const connection = socket.createConnection()
-        const request = connection.write(JSON.stringify({ action: 'video_upload', id: id }), (err) => {
+        const request = connection.write(JSON.stringify({ action: 'video_upload', id: id, name: name}), (err) => {
             if (err) {
                 reject(err)
             }
