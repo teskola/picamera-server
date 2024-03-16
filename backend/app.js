@@ -4,7 +4,7 @@ const app = express();
 const status = require('./routes/status')
 const still = require('./routes/still')
 const video = require('./routes/video')
-const socket = require('../socket')
+const socket = require('/socket')
 
 
 app.use(
