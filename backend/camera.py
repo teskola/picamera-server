@@ -77,7 +77,8 @@ class Still:
                 'count': self.count,
                 'running': self.running(),
                 'started': self.started,
-                'stopped': self.stopped
+                'stopped': self.stopped,
+                'next': self.next()
             }
     
     def start(self, capture, stop, upload, delay : float = 1.0, epoch : float = None):
@@ -85,7 +86,7 @@ class Still:
             self.event = scheduler.enterabs(epoch, 1, self.tick, argument=(capture, stop, self.name, upload, ))    
         else:            
             self.event = scheduler.enter(delay, 1, self.tick, argument=(capture, stop, self.name, upload, ))
-        logging.info(f"Still scheduler started. {self.event.time}")
+        logging.info(f"Still scheduler started.")
         Thread(target=scheduler.run).start()        
     
     def keep_alive(self):
@@ -97,6 +98,11 @@ class Still:
         if self.event in scheduler.queue:
             scheduler.cancel(self.event)                     
             func()
+    
+    def next(self):
+        if self.running():
+            return self.event.time
+        return None
     
     def running(self):
         return self.event is not None and self.event in scheduler.queue

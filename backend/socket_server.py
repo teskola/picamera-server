@@ -91,6 +91,17 @@ class CameraHandler(socketserver.StreamRequestHandler):
                                       args = data["id"])            
         if (data["action"] == 'video_delete'):
             return self.delete(data["id"])
+        if (data["action"] == 'stream'):
+            if not camera.preview_running():
+                camera.lock.acquire()
+                camera.preview_start()
+                camera.lock.release()  
+                while camera.preview_running():
+                    with camera.streaming_output.condition:
+                        camera.streaming_output.condition.wait()
+                        frame = camera.streaming_output.frame
+                    self.wfile.write(frame)
+
         else:
             logging.error(f'unkown command: {data["action"]}')
  

@@ -4,6 +4,8 @@ const app = express();
 const status = require('./routes/status')
 const still = require('./routes/still')
 const video = require('./routes/video')
+const socket = require('../socket')
+
 
 app.use(
     cors({
@@ -14,6 +16,40 @@ app.use(express.json())
 app.use("/api/status", status)
 app.use("/api/still", still)
 app.use("/api/video", video)
+app.get("/stream", (req, res) => {
+    const connection = socket.createConnection()
+    connection.write(JSON.stringify({ action: 'stream' }), (err) => {
+        if (err) {
+            console.log(err)
+            res.status(500).send({ error: 'Something went wrong!' })
+        }
+    });
+    res.status(200)
+    res.header({
+        'Age': 0,
+        'Cahce-Control': 'no-cache, private',
+        'Pragma': 'no-cache',
+        'Content-Type': 'multipart/x-mixed-replace; boundary=FRAME'
+    })
+    res.send()
+    const listener = (frame) => {
+        res.send('--FRAME\r\n')
+        res.header({'Content-Type': 'image/jpeg'}, 'Content-Length', Object.keys(frame).length)
+        res.send(frame)
+        res.send('\r\n')
+    }
+    try {
+        connection.on('data', listener)
+
+    } catch (err) {
+        console.log('Streaming ended:')
+        console.log(err)
+        connection.off('data', listener)
+        connection.end()
+    }
+
+
+})
 app.get("/health", (req, res) => {
     res.send("OK")
 });
