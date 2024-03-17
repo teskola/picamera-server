@@ -21,6 +21,7 @@ class Stream {
     }    
 
     start = (listener) => {
+        preview.start()
         this.connection.on('data', listener)
     }
 
