@@ -35,7 +35,7 @@ const previewStop = async (req, res) => {
 }
 
 const addListener = (req, res) => {
-    
+    preview.start()    
     res.writeHead(200, {
         'Content-Type': 'multipart/x-mixed-replace;boundary=FRAME',
         'Age': 0,
@@ -52,14 +52,7 @@ const addListener = (req, res) => {
         res.write("\r\n")
     }
 
-    conn = stream.connection()
-
-    conn.on('connection', (stream) => {
-        console.log(stream)
-        console.log("Connected to stream.")
-    })
-
-
+    conn = stream.connection()  
     conn.on('data', listener)
     res.on('close', () => {
         console.log("Streaming ended.")
