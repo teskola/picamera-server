@@ -34,7 +34,7 @@ const stop = (listener) => {
 }
 
 const createConnection = () => {
-    const conn = socket.connect()    
+    const conn = socket.connect() 
     const req = conn.write(JSON.stringify({ action: 'preview_listen' }), (err) => {
         if (err) {
             console.log(err)
