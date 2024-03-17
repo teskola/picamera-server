@@ -1,47 +1,6 @@
-const preview = require('../models/preview')
 const stream = require('../stream')
 
-
-const previewStart = async (req, res) => {
-    try {
-        const response = await preview.start()
-        if (response) {
-            return res.send(response)
-        } else {
-            throw new Error('Null response.')
-        }
-
-    }
-    catch (err) {
-        console.log(err)
-        return res.status(500).send({ error: 'Something went wrong!' })
-    }
-}
-
-const previewStop = async (req, res) => {
-    try {
-        const response = await preview.stop()
-        if (response) {
-            return res.send(response)
-        } else {
-            throw new Error('Null response.')
-        }
-
-    }
-    catch (err) {
-        console.log(err)
-        return res.status(500).send({ error: 'Something went wrong!' })
-    }
-}
-
 const addListener = (req, res) => {
-    preview.start()
-    res.writeHead(200, {
-        'Content-Type': 'multipart/x-mixed-replace;boundary=FRAME',
-        'Age': 0,
-        'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache'
-    })
 
     const listener = (frame) => {
         res.write('--FRAME\r\n')
@@ -52,19 +11,20 @@ const addListener = (req, res) => {
         res.write("\r\n")
     }
 
-    conn = stream.connection()
-    conn.on('data', listener)
+    res.writeHead(200, {
+        'Content-Type': 'multipart/x-mixed-replace;boundary=FRAME',
+        'Age': 0,
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
+    })
+
+    stream.start(listener)
     res.on('close', () => {
-        console.log("Streaming ended.")
         res.end()
-        conn.off('data', listener)
-        conn.end()
-        if (conn.listenerCount() == 0) {
-            preview.stop()
-        }
+        stream.stop(listener)
     })
 }
 
 module.exports = {
-    previewStart, previewStop, addListener
+    addListener
 }

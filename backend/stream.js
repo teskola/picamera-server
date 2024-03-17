@@ -1,18 +1,40 @@
+const preview = require("./models/preview")
 const socket = require("./socket")
 
 let instance
 
 const connection = () => {
     if (!instance) {
-        console.log('Initializing...')
         instance = createConnection()
+        preview.start()
     }
-    console.log('New connection')
     return instance
 }
 
+const close = () => {
+    preview.stop()
+    if (instance) {        
+        instance.end()
+        instance = null
+    }
+}
+
+const start = (listener) => {
+    const conn = connection()
+    conn.on('data', listener)
+}
+
+const stop = (listener) => {
+    if (instance) {
+        instance.off(listener)
+        if (instance.listenerCount() == 0) {
+            close()
+        }
+    }
+}
+
 const createConnection = () => {
-    const conn = socket.connect()
+    const conn = socket.connect()    
     const req = conn.write(JSON.stringify({ action: 'preview_listen' }), (err) => {
         if (err) {
             console.log(err)
@@ -20,9 +42,8 @@ const createConnection = () => {
         }
     });
     if (req) {
-        console.log('Success')
         return conn
     }
 }
 
-module.exports = { connection }
+module.exports = { start, stop }
