@@ -59,6 +59,7 @@ const addListener = (req, res) => {
         res.end()
         conn.off('data', listener)        
         conn.end()
+        console.log(conn.listenerCount)
         if (conn.listenerCount == 0) {
             preview.stop()
         }
