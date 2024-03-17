@@ -37,4 +37,4 @@ class Stream {
 const stream = new Stream()
 
 
-module.exports = { stream }
+module.exports =  stream 
