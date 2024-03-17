@@ -7,7 +7,7 @@ const video = require('./routes/video')
 const preview_route = require("./routes/preview")
 const stream = require("./stream")
 
-stream.socket()
+stream.connection()
 
 app.use(
     cors({
