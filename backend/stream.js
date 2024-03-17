@@ -2,7 +2,7 @@ const socket = require("./socket")
 
 let instance
 
-const socket = () => {
+const connection = () => {
     if (!instance) {
         console.log('New connection')
         instance = createConnection()
@@ -24,4 +24,4 @@ const createConnection = () => {
     }
 }
 
-module.exports = { socket }
+module.exports = { connection }

@@ -52,7 +52,7 @@ const addListener = (req, res) => {
         res.write("\r\n")
     }
 
-    conn = stream.socket()
+    conn = stream.connection()
 
     conn.on('connection', (stream) => {
         console.log(stream)
