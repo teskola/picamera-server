@@ -3,7 +3,6 @@ const socket = require("./socket")
 
 class Stream {
     constructor() {
-        console.log('Constructor called.')
         this.connection = this.#createConnection()
     }
 

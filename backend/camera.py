@@ -11,7 +11,7 @@ from picamera2 import Picamera2, Metadata
 from picamera2.encoders import MJPEGEncoder, H264Encoder, Quality
 from picamera2.outputs import FileOutput
 
-STREAM_BITRATE = 2400000
+STREAM_BITRATE = 2097152
 KEEP_ALIVE_LIMIT = 60
 scheduler = sched.scheduler(time.time, time.sleep)
 
