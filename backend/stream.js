@@ -4,9 +4,10 @@ let instance
 
 const connection = () => {
     if (!instance) {
-        console.log('New connection')
+        console.log('Initializing...')
         instance = createConnection()
     }
+    console.log('New connection')
     return instance
 }
 
