@@ -421,11 +421,11 @@ class Camera:
             if self.recording_running():
                 logging.warn("Recording already running.")
                 raise AlreadyRunningError
-            stream_paused = False
+            preview_paused = False
             if self.preview_running():
                 self.picam2.stop_encoder()
-                logging.info("Stream paused.")
-                stream_paused = True
+                logging.info("Preview paused.")
+                preview_paused = True
                 self.picam2.stop()
             self.configure_video(resolution=resolution)
             video = Video(id=id, resolution=resolution, quality=quality)
@@ -434,9 +434,9 @@ class Camera:
             self.picam2.start()
             video.started = time.time()
             logging.info(f"Started recording video: {video.id}")
-            if stream_paused:
+            if preview_paused:
                 self._start_preview_encoder()
-                logging.info("Stream resumed.")        
+                logging.info("Preview resumed.")        
             return {"status": self.status()}
         except AlreadyRunningError:
             return {"error": "Recording already running.",
@@ -452,7 +452,7 @@ class Camera:
             if not self.recording_running():
                 logging.warn("Recording not running.")
                 raise NotRunningError
-            stream_running = self.preview_running()
+            preview_running = self.preview_running()
             self.picam2.stop_encoder()
             self.picam2.stop()
             video.stopped = time.time()
@@ -460,9 +460,9 @@ class Camera:
             logging.info("Recording stopped.")        
             self.configure_still()
 
-            if stream_running:            
+            if preview_running:            
                 self._start_preview_encoder()
-                logging.info("Streaming resumed.")
+                logging.info("Preview resumed.")
                 self.picam2.start()
             
             return {
@@ -495,22 +495,22 @@ class Camera:
 
     def preview_start(self) -> bool:
         if self.preview_running():
-            logging.warn("Stream already running.")
+            logging.warn("Preview already running.")
             return False
         if self.current_resolution() is None or not self.running():
             self.configure_still()
         self._start_preview_encoder()
         self.picam2.start()
-        logging.info("Streaming started.")            
+        logging.info("Preview started.")            
         return True   
 
     def preview_stop(self) -> bool:
         if not self.encoders["preview"] in self.picam2.encoders:
-            logging.warn("Stream not running")
+            logging.warn("Preview not running")
             return False
 
         self.picam2.stop_encoder(encoders=[self.encoders["preview"]])
-        logging.info("Streaming stopped.")
+        logging.info("Preview stopped.")
         if not self.running():
             self.picam2.stop()            
         return True
