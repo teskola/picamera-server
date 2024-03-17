@@ -20,8 +20,8 @@ const addListener = (req, res) => {
 
     stream.start(listener)
     res.on('close', () => {
-        res.end()
         stream.stop(listener)
+        res.end()        
     })
 }
 

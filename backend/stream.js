@@ -26,7 +26,7 @@ const start = (listener) => {
 
 const stop = (listener) => {
     if (instance) {
-        instance.off(listener)
+        instance.off('data', listener)
         if (instance.listenerCount() == 0) {
             close()
         }
