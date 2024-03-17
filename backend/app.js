@@ -5,7 +5,7 @@ const status = require('./routes/status')
 const still = require('./routes/still')
 const video = require('./routes/video')
 const preview_route = require("./routes/preview")
-const stream = require("./models/preview").listen()
+const stream = require("./stream")
 
 
 app.use(

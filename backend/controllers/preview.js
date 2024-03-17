@@ -1,5 +1,4 @@
 const preview = require('../models/preview')
-const socket = require('../socket')
 const {stream} = require('../app')
 
 
