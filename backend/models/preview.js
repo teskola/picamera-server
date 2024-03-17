@@ -1,9 +1,9 @@
 const socket = require('../socket')
 
-const still = {
-    stop: () => new Promise((resolve, reject) => {
+const preview = {
+    start: () => new Promise((resolve, reject) => {
         const conn = socket.connect()
-        const req = conn.write(JSON.stringify({ action: 'still_stop' }), (err) => {
+        const req = conn.write(JSON.stringify({ action: 'preview_start' }), (err) => {
             if (err) {
                 reject(err)
             }
@@ -17,9 +17,9 @@ const still = {
             conn.on('data', listener)
         }
     }),
-    start: (params) => new Promise((resolve, reject) => {
+    stop: () => new Promise((resolve, reject) => {
         const conn = socket.connect()
-        const req = conn.write(JSON.stringify(params), (err) => {
+        const req = conn.write(JSON.stringify({ action: 'preview_stop' }), (err) => {
             if (err) {
                 reject(err)
             }
@@ -32,8 +32,18 @@ const still = {
             }
             conn.on('data', listener)
         }
+    }),
+    listen: () => new Promise((resolve, reject)  => {        
+        const conn = socket.connect()
+        const req = conn.write(JSON.stringify({ action: 'preview_listen' }), (err) => {
+            if (err) {
+                reject(err)
+            }
+        });
+        if (req) {            
+            resolve(conn)
+        }
     })
-
 }
 
-module.exports = still
+module.exports = preview

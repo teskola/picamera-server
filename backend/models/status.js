@@ -1,20 +1,20 @@
 const socket = require('../socket')
 
 const status = {
-    fetch: () => new Promise((resolve, reject) => {
-        const connection = socket.createConnection()
-        const request = connection.write(JSON.stringify({ action: 'status' }), (err) => {
+    fetch: () => new Promise((resolve, reject) => {        
+        const conn = socket.connect()
+        const req = conn.write(JSON.stringify({ action: 'status' }), (err) => {
             if (err) {
                 reject(err)
             }
         });
-        if (request) {
+        if (req) {
             const listener = (stream) => {
-                connection.off('data', listener)
-                connection.end()
+                conn.off('data', listener)
+                conn.end()
                 resolve(JSON.parse(stream.toString()))
             }
-            connection.on('data', listener)
+            conn.on('data', listener)
         }
     })
 }

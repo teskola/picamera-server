@@ -1,10 +1,10 @@
 const net = require("net")
 
-const createConnection = () => {
-    return net.createConnection({
+const connect = () => {
+    return net.connect({
         port: 9090,
         host: 'localhost',
     })
 }
 
-module.exports = {createConnection}
+module.exports = {connect}

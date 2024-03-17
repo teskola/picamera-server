@@ -91,22 +91,35 @@ class CameraHandler(socketserver.StreamRequestHandler):
                                       args = data["id"])            
         if (data["action"] == 'video_delete'):
             return self.delete(data["id"])
-        if (data["action"] == 'stream'):
-            if not camera.preview_running():
+        if (data["action"] == 'preview_start'):
+            camera.lock.acquire()
+            started = camera.preview_start()
+            camera.lock.release()
+            return {"started": started}
+        if (data["action"] == 'preview_stop'):
+            camera.lock.acquire()
+            stopped = camera.preview_stop()
+            camera.lock.release()
+            return {"stopped": stopped}
+        if (data["action"] == 'preview_listen'):   
+            logging.info(f"Added streaming client {self.client_address}")  
+            try:
+                while True:
+                    with camera.streaming_output.condition:
+                        camera.streaming_output.condition.wait()
+                        frame = camera.streaming_output.frame
+                    self.wfile.write(frame)
+            except Exception as e:
+                logging.warning(f"Removed streaming client {self.client_address} : {str(e)}")
                 camera.lock.acquire()
-                camera.preview_start()
-                camera.lock.release()  
-            while True:
-                with camera.streaming_output.condition:
-                    camera.streaming_output.condition.wait()
-                    frame = camera.streaming_output.frame
-                self.wfile.write(frame)
+                camera.preview_stop()
+                camera.lock.release()
 
         else:
             logging.error(f'unkown command: {data["action"]}')
  
     def handle(self):
-        logging.info(f"Recieved request from {self.client_address[0]}")
+        logging.info(f"Recieved request from {self.client_address}")
         data = json.loads(self.request.recv(1024).decode('utf-8'))
         response = self.action(data)   
         self.wfile.write(json.dumps(response).encode(encoding='utf-8'))
