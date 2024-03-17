@@ -1,5 +1,5 @@
 const preview = require('../models/preview')
-const stream = require('../stream')
+const conn = require('../stream')
 
 
 const previewStart = async (req, res) => {
@@ -51,19 +51,22 @@ const addListener = (req, res) => {
         res.write(Buffer.from(frame, 'binary'))
         res.write("\r\n")
     }
-    stream.on('connection', (stream) => {
+
+    conn = stream.socket()
+
+    conn.on('connection', (stream) => {
         console.log(stream)
         console.log("Connected to stream.")
     })
 
 
-    stream.on('data', listener)
+    conn.on('data', listener)
     res.on('close', () => {
         console.log("Streaming ended.")
         res.end()
-        stream.off('data', listener)        
-        stream.end()
-        if (stream.listenerCount == 0) {
+        conn.off('data', listener)        
+        conn.end()
+        if (conn.listenerCount == 0) {
             preview.stop()
         }
     })

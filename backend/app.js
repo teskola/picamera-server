@@ -5,8 +5,9 @@ const status = require('./routes/status')
 const still = require('./routes/still')
 const video = require('./routes/video')
 const preview_route = require("./routes/preview")
-require("./stream")
+const stream = require("./stream")
 
+stream.socket()
 
 app.use(
     cors({
