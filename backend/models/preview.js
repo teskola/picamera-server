@@ -33,17 +33,17 @@ const preview = {
             conn.on('data', listener)
         }
     }),
-    listen: () => new Promise((resolve, reject)  => {        
+    listen: () => {        
         const conn = socket.connect()
         const req = conn.write(JSON.stringify({ action: 'preview_listen' }), (err) => {
             if (err) {
-                reject(err)
+                throw new Error(err)
             }
         });
         if (req) {            
-            resolve(conn)
+            return conn
         }
-    })
+    }
 }
 
 module.exports = preview
