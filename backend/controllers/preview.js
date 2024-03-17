@@ -6,36 +6,36 @@ const previewStart = async (req, res) => {
     try {
         const response = await preview.start()
         if (response) {
-          return res.send(response)
+            return res.send(response)
         } else {
-          throw new Error('Null response.')
+            throw new Error('Null response.')
         }
-    
-      }
-      catch (err) {
+
+    }
+    catch (err) {
         console.log(err)
         return res.status(500).send({ error: 'Something went wrong!' })
-      }
+    }
 }
 
 const previewStop = async (req, res) => {
     try {
         const response = await preview.stop()
         if (response) {
-          return res.send(response)
+            return res.send(response)
         } else {
-          throw new Error('Null response.')
+            throw new Error('Null response.')
         }
-    
-      }
-      catch (err) {
+
+    }
+    catch (err) {
         console.log(err)
         return res.status(500).send({ error: 'Something went wrong!' })
-      }
+    }
 }
 
 const addListener = (req, res) => {
-    preview.start()    
+    preview.start()
     res.writeHead(200, {
         'Content-Type': 'multipart/x-mixed-replace;boundary=FRAME',
         'Age': 0,
@@ -52,20 +52,19 @@ const addListener = (req, res) => {
         res.write("\r\n")
     }
 
-    conn = stream.connection()  
+    conn = stream.connection()
     conn.on('data', listener)
     res.on('close', () => {
         console.log("Streaming ended.")
         res.end()
-        conn.off('data', listener)        
+        conn.off('data', listener)
         conn.end()
-        console.log(conn.listenerCount)
-        if (conn.listenerCount == 0) {
+        if (conn.listenerCount() == 0) {
             preview.stop()
         }
     })
 }
 
 module.exports = {
-  previewStart, previewStop, addListener
+    previewStart, previewStop, addListener
 }
