@@ -14,7 +14,7 @@ const connection = () => {
 const close = () => {
     preview.stop()
     if (instance) {        
-        instance.end()
+        //instance.end()
         instance = null
     }
 }
@@ -26,7 +26,7 @@ const start = (listener) => {
 
 const stop = (listener) => {
     if (instance) {
-        instance.off('data', listener)
+       // instance.off('data', listener)
         if (instance.listenerCount() == 0) {
             close()
         }

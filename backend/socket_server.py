@@ -99,10 +99,12 @@ class CameraHandler(socketserver.StreamRequestHandler):
             return {"started": started}
         if (data["action"] == 'preview_stop'):
             stream_clients.remove(self.client_address[0])
-            camera.lock.acquire()
+
+            """ camera.lock.acquire()
             stopped = camera.preview_stop()
-            camera.lock.release()            
-            return {"stopped": stopped}
+            camera.lock.release()     """    
+
+            return {"stopped": True}
         if (data["action"] == 'preview_listen'):   
             logging.info(f"Added streaming client {self.client_address}")  
             stream_clients.add(self.client_address[0])
