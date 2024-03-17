@@ -1,49 +1,40 @@
 const preview = require("./models/preview")
 const socket = require("./socket")
 
-let instance
-
-const connection = () => {
-    if (!instance) {
-        instance = createConnection()
-        preview.start()
+class Stream {
+    constructor() {
+        console.log('Constructor called.')
+        this.connection = this.#createConnection()
     }
-    return instance
-}
 
-const close = () => {
-    preview.stop()
-    if (instance) {        
-        instance.end()
-        instance = null
-    }
-}
-
-const start = (listener) => {
-    const conn = connection()
-    conn.on('data', listener)
-}
-
-const stop = (listener) => {
-    if (instance) {
-       instance.off('data', listener)
-        if (instance.listenerCount() == 0) {
-            close()
+    #createConnection = () => {
+        const conn = socket.connect()
+        const req = conn.write(JSON.stringify({ action: 'preview_listen' }), (err) => {
+            if (err) {
+                console.log(err)
+                throw new Error(err)
+            }
+        });
+        if (req) {
+            return conn
         }
-    }
-}
+    }    
 
-const createConnection = () => {
-    const conn = socket.connect() 
-    const req = conn.write(JSON.stringify({ action: 'preview_listen' }), (err) => {
-        if (err) {
-            console.log(err)
-            throw new Error(err)
+    start = (listener) => {
+        this.connection.on('data', listener)
+    }
+
+    stop = (listener) => {
+
+        this.connection.off('data', listener)
+        if (this.connection.listenerCount() == 0) {
+            preview.stop()
         }
-    });
-    if (req) {
-        return conn
+
     }
 }
 
-module.exports = { start, stop }
+const stream = new Stream()
+
+
+module.exports = { stream }

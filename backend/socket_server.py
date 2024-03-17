@@ -13,7 +13,6 @@ logging.basicConfig(
 
 camera = Camera()
 minio = MinioClient()
-stream_clients = set()
 
 class CameraServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     allow_reuse_address = True
@@ -98,21 +97,16 @@ class CameraHandler(socketserver.StreamRequestHandler):
             camera.lock.release()
             return {"started": started}
         if (data["action"] == 'preview_stop'):
-            stream_clients.remove(self.client_address[0])            
             camera.lock.acquire()
             stopped = camera.preview_stop()
-            camera.lock.release()        
-
+            camera.lock.release()       
             return {"stopped": stopped}
         if (data["action"] == 'preview_listen'):   
-            logging.info(f"Streaming started.")  
-            stream_clients.add(self.client_address[0])
-            while len(stream_clients) > 0:
+            while True:
                 with camera.streaming_output.condition:
-                    camera.streaming_output.condition.wait(timeout=5)
+                    camera.streaming_output.condition.wait()
                     frame = camera.streaming_output.frame
                 self.wfile.write(frame)
-            logging.info("Streaming ended.")
 
         else:
             logging.error(f'unkown command: {data["action"]}')
