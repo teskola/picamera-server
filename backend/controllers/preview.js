@@ -1,5 +1,5 @@
 const preview = require('../models/preview')
-const {stream} = require('../app')
+const stream = require('../stream')
 
 
 const previewStart = async (req, res) => {

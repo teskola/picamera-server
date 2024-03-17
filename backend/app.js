@@ -5,7 +5,7 @@ const status = require('./routes/status')
 const still = require('./routes/still')
 const video = require('./routes/video')
 const preview_route = require("./routes/preview")
-const stream = require("./stream")
+require("./stream")
 
 
 app.use(
@@ -22,4 +22,4 @@ app.get("/health", (req, res) => {
     res.send("OK")
 });
 
-module.exports = {app, stream};
+module.exports = app

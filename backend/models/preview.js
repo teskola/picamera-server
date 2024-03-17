@@ -32,18 +32,7 @@ const preview = {
             }
             conn.on('data', listener)
         }
-    }),
-    listen: () => {        
-        const conn = socket.connect()
-        const req = conn.write(JSON.stringify({ action: 'preview_listen' }), (err) => {
-            if (err) {
-                throw new Error(err)
-            }
-        });
-        if (req) {            
-            return conn
-        }
-    }
+    })
 }
 
 module.exports = preview
