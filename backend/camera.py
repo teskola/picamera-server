@@ -7,11 +7,11 @@ from datetime import datetime
 from pprint import pformat
 from threading import Condition, Lock, Thread
 from libcamera import controls
-from picamera2 import Picamera2, Metadata
+from picamera2 import Picamera2
 from picamera2.encoders import MJPEGEncoder, H264Encoder, Quality
 from picamera2.outputs import FileOutput
 
-STREAM_BITRATE = 1081344
+STREAM_BITRATE = 2400000
 KEEP_ALIVE_LIMIT = 60
 scheduler = sched.scheduler(time.time, time.sleep)
 

@@ -1,6 +1,5 @@
 import { useRef, useState } from "react"
 import TextField from '@mui/material/TextField';
-import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import "./StillPage.css"
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
@@ -36,13 +35,12 @@ const StillPage = (props) => {
     const limitRef = useRef(0)
     const delayRef = useRef(1)
     const dateTimeRef = useRef()
-    const intervalInSeconds = Math.floor(parseFloat(intervalRef.current.value) * multiplier)
 
     const hasError = (field) =>
         error && error.filter((e) => e.path.includes(field)).length > 0
 
 
-    const printError = (field) => error.filter((e) => e.path.includes(field)).map((e) => e.message)[0]
+    const errorMessage = (field) => error && error.filter((e) => e.path.includes(field)).map((e) => e.message)[0]
 
 
     const onResolutionChange = (event) => {
@@ -60,7 +58,7 @@ const StillPage = (props) => {
     const onStart = async (_) => {
         setError()
         const res = await startStill({
-            interval: intervalInSeconds,
+            interval: Math.floor(parseFloat(intervalRef.current.value) * multiplier),
             path: pathRef.current.value,
             limit: parseInt(limitRef.current.value),
             full_res: resolution === 'full',
@@ -97,19 +95,27 @@ const StillPage = (props) => {
                             startAdornment={<InputAdornment position="start">still/</InputAdornment>}
                             error={hasError('name')} />
                         <FormHelperText error={hasError('name')}>
-                            {hasError('name') ? printError('name') : ''}
+                            {errorMessage('name')}
                         </FormHelperText>
                     </FormControl>
                     <TextField className="format" id="format" value='.jpg' variant="outlined" label="Format" disabled />
                 </div>
                 <Typography variant="caption">[year] = year<br />[month] = month<br />[day] = day<br />[HH] = hours<br />[mm] = minutes<br />[ss] = seconds<br />[count] = image count</Typography>
                 <div className="column_item">
-                    <TextField className="input" id="interval" inputRef={intervalRef} defaultValue={intervalRef.current} variant="outlined" label="Interval" />
-                    <Select className="format" value={multiplier} onChange={onUnitChange}>
+                    <TextField className="input"
+                        id="interval"
+                        inputRef={intervalRef}
+                        defaultValue={intervalRef.current}
+                        variant="outlined"
+                        label="Interval"
+                        error={hasError('interval')}
+                        helperText={errorMessage('interval')} />
+
+                    <TextField className="format" value={multiplier} onChange={onUnitChange} select>
                         <MenuItem value={1} >seconds</MenuItem>
                         <MenuItem value={60}>minutes</MenuItem>
                         <MenuItem value={3600}>hours</MenuItem>
-                    </Select>
+                    </TextField>
                 </div>
                 <TextField className="column_item" id="limit" inputRef={limitRef} defaultValue={limitRef.current} variant="outlined" label="Number of images" fullWidth />
                 <Typography variant="caption">0 = unlimited</Typography>
@@ -120,12 +126,18 @@ const StillPage = (props) => {
                         defaultValue={delayRef.current}
                         variant="outlined"
                         label="First image delay in seconds"
+
                     />
                 </div>
                 <div className="column_item">
                     <Radio checked={delayMode === 'epoch'} onChange={onDelayModeChange} value="epoch" />
                     <LocalizationProvider adapterLocale="fi" dateAdapter={AdapterMoment}>
-                        <DateTimePicker inputRef={dateTimeRef} format='DD/MM/YYYY HH:mm' ampm={false} disabled={delayMode !== 'epoch'} label="First image at" />
+                        <DateTimePicker slotProps={{
+                            textField: {
+                                fullWidth: true,
+                                helperText: errorMessage('epoch'),
+                            },
+                        }} disablePast defaultValue={Date(Date.now).toString()} inputRef={dateTimeRef} format='DD/MM/YYYY HH:mm' ampm={false} disabled={delayMode !== 'epoch'} label="First image at" />
                     </LocalizationProvider>
                 </div>
 

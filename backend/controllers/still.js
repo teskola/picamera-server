@@ -12,7 +12,7 @@ const stillStart = async (req, res) => {
         full_res: Joi.boolean().required(),
         epoch: Joi.number().integer().min(Math.floor(Date.now() / 1000)).optional(),
         delay: Joi.number().min(1).optional()
-    }).xor('epoch', 'delay')
+    }).xor('epoch', 'delay').options({abortEarly: false})
 
     const { error } = schema.validate(req.body)
     if (error) {
