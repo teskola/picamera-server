@@ -12,7 +12,7 @@ const stillStart = async (req, res) => {
         full_res: Joi.boolean().required(),
         epoch: Joi.number().integer().min(Math.floor(Date.now() / 1000)).optional(),
         delay: Joi.number().min(1).optional()
-    }).xor('epoch', 'delay').options({abortEarly: false})
+    }).xor('epoch', 'delay').options({ abortEarly: false })
 
     const { error } = schema.validate(req.body)
     if (error) {
@@ -46,23 +46,26 @@ const stillStart = async (req, res) => {
     catch (err) {
         console.log(err)
         return res.status(500).send({ error: 'Something went wrong!' })
-    }  
+    }
 }
 
 const stillStop = async (req, res) => {
     try {
         const response = await still.stop()
         if (response) {
-          return res.send(response)
+            if (response.error) {
+                return res.status(409).send(response)
+            }
+            return res.send(response)
         } else {
-          throw new Error('Null response.')
+            throw new Error('Null response.')
         }
-    
-      }
-      catch (err) {
+
+    }
+    catch (err) {
         console.log(err)
         return res.status(500).send({ error: 'Something went wrong!' })
-      }
+    }
 }
 
 module.exports = {

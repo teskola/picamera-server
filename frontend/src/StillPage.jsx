@@ -10,37 +10,48 @@ import { startStill, stopStill } from "./api";
 import moment from "moment";
 
 const StillPage = (props) => {
-
-    const dummy = [
-        {
-            message: '"name" is not allowed to be empty',
-            path: ['name'],
-            type: 'string.empty',
-            context: { label: 'name', value: '', key: 'name' }
-        },
-        {
-            message: 'hello',
-            path: ['name'],
-            type: 'string.empty',
-            context: { label: 'name', value: '', key: 'name' }
-        }
-    ]
-
+   
     const pathRef = useRef('')
     const intervalRef = useRef(1)
-    const [multiplier, setMultiplier] = useState(1)
+    const [unit, setUnit] = useState('seconds')
     const [delayMode, setDelayMode] = useState('seconds')
     const [resolution, setResolution] = useState('half')
-    const [error, setError] = useState(dummy)
+    const [error, setError] = useState()
+    const [runningError, setRunningError] = useState()
     const limitRef = useRef(0)
     const delayRef = useRef(1)
-    const dateTimeRef = useRef()
+    const [epoch, setEpoch] = useState(moment())
+
+    const unitToMultiplier = (value) => {
+        switch (value) {
+            case 'seconds':
+                return 1
+            case 'minutes':
+                return 60
+            case 'hours':
+                return 3600
+            default:
+                new Error('Invalid unit')
+        }
+    }
 
     const hasError = (field) =>
-        error && error.filter((e) => e.path.includes(field)).length > 0
+        error && error.filter((e) => e.context.key === field).length > 0
 
+    const getError = (field) => error && error.filter((e) => e.context.key === field)[0]
 
-    const errorMessage = (field) => error && error.filter((e) => e.path.includes(field)).map((e) => e.message)[0]
+    const intervalErrorMessage = () => {
+        if (!hasError('interval')) return
+        const intervalError = error.filter((e) => e.context.key === 'interval')[0]
+        switch (intervalError.type) {
+            case 'number.max':
+                return 'Interval must be less than ' + intervalError.context.limit / unitToMultiplier(unit) + ' ' + unit + '.'
+            case 'number.min':
+                return 'Interval must be greater than ' + (intervalError.context.limit / unitToMultiplier(unit)).toString().substring(0, 7) + ' ' + unit + '.'
+            default:
+                return intervalError.message
+        }
+    }
 
 
     const onResolutionChange = (event) => {
@@ -48,7 +59,7 @@ const StillPage = (props) => {
     }
 
     const onUnitChange = (event) => {
-        setMultiplier(event.target.value)
+        setUnit(event.target.value)
     }
 
     const onDelayModeChange = (event) => {
@@ -56,24 +67,50 @@ const StillPage = (props) => {
     }
 
     const onStart = async (_) => {
-        setError()
         const res = await startStill({
-            interval: Math.floor(parseFloat(intervalRef.current.value) * multiplier),
+            interval: Math.floor(parseFloat(intervalRef.current.value) * unitToMultiplier(unit)),
             path: pathRef.current.value,
-            limit: parseInt(limitRef.current.value),
+            limit: parseFloat(limitRef.current.value),
             full_res: resolution === 'full',
-            epoch: delayMode === 'epoch' ? moment.unix(parseInt(dateTimeRef.current.value)) : undefined,
-            delay: delayMode === 'seconds' ? parseInt(delayRef.current.value) : undefined
+            epoch: delayMode === 'epoch' ? epoch.unix() : undefined,
+            delay: delayMode === 'seconds' ? parseFloat(delayRef.current.value) : undefined
         }
         )
-        res.error && setError(res.error)
-        console.log(res)
+        switch (res.status) {
+            case 200:
+                setError()
+                setRunningError()
+                break
+            case 400:
+                setError(res.body.error)
+                setRunningError()
+                break
+            case 409:
+                setError()
+                setRunningError(res.body.error)
+                break
+            case 500:
+                setError()
+                setRunningError(res.body.error)
+        }     
+        console.log(res)  
+        
     }
 
     const onStop = async (_) => {
-        setError()
         const res = await stopStill()
-        console.log(res)
+        switch (res.status) {
+            case 200:
+                setRunningError()
+                break
+            case 409:
+                setRunningError(res.body.error)
+                break
+            case 500:
+                setRunningError(res.body.error)
+                break
+        }
+        console.log(res) 
     }
 
     return (
@@ -95,7 +132,7 @@ const StillPage = (props) => {
                             startAdornment={<InputAdornment position="start">still/</InputAdornment>}
                             error={hasError('name')} />
                         <FormHelperText error={hasError('name')}>
-                            {errorMessage('name')}
+                            {getError('name')?.message}
                         </FormHelperText>
                     </FormControl>
                     <TextField className="format" id="format" value='.jpg' variant="outlined" label="Format" disabled />
@@ -109,19 +146,30 @@ const StillPage = (props) => {
                         variant="outlined"
                         label="Interval"
                         error={hasError('interval')}
-                        helperText={errorMessage('interval')} />
+                        helperText={intervalErrorMessage()} />
 
-                    <TextField className="format" value={multiplier} onChange={onUnitChange} select>
-                        <MenuItem value={1} >seconds</MenuItem>
-                        <MenuItem value={60}>minutes</MenuItem>
-                        <MenuItem value={3600}>hours</MenuItem>
+                    <TextField className="format" value={unit} onChange={onUnitChange} select>
+                        <MenuItem value={'seconds'} >seconds</MenuItem>
+                        <MenuItem value={'minutes'}>minutes</MenuItem>
+                        <MenuItem value={'hours'}>hours</MenuItem>
                     </TextField>
                 </div>
-                <TextField className="column_item" id="limit" inputRef={limitRef} defaultValue={limitRef.current} variant="outlined" label="Number of images" fullWidth />
+                <TextField className="column_item"
+                    inputRef={limitRef}
+                    defaultValue={limitRef.current}
+                    variant="outlined"
+                    label="Number of images"
+                    error={hasError('limit')}
+                    helperText={getError('limit')?.message}
+                    fullWidth />
                 <Typography variant="caption">0 = unlimited</Typography>
                 <div className="column_item">
                     <Radio checked={delayMode === 'seconds'} onChange={onDelayModeChange} value="seconds" />
-                    <TextField disabled={delayMode !== 'seconds'}
+                    <TextField
+                        error={hasError('delay')}
+                        helperText={getError('delay')?.message}
+                        fullWidth
+                        disabled={delayMode !== 'seconds'}
                         id="delay" inputRef={delayRef}
                         defaultValue={delayRef.current}
                         variant="outlined"
@@ -134,16 +182,25 @@ const StillPage = (props) => {
                     <LocalizationProvider adapterLocale="fi" dateAdapter={AdapterMoment}>
                         <DateTimePicker slotProps={{
                             textField: {
+                                error: hasError('epoch'),
                                 fullWidth: true,
-                                helperText: errorMessage('epoch'),
+                                helperText: getError('epoch')?.type === 'number.min' ? 'Selected time is in the past.' : '',
                             },
-                        }} disablePast defaultValue={Date(Date.now).toString()} inputRef={dateTimeRef} format='DD/MM/YYYY HH:mm' ampm={false} disabled={delayMode !== 'epoch'} label="First image at" />
+                        }}
+                            defaultValue={epoch}
+                            onChange={(value) => setEpoch(value)}
+                            disablePast
+                            format='DD/MM/YYYY HH:mm'
+                            ampm={false}
+                            disabled={delayMode !== 'epoch'}
+                            label="First image at" />
                     </LocalizationProvider>
                 </div>
 
             </div>
             <div className="buttons">
                 <button onClick={onStart}>Start</button>
+                {runningError}
                 <button onClick={onStop}>Stop</button>
             </div>
         </div>

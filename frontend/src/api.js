@@ -16,7 +16,7 @@ export const startStill = async ({ interval, path, limit, full_res, epoch, delay
         })
     }
     )
-    return res.json()
+    return {body: await res.json(), status: res.status}
 }
 
 export const stopStill = async () => {
@@ -29,5 +29,5 @@ export const stopStill = async () => {
         },        
     }
     )
-    return res.json()
+    return {body: await res.json(), status: res.status}
 }

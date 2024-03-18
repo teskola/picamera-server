@@ -371,9 +371,6 @@ class Camera:
                 stop=self.reconfig_after_stop,
                 upload=upload)
             return {"status": self.status()}        
-        except ValueError as e:
-            return {"error": str(e),
-                    "status": self.status()}    
         except AlreadyRunningError:
             return {"error": "Still already running.",
                     "status": self.status()}      
@@ -394,13 +391,9 @@ class Camera:
             else:
                 self.still.stop(self.reconfig_after_stop) 
                 return  {"status": self.status()}
-        except NotRunningError as e:
-            return {"error": e,
+        except NotRunningError:
+            return {"error": "Still not running.",
                     "status": self.status()}
-        except Exception as e:
-            traceback.print_exc()
-            logging.error(str(e))
-            return {"error": e}
     
     def delete_video(self, id: str):
         try:
