@@ -10,7 +10,7 @@ import { startStill, stopStill } from "./api";
 import moment from "moment";
 
 const StillPage = (props) => {
-   
+
     const pathRef = useRef('')
     const intervalRef = useRef(1)
     const [unit, setUnit] = useState('seconds')
@@ -21,6 +21,7 @@ const StillPage = (props) => {
     const limitRef = useRef(0)
     const delayRef = useRef(1)
     const [epoch, setEpoch] = useState(moment())
+    const [running, setRunning] = useState(false)
 
     const unitToMultiplier = (value) => {
         switch (value) {
@@ -77,9 +78,11 @@ const StillPage = (props) => {
         }
         )
         switch (res.status) {
-            case 200:
+            case 200:                
                 setError()
                 setRunningError()
+                setRunning(res.body.status.still.running)
+
                 break
             case 400:
                 setError(res.body.error)
@@ -92,9 +95,9 @@ const StillPage = (props) => {
             case 500:
                 setError()
                 setRunningError(res.body.error)
-        }     
-        console.log(res)  
-        
+        }
+        console.log(res)
+
     }
 
     const onStop = async (_) => {
@@ -102,6 +105,7 @@ const StillPage = (props) => {
         switch (res.status) {
             case 200:
                 setRunningError()
+                setRunning(false)
                 break
             case 409:
                 setRunningError(res.body.error)
@@ -110,14 +114,14 @@ const StillPage = (props) => {
                 setRunningError(res.body.error)
                 break
         }
-        console.log(res) 
+        console.log(res)
     }
 
     return (
         <div className="page">
             <div className="form">
                 <div className="column_item">
-                    <TextField label="Resolution" value={resolution} onChange={onResolutionChange} select fullWidth>
+                    <TextField disabled={running} label="Resolution" value={resolution} onChange={onResolutionChange} select fullWidth>
                         <MenuItem value='half'>Half resolution : 2028x1520</MenuItem>
                         <MenuItem value='full'>Full resolution : 4056x3040</MenuItem>
                     </TextField>
@@ -126,6 +130,7 @@ const StillPage = (props) => {
                     <FormControl>
                         <InputLabel htmlFor='path'>Path</InputLabel>
                         <OutlinedInput className="input"
+                            disabled={running}
                             inputRef={pathRef}
                             label='Path'
                             defaultValue={pathRef.current}
@@ -140,6 +145,7 @@ const StillPage = (props) => {
                 <Typography variant="caption">[year] = year<br />[month] = month<br />[day] = day<br />[HH] = hours<br />[mm] = minutes<br />[ss] = seconds<br />[count] = image count</Typography>
                 <div className="column_item">
                     <TextField className="input"
+                        disabled={running}
                         id="interval"
                         inputRef={intervalRef}
                         defaultValue={intervalRef.current}
@@ -148,13 +154,14 @@ const StillPage = (props) => {
                         error={hasError('interval')}
                         helperText={intervalErrorMessage()} />
 
-                    <TextField className="format" value={unit} onChange={onUnitChange} select>
+                    <TextField className="format" disabled={running} value={unit} onChange={onUnitChange} select>
                         <MenuItem value={'seconds'} >seconds</MenuItem>
                         <MenuItem value={'minutes'}>minutes</MenuItem>
                         <MenuItem value={'hours'}>hours</MenuItem>
                     </TextField>
                 </div>
                 <TextField className="column_item"
+                    disabled={running}
                     inputRef={limitRef}
                     defaultValue={limitRef.current}
                     variant="outlined"
@@ -164,12 +171,12 @@ const StillPage = (props) => {
                     fullWidth />
                 <Typography variant="caption">0 = unlimited</Typography>
                 <div className="column_item">
-                    <Radio checked={delayMode === 'seconds'} onChange={onDelayModeChange} value="seconds" />
+                    <Radio disabled={running} checked={delayMode === 'seconds'} onChange={onDelayModeChange} value="seconds" />
                     <TextField
-                        error={hasError('delay')}
+                        error={hasError('delay') && delayMode === 'seconds'}
                         helperText={getError('delay')?.message}
                         fullWidth
-                        disabled={delayMode !== 'seconds'}
+                        disabled={running || delayMode !== 'seconds'}
                         id="delay" inputRef={delayRef}
                         defaultValue={delayRef.current}
                         variant="outlined"
@@ -178,11 +185,11 @@ const StillPage = (props) => {
                     />
                 </div>
                 <div className="column_item">
-                    <Radio checked={delayMode === 'epoch'} onChange={onDelayModeChange} value="epoch" />
+                    <Radio disabled={running} checked={delayMode === 'epoch'} onChange={onDelayModeChange} value="epoch" />
                     <LocalizationProvider adapterLocale="fi" dateAdapter={AdapterMoment}>
                         <DateTimePicker slotProps={{
                             textField: {
-                                error: hasError('epoch'),
+                                error: hasError('epoch') == true && delayMode === 'epoch',
                                 fullWidth: true,
                                 helperText: getError('epoch')?.type === 'number.min' ? 'Selected time is in the past.' : '',
                             },
@@ -192,16 +199,16 @@ const StillPage = (props) => {
                             disablePast
                             format='DD/MM/YYYY HH:mm'
                             ampm={false}
-                            disabled={delayMode !== 'epoch'}
+                            disabled={running || delayMode !== 'epoch'}
                             label="First image at" />
                     </LocalizationProvider>
                 </div>
 
             </div>
             <div className="buttons">
-                <button onClick={onStart}>Start</button>
-                {runningError}
-                <button onClick={onStop}>Stop</button>
+                <button disabled={running} onClick={onStart}>Start</button>
+                <FormHelperText error>{runningError}</FormHelperText>
+                <button disabled={!running} onClick={onStop}>Stop</button>
             </div>
         </div>
     )

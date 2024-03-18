@@ -60,8 +60,8 @@ class Still:
         self.full_res = full_res
         self.count = 0
         self.event = None
-        self.started = 0
-        self.stopped = 0
+        self.started = None
+        self.stopped = None
     
     def fill(self):
         if self.limit > 0:
@@ -386,7 +386,7 @@ class Camera:
     
     def still_stop(self) -> dict:
         try:
-            if self.still is None:
+            if self.still is None or not self.still.running():
                 raise NotRunningError
             else:
                 self.still.stop(self.reconfig_after_stop) 

@@ -16,7 +16,6 @@ const stillStart = async (req, res) => {
 
     const { error } = schema.validate(req.body)
     if (error) {
-        console.log(error.details)
         return res.status(400).send({ error: error.details })
     }
 
