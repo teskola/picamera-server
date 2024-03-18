@@ -6,41 +6,50 @@ import "./StillPage.css"
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
-import { Radio, Typography } from "@mui/material";
+import { FormControl, FormHelperText, InputAdornment, InputLabel, OutlinedInput, Radio, Typography } from "@mui/material";
 import { startStill, stopStill } from "./api";
 import moment from "moment";
 
 const StillPage = (props) => {
 
-    const [path, setPath] = useState('/still/')
-    const [interval, setInterval] = useState(1)
+    const dummy = [
+        {
+            message: '"name" is not allowed to be empty',
+            path: ['name'],
+            type: 'string.empty',
+            context: { label: 'name', value: '', key: 'name' }
+        },
+        {
+            message: 'hello',
+            path: ['name'],
+            type: 'string.empty',
+            context: { label: 'name', value: '', key: 'name' }
+        }
+    ]
+
+    const pathRef = useRef('')
+    const intervalRef = useRef(1)
     const [multiplier, setMultiplier] = useState(1)
     const [delayMode, setDelayMode] = useState('seconds')
     const [resolution, setResolution] = useState('half')
+    const [error, setError] = useState(dummy)
     const limitRef = useRef(0)
     const delayRef = useRef(1)
     const dateTimeRef = useRef()
-    const intervalInSeconds = Math.floor(interval * multiplier)
+    const intervalInSeconds = Math.floor(parseFloat(intervalRef.current.value) * multiplier)
 
-    const onPathChange = (event) => {
-        if (event.target.value.substring(0, 7) !== '/still/') {
-            setPath('/still/' + event.target.value.substring(6))
-        }
-        else {
-            setPath(event.target.value)
-        }
-    }
+    const hasError = (field) =>
+        error && error.filter((e) => e.path.includes(field)).length > 0
+
+
+    const printError = (field) => error.filter((e) => e.path.includes(field)).map((e) => e.message)[0]
+
 
     const onResolutionChange = (event) => {
         setResolution(event.target.value)
     }
 
-    const onIntervalChange = (event) => {
-        setInterval(event.target.value)
-    }
-
-    const onUnitChange = (event) =>  {
-        setInterval(intervalInSeconds / event.target.value)
+    const onUnitChange = (event) => {
         setMultiplier(event.target.value)
     }
 
@@ -49,19 +58,22 @@ const StillPage = (props) => {
     }
 
     const onStart = async (_) => {
+        setError()
         const res = await startStill({
             interval: intervalInSeconds,
-            path: path,
+            path: pathRef.current.value,
             limit: parseInt(limitRef.current.value),
             full_res: resolution === 'full',
-            epoch: delayMode === 'epoch' ? moment.unix(parseInt(dateTimeRef.current.value)) : null,
-            delay: delayMode === 'seconds' ? parseInt(delayRef.current.value) : null
+            epoch: delayMode === 'epoch' ? moment.unix(parseInt(dateTimeRef.current.value)) : undefined,
+            delay: delayMode === 'seconds' ? parseInt(delayRef.current.value) : undefined
         }
         )
+        res.error && setError(res.error)
         console.log(res)
     }
 
     const onStop = async (_) => {
+        setError()
         const res = await stopStill()
         console.log(res)
     }
@@ -76,12 +88,23 @@ const StillPage = (props) => {
                     </TextField>
                 </div>
                 <div className="path">
-                    <TextField className="input" id="path" onChange={onPathChange} value={path} variant="outlined" label="Path" />
+                    <FormControl>
+                        <InputLabel htmlFor='path'>Path</InputLabel>
+                        <OutlinedInput className="input"
+                            inputRef={pathRef}
+                            label='Path'
+                            defaultValue={pathRef.current}
+                            startAdornment={<InputAdornment position="start">still/</InputAdornment>}
+                            error={hasError('name')} />
+                        <FormHelperText error={hasError('name')}>
+                            {hasError('name') ? printError('name') : ''}
+                        </FormHelperText>
+                    </FormControl>
                     <TextField className="format" id="format" value='.jpg' variant="outlined" label="Format" disabled />
                 </div>
                 <Typography variant="caption">[year] = year<br />[month] = month<br />[day] = day<br />[HH] = hours<br />[mm] = minutes<br />[ss] = seconds<br />[count] = image count</Typography>
                 <div className="column_item">
-                    <TextField className="input" id="interval" onChange={onIntervalChange} value={interval} variant="outlined" label="Interval" />
+                    <TextField className="input" id="interval" inputRef={intervalRef} defaultValue={intervalRef.current} variant="outlined" label="Interval" />
                     <Select className="format" value={multiplier} onChange={onUnitChange}>
                         <MenuItem value={1} >seconds</MenuItem>
                         <MenuItem value={60}>minutes</MenuItem>

@@ -3,7 +3,7 @@ import ConfigureTab from './ConfigureTab'
 
 function App() {
 
-const STREAM_URL = `http://${import.meta.env.VITE_RASPBERRY_URL}:${import.meta.env.VITE_PORT}/stream.mjpg`
+const STREAM_URL = `http://${import.meta.env.VITE_RASPBERRY_URL}:${import.meta.env.VITE_PORT}/api/preview/live.mjpeg`
 
   return (
     <>
