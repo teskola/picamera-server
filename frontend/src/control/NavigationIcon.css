@@ -1,5 +1,14 @@
-.icon {
-    margin: 4px;
-    width: 60px;
-    height: 60px;
+div.item {
+    vertical-align: top;
+    display: inline-block;
+    text-align: center;
+    width: 120px;
+}
+icon {
+    width: 100px;
+    height: 100px;
+    background-color: grey;
+}
+.caption {
+    display: block;
 }

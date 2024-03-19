@@ -140,23 +140,28 @@ const StillPage = (props) => {
                     </TextField>
                 </div>
                 <div className="path">
-                    <FormControl>
-                        <InputLabel htmlFor='path'>Path</InputLabel>
-                        <OutlinedInput className="input"
-                            disabled={running}
-                            inputRef={pathRef}
-                            inputProps={{ maxLength: 70 }}
-                            label='Path'
-                            defaultValue={pathRef.current}
-                            startAdornment={<InputAdornment position="start">still/</InputAdornment>}
-                            error={hasError('name')} />
-                        <FormHelperText error={hasError('name')}>
-                            {getError('name')?.message}
-                        </FormHelperText>
-                    </FormControl>
+                    <div className="input">
+                        <FormControl fullWidth>
+                            <InputLabel htmlFor='path'>Path</InputLabel>
+                            <OutlinedInput
+                                fullWidth
+                                disabled={running}
+                                inputRef={pathRef}
+                                inputProps={{ maxLength: 70 }}
+                                label='Path'
+                                defaultValue={pathRef.current}
+                                startAdornment={<InputAdornment position="start">still/</InputAdornment>}
+                                error={hasError('name')} />
+                            <FormHelperText error={hasError('name')}>
+                                {getError('name')?.message}
+                            </FormHelperText>
+                        </FormControl>
+                    </div>
                     <TextField className="format" id="format" value='.jpg' variant="outlined" label="Format" disabled />
                 </div>
-                <Typography variant="caption">[YYYY] = year<br />[MM] = month<br />[DD] = day<br />[HH] = hours<br />[mm] = minutes<br />[ss] = seconds<br />[count] = image count</Typography>
+                <div className="helper_text">
+                    <Typography variant="caption">[YYYY] = year<br />[MM] = month<br />[DD] = day<br />[HH] = hours<br />[mm] = minutes<br />[ss] = seconds<br />[count] = image count</Typography>
+                </div>
                 <div className="column_item">
                     <TextField className="input"
                         disabled={running}
@@ -174,7 +179,7 @@ const StillPage = (props) => {
                         <MenuItem value={'hours'}>hours</MenuItem>
                     </TextField>
                 </div>
-                <TextField className="column_item"
+                <TextField
                     disabled={running}
                     inputRef={limitRef}
                     defaultValue={limitRef.current}
@@ -183,7 +188,9 @@ const StillPage = (props) => {
                     error={hasError('limit')}
                     helperText={getError('limit')?.message}
                     fullWidth />
-                <Typography variant="caption">0 = unlimited</Typography>
+                <div className="helper_text">
+                    <Typography variant="caption">0 = unlimited</Typography>
+                </div>
                 <div className="column_item">
                     <Radio disabled={running} checked={delayMode === 'seconds'} onChange={onDelayModeChange} value="seconds" />
                     <TextField
@@ -219,12 +226,13 @@ const StillPage = (props) => {
                     </LocalizationProvider>
                 </div>
 
+                <div className="buttons">
+                    <button disabled={running} onClick={onStart}>Start</button>
+                    <FormHelperText error>{runningError}</FormHelperText>
+                    <button disabled={!running} onClick={onStop}>Stop</button>
+                </div>
             </div>
-            <div className="buttons">
-                <button disabled={running} onClick={onStart}>Start</button>
-                <FormHelperText error>{runningError}</FormHelperText>
-                <button disabled={!running} onClick={onStop}>Stop</button>
-            </div>
+
         </div>
     )
 }

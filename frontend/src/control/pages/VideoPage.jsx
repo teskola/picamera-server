@@ -74,7 +74,7 @@ const VideoPage = (props) => {
 
     return (
         <div className="page">
-            <div className="form">
+            <div>
                 <div className="column_item">
                     <TextField
                         disabled={running}

@@ -21,14 +21,15 @@
     width: 163.333px;
 }
 
-.form {
-    margin: 10px;
-}
-
 .column_item {
     display: flex;
-    margin-top: 20px;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
+}
+
+.helper_text {
+    display: flex;
+    margin-left: 14px;
+    margin-bottom: 12px;
 }
 
 .buttons {

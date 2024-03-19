@@ -5,20 +5,31 @@ import './NavigationIcon.css'
 
 const NavigationIcon = (props) => {
     return (
-        <div className='icon'>
-            <div>
+        <>
+
+            {
                 {
-                    {
-                        'still': <CameraAltOutlinedIcon fontSize='large' />,
-                        'video': <VideocamOutlinedIcon fontSize='large' />,
-                        'profile': <PersonOutlinedIcon fontSize='large' />
-                    }[props.icon]
-                }
-            </div>
-            <div>
-                {props.icon}
-            </div>
-        </div>
+                    'still':
+                        <div class="item">
+                            <CameraAltOutlinedIcon className='icon' fontSize='large' />
+                            <span class="caption">{props.icon}</span>
+                        </div>
+                    ,
+                    'video':
+                        <div class="item">
+                            <VideocamOutlinedIcon className='icon' fontSize='large' />
+                            <span class="caption">{props.icon}</span>
+                        </div>,
+                    'profile':
+                        <div class="item">
+                            <PersonOutlinedIcon className='icon' fontSize='large' />
+                            <span class="caption">{props.icon}</span>
+                        </div>
+
+                }[props.icon]
+            }
+
+        </>
     )
 }
 
