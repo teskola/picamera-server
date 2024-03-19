@@ -5,6 +5,7 @@ const still = {
         const conn = socket.connect()
         const req = conn.write(JSON.stringify({ action: 'still_stop' }), (err) => {
             if (err) {
+                console.log(err)
                 reject(err)
             }
         });
@@ -32,6 +33,7 @@ const still = {
             }
             conn.on('data', listener)
             conn.on('error', (err) => {
+                console.log(err)
                 reject(err)
             })
         }
