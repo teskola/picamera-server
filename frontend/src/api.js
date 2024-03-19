@@ -1,33 +1,46 @@
 export const startStill = async ({ interval, path, limit, full_res, epoch, delay }) => {
-    const res = await fetch(
-        `http://${import.meta.env.VITE_RASPBERRY_URL}:${import.meta.env.VITE_PORT}/api/still/start`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-            "interval": interval,
-            "name": path,
-            "limit": limit,
-            "full_res": full_res,
-            "epoch": epoch,
-            "delay": delay
-        })
+    try {
+        const res = await fetch(
+            `http://${import.meta.env.VITE_RASPBERRY_URL}:${import.meta.env.VITE_PORT}/api/still/start`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                "interval": interval,
+                "name": path,
+                "limit": limit,
+                "full_res": full_res,
+                "epoch": epoch,
+                "delay": delay
+            })
+        }
+        )
+        return {body: await res.json(), status: res.status}
     }
-    )
-    return {body: await res.json(), status: res.status}
+    catch (err) {
+        console.log(err)
+        return {status: 500}
+    }
 }
 
 export const stopStill = async () => {
-    const res = await fetch(
-        `http://${import.meta.env.VITE_RASPBERRY_URL}:${import.meta.env.VITE_PORT}/api/still/stop`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        },        
+    try {
+        const res = await fetch(
+            `http://${import.meta.env.VITE_RASPBERRY_URL}:${import.meta.env.VITE_PORT}/api/still/stop`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },        
+        }
+        )
+        return {body: await res.json(), status: res.status}
     }
-    )
-    return {body: await res.json(), status: res.status}
+    catch (err) {
+        console.log(err)
+        return {status: 500}
+    }
+    
 }

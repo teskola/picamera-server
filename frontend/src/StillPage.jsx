@@ -134,6 +134,7 @@ const StillPage = (props) => {
                         <OutlinedInput className="input"
                             disabled={running}
                             inputRef={pathRef}
+                            inputProps={{ maxLength: 70 }}                            
                             label='Path'
                             defaultValue={pathRef.current}
                             startAdornment={<InputAdornment position="start">still/</InputAdornment>}
