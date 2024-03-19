@@ -9,9 +9,7 @@ const preview = {
             }
         });
         if (req) {
-            conn.once('data', (stream) => {
-                conn.off('data', listener)
-                conn.end()
+            conn.once('data', (stream) => {                
                 resolve(JSON.parse(stream.toString()))
             })
         }
@@ -24,9 +22,7 @@ const preview = {
             }
         });
         if (req) {
-            conn.once('data', (stream) => {
-                conn.off('data', listener)
-                conn.end()
+            conn.once('data', (stream) => {                
                 resolve(JSON.parse(stream.toString()))
             })
         }
