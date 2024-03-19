@@ -9,18 +9,10 @@ const VideoPage = (props) => {
     const [resolution, setResolution] = useState('720p')
     const [quality, setQuality] = useState(3)
     const [running, setRunning] = useState(false)
-    const [error, setError] = useState()
+    const [error, setError] = useState()    
 
-    const updateState = (status) => {
-        for (video in status.video) {
-            if (video.running) {
-                setResolution(video.resolution)
-                setQuality(video.quality)
-                setRunning(true)
-                break
-            }
-            setRunning(false)
-        }
+    const updateState = (v) => {        
+        setRunning(false)
     }
 
     const onResolutionChange = (event) => {
@@ -33,15 +25,15 @@ const VideoPage = (props) => {
 
     const onStart = async (_) => {
         setRunning(true)
-        const res = await startVideo({resolution: resolution, quality: quality})
+        const res = await startVideo({ resolution: resolution, quality: quality })
         switch (res.status) {
             case 200:
                 setError()
-                //setRunning(res.body.status.video.running)
-                break            
+                updateState(res.body.status.video)
+                break
             case 409:
                 setError(res.body.error.running_error)
-                //setRunning(res.body.status.video.running)
+                updateState(res.body.status.video)
                 break
             default:
                 setError('Something went wrong!')
@@ -57,11 +49,11 @@ const VideoPage = (props) => {
         switch (res.status) {
             case 200:
                 setError()
-                updateState(res.status.video)
-                break            
+                updateState(res.body.status.video)
+                break
             case 409:
                 setError(res.body.error.running_error)
-                updateState(res.status.video)
+                updateState(res.body.status.video)
                 break
             default:
                 setError('Something went wrong!')

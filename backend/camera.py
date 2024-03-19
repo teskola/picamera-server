@@ -125,6 +125,7 @@ class Video:
 
     def dict(self):
         return {
+                "id": self.id,
                 "resolution": resolution_to_str(self.resolution),
                 "quality": quality_to_int(self.quality),
                 "started": self.started,
@@ -329,12 +330,12 @@ class Camera:
         return self._encoders_running() or (self.still is not None and self.still.running())
     
     def status(self):
-        result = {"video": {},
+        result = {"video": [],
                     "still": {},
                     "preview": {}}        
         result["running"] = self.running()
         for video in self.videos:
-            result["video"][video.id] = video.dict()                
+            result["video"].append(video.dict())              
 
         if self.still is not None:
             result["still"] = self.still.dict()
