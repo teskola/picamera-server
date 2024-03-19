@@ -15,6 +15,7 @@ class Stream {
             }
         });
         if (req) {
+            console.log('Listening preview stream.')
             return conn
         }
     }    
