@@ -1,0 +1,8 @@
+.video {
+    display: flex;
+    height: 480px;
+    width: 640px;
+    background-color: black;
+    align-self: center;
+}
+

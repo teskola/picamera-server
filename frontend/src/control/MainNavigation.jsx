@@ -4,11 +4,11 @@ import { Link } from 'react-router-dom';
 
 const MainNavigation = (props) => {
     return (
-        <div className='navigationbar'>
+        <>
             <Link to="/still"><NavigationIcon icon='still' /></Link>
             <Link to="/video"><NavigationIcon icon='video' /></Link>
             <Link to="/profile"><NavigationIcon icon='profile' /></Link>
-        </div>
+        </>
     )
 }
 

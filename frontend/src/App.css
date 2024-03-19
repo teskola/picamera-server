@@ -1,26 +1,33 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: start;
+.header {
+  height: 120px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .container {
   display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: stretch;
+  gap: 20px
 }
 
-.video {
-  display: flex;
-  height: 480px;
-  width: 640px;
-  background-color: black;
-  margin-right: 10px;
-  align-items: center;
-}
-
-.menu {
+.preview {
   display: flex;
   flex-direction: column;
-  min-height: 480px;
-  min-width: 420px;
+  align-items: center;
+  flex: 2;
+}
+
+.control {
+  display: flex;
+  flex-direction: column;
+  flex: 1
+}
+
+.log {
+  display: flex;
+  flex: 1;
 }

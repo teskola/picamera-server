@@ -9,12 +9,11 @@ const preview = {
             }
         });
         if (req) {
-            const listener = (stream) => {
+            conn.once('data', (stream) => {
                 conn.off('data', listener)
                 conn.end()
                 resolve(JSON.parse(stream.toString()))
-            }
-            conn.on('data', listener)
+            })
         }
     }),
     stop: () => new Promise((resolve, reject) => {
@@ -25,12 +24,11 @@ const preview = {
             }
         });
         if (req) {
-            const listener = (stream) => {
+            conn.once('data', (stream) => {
                 conn.off('data', listener)
                 conn.end()
                 resolve(JSON.parse(stream.toString()))
-            }
-            conn.on('data', listener)
+            })
         }
     })
 }
