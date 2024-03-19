@@ -9,10 +9,18 @@ const VideoPage = (props) => {
     const [resolution, setResolution] = useState('720p')
     const [quality, setQuality] = useState(3)
     const [running, setRunning] = useState(false)
-    const [error, setError] = useState()    
+    const [error, setError] = useState()       
 
-    const updateState = (v) => {        
-        setRunning(false)
+    const updateState = (videos) => {           
+        const runningVideo = videos.find((e) => e.running)    
+        if (runningVideo) {
+            setRunning(true)
+            setResolution(runningVideo.resolution)
+            setQuality(runningVideo.quality)            
+        }
+        else {
+            setRunning(false)            
+        }
     }
 
     const onResolutionChange = (event) => {
