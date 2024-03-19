@@ -80,7 +80,7 @@ class CameraHandler(socketserver.StreamRequestHandler):
             return response
         if (data["action"] == 'video_stop'):
             camera.lock.acquire()
-            response = camera.recording_stop(id=data["id"])
+            response = camera.recording_stop()
             camera.lock.release()
             return response
         if (data["action"] == 'video_upload'):
@@ -121,9 +121,9 @@ class CameraHandler(socketserver.StreamRequestHandler):
             logging.info(f"{self.client_address[1]}:\n" + pformat(data))
             response = self.action(data)   
             self.wfile.write(json.dumps(response).encode())
-        except Exception as e:            
-            logging.error(f"{str(e)}:\n------------------------\n {traceback.format_exc()} \n-------------------------\n")
-            self.wfile.write(json.dumps({"error": str(e)}).encode())
+        except Exception as exc:            
+            logging.error(f"{str(exc)}:\n------------------------\n {traceback.format_exc()} \n-------------------------\n")
+            self.wfile.write(json.dumps({"error": {{type(exc).__name__}: {exc}}}).encode())
 
 def run_server():          
        

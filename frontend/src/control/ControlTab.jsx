@@ -1,12 +1,12 @@
 import MainNavigation from "./MainNavigation"
-import ProfilePage from "./ProfilePage"
-import StillPage from "./StillPage"
-import VideoPage from "./VideoPage"
+import ProfilePage from "./pages/ProfilePage"
+import StillPage from "./pages/StillPage"
+import VideoPage from "./pages/VideoPage"
 
 import { Route, Switch, Redirect } from 'react-router-dom'
 
 
-const ConfigureTab = (props) => {
+const ControlTab = (props) => {
     return (<>
         <MainNavigation />
         <Switch>
@@ -24,4 +24,4 @@ const ConfigureTab = (props) => {
     </>)
 }
 
-export default ConfigureTab
+export default ControlTab

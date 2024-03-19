@@ -15,7 +15,6 @@ const videoStart = async (req, res) => {
   const { error } = schema.validate(req.body)
 
   if (error) {
-    console.log(error.details)
     return res.status(400).send({ error: error.details })
   }
 
@@ -29,35 +28,42 @@ const videoStart = async (req, res) => {
   try {
     const response = await video.start(params)
     if (response) {
-      if (response.error) {
-        return res.status(409).send(response)
-      }
-      return res.send(response)
+        return res.send(response)
     } else {
-      throw new Error('Null response.')
+        throw new Error('Null response.')
     }
 
-  }
-  catch (err) {
-    console.log(err)
-    return res.status(500).send()
-  }
+}
+catch (response) {
+    if (response.error?.running_error) {
+        return res.status(409).send(response)
+    }
+    else {
+        console.log(response)
+        return res.status(500).send()
+    }
+}
 }
 
 const videoStop = async (req, res) => {
   try {
-    const response = await video.stop(req.params.id)
+    const response = await video.stop()
     if (response) {
-      return res.send(response)
+        return res.send(response)
     } else {
-      throw new Error('Null response.')
+        throw new Error('Null response.')
     }
 
-  }
-  catch (err) {
-    console.log(err)
-    return res.status(500).send()
-  }
+}
+catch (response) {
+    if (response.error?.running_error) {
+        return res.status(409).send(response)
+    }
+    else {
+        console.log(response)
+        return res.status(500).send()
+    }
+}
 }
 
 const videoUpload = async (req, res) => {
@@ -67,32 +73,44 @@ const videoUpload = async (req, res) => {
   try {
     const response = await video.upload(req.params.id, name)
     if (response) {
-      return res.send(response)
+        return res.send(response)
     } else {
-      throw new Error('Null response.')
+        throw new Error('Null response.')
     }
 
-  }
-  catch (err) {
-    console.log(err)
-    return res.status(500).send()
-  }
+}
+catch (response) {
+    if (response.error?.running_error) {
+        return res.status(409).send(response)
+    }
+    else {
+        console.log(response)
+        return res.status(500).send()
+    }
+}
+
 }
 
 const videoDelete = async (req, res) => {
   try {
     const response = await video.delete(req.params.id)
     if (response) {
-      return res.send(response)
+        return res.send(response)
     } else {
-      throw new Error('Null response.')
+        throw new Error('Null response.')
     }
 
-  }
-  catch (err) {
-    console.log(err)
-    return res.status(500).send()
-  }
+}
+catch (response) {
+    if (response.error?.running_error) {
+        return res.status(409).send(response)
+    }
+    else {
+        console.log(response)
+        return res.status(500).send()
+    }
+}
+
 }
 
 

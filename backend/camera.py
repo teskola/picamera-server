@@ -32,13 +32,6 @@ def quality_to_int(quality : Quality) -> int:
     elif quality == Quality.VERY_HIGH:
         return 5
 
-class AlreadyRunningError (Exception):
-    pass
-
-class NotRunningError (Exception):
-    pass
-
-
 class Resolutions:
     FULL = (4056, 3040)
     HALF = (2028, 1520)
@@ -109,9 +102,7 @@ class Still:
     
     def tick(self, capture, stop, name : str, upload):
         if self.limit == 0 or self.count < self.limit:
-            self.event = scheduler.enter(self.interval, 1, self.tick, argument=(capture, stop, name, upload, ))
-        if self.count == 0:
-            self.started = time.time()          
+            self.event = scheduler.enter(self.interval, 1, self.tick, argument=(capture, stop, name, upload, ))               
         self.count += 1 
         upload_name = insert_datetime(name)
         if self.fill() is None:
@@ -129,8 +120,8 @@ class Video:
         self.resolution = resolution
         self.quality = quality
         self.data = io.BytesIO() 
-        self.started = 0
-        self.stopped = 0
+        self.started = None
+        self.stopped = None
 
     def dict(self):
         return {
@@ -237,7 +228,17 @@ class Camera:
         for video in self.videos:
             if video.id == id:
                 return video
-        raise ValueError(f'{id} not found in videos.')
+        return None
+    
+    def find_recording_video(self) -> str:
+        if not self.recording_running():
+            return None
+        for video in self.videos:
+            if video.started is not None and video.stopped is None:
+                return video.id
+        raise LookupError('Recording video not found in videos list.')
+        
+        
 
     def current_resolution(self):
         if self.picam2.camera_configuration() is None:
@@ -354,26 +355,25 @@ class Camera:
         return result
         
     def still_start(self, limit, interval, full_res, name, upload, delay : float = 1.0, epoch : int = None) -> dict:
-        try:
 
-            if self.still is not None and self.still.running():
-                raise AlreadyRunningError
-            
-            self.still = Still(
-                limit=limit, 
-                interval=interval, 
-                full_res=full_res, 
-                name=name)
-            self.still.start(
-                delay=delay,
-                epoch=epoch,
-                capture=self.capture_still, 
-                stop=self.reconfig_after_stop,
-                upload=upload)
-            return {"status": self.status()}        
-        except AlreadyRunningError:
+        if self.still is not None and self.still.running():
             return {"error": {"running_error": "Still already running."},
-                    "status": self.status()}      
+                    "status": self.status()}
+        
+        self.still = Still(
+            limit=limit, 
+            interval=interval, 
+            full_res=full_res, 
+            name=name)
+        self.still.start(
+            start=time.time(),
+            delay=delay,
+            epoch=epoch,
+            capture=self.capture_still, 
+            stop=self.reconfig_after_stop,
+            upload=upload)
+        return {"status": self.status()}        
+        
         
     def reconfig_after_stop(self):
         if self.recording_running():
@@ -385,91 +385,83 @@ class Camera:
             self.picam2.stop()
     
     def still_stop(self) -> dict:
-        try:
-            if self.still is None or not self.still.running():
-                raise NotRunningError
-            else:
-                self.still.stop(self.reconfig_after_stop) 
-                return  {"status": self.status()}
-        except NotRunningError:
-            return {"error": "Still not running.",
+        if self.still is None or not self.still.running():
+            return {"error": {"running_error": "Still not running."},
                     "status": self.status()}
+        else:
+            self.still.stop(self.reconfig_after_stop) 
+            return  {"status": self.status()}
+         
     
     def delete_video(self, id: str):
-        try:
-            video = self.find_video_by_id(id)
-            self.videos.remove(video)  
-            del video   
-            logging.info(f"Video deleted: {id}")
-            return {"status": self.status()}
-        except ValueError as e:
-            logging.warn(f"Failed to delete video: {id}")
-            return {"error": str(e),
-                    "status": self.status()}        
+        video = self.find_video_by_id(id)
+        if video is None:
+            return {"error": "Video not found.",
+                    "status": self.status(),
+                    "id": id}
+        if self.find_recording_video() == id:
+            return {"error": "Video recording.",
+                    "status": self.status(),
+                    "id": id}
+        self.videos.remove(video)  
+        del video   
+        logging.info(f"Video deleted: {id}")
+        return {"status": self.status(),
+                "id": id}
+        
 
           
 
     def recording_start(self, id: str, resolution : Resolutions, quality : Quality) -> dict:        
-        try:            
-            if self.recording_running():
-                logging.warn("Recording already running.")
-                raise AlreadyRunningError
-            preview_paused = False
-            if self.preview_running():
-                self.picam2.stop_encoder()
-                logging.info("Preview paused.")
-                preview_paused = True
-                self.picam2.stop()
-            self.configure_video(resolution=resolution)
-            video = Video(id=id, resolution=resolution, quality=quality)
-            self.videos.append(video)     
-            self._start_video_encoder(video)
-            self.picam2.start()
-            video.started = time.time()
-            logging.info(f"Started recording video: {video.id}")
-            if preview_paused:
-                self._start_preview_encoder()
-                logging.info("Preview resumed.")        
-            return {"status": self.status()}
-        except AlreadyRunningError:
-            return {"error": "Recording already running.",
-                    "status": self.status()}
-        except Exception as e:
-            traceback.print_exc()
-            logging.error(str(e))
-            return {"error": e} 
-
-    def recording_stop(self, id : str) -> dict:
-        try:                
-            video = self.find_video_by_id(id)            
-            if not self.recording_running():
-                logging.warn("Recording not running.")
-                raise NotRunningError
-            preview_running = self.preview_running()
+        if self.recording_running():
+            logging.warn("Recording already running.")
+            return {"error": {"running_error": "Already recording."},
+                    "status": self.status(),
+                    "id": id}
+        preview_paused = False
+        if self.preview_running():
             self.picam2.stop_encoder()
+            logging.info("Preview paused.")
+            preview_paused = True
             self.picam2.stop()
-            video.stopped = time.time()
-            video.data.seek(0)
-            logging.info("Recording stopped.")        
-            self.configure_still()
+        self.configure_video(resolution=resolution)
+        video = Video(id=id, resolution=resolution, quality=quality)
+        self.videos.append(video)     
+        self._start_video_encoder(video)
+        self.picam2.start()
+        video.started = time.time()
+        logging.info(f"Started recording video: {video.id}")
+        if preview_paused:
+            self._start_preview_encoder()
+            logging.info("Preview resumed.")        
+        return {"status": self.status(),
+                "id": id}
+       
 
-            if preview_running:            
-                self._start_preview_encoder()
-                logging.info("Preview resumed.")
-                self.picam2.start()
-            
-            return {
-                    "status": self.status()}
-        except ValueError as e:
-            return {"error": str(e),
-                    "status": self.status()}
-        except NotRunningError:
-            return {"error": "Recording not running.",
-                    "status": self.status()}
-        except Exception as e:
-            traceback.print_exc()
-            logging.error(str(e))
-            return {"error": e}
+    def recording_stop(self) -> dict:
+        if not self.recording_running():
+            logging.warn("Recording not running.")
+            return {"error": {"running_error": "Not recording."},
+                "status": self.status(),
+                "id": id}
+        video = self.find_video_by_id(self.find_recording_video())
+        preview_running = self.preview_running()
+        self.picam2.stop_encoder()
+        self.picam2.stop()
+        video.stopped = time.time()
+        video.data.seek(0)
+        logging.info("Recording stopped.")        
+        self.configure_still()
+
+        if preview_running:            
+            self._start_preview_encoder()
+            logging.info("Preview resumed.")
+            self.picam2.start()
+        
+        return {
+                "status": self.status(),
+                "id": id}
+             
              
     def capture_still(self, upload, name, full_res : bool = False, keep_alive : bool = False) -> io.BytesIO:
         self.configure_still(full_res=full_res)

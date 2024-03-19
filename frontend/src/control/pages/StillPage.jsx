@@ -1,12 +1,12 @@
 import { useRef, useState } from "react"
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
-import "./StillPage.css"
+import "../ControlTab.css"
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import { FormControl, FormHelperText, InputAdornment, InputLabel, OutlinedInput, Radio, Typography } from "@mui/material";
-import { startStill, stopStill } from "./api";
+import { startStill, stopStill } from "../../api";
 import moment from "moment";
 
 const StillPage = (props) => {
@@ -79,11 +79,10 @@ const StillPage = (props) => {
         }
         )
         switch (res.status) {
-            case 200:                
+            case 200:
                 setError()
                 setRunningError()
                 setRunning(res.body.status.still.running)
-
                 break
             case 400:
                 setError(res.body.error)
@@ -99,6 +98,7 @@ const StillPage = (props) => {
                 setError()
                 setRunning(false)
                 setRunningError('Something went wrong!')
+                break
         }
         console.log(res)
 
@@ -108,7 +108,7 @@ const StillPage = (props) => {
         setRunning(false)
         const res = await stopStill()
         switch (res.status) {
-            case 200:                
+            case 200:
                 setRunningError()
                 setRunning(res.body.status.still.running)
                 break
@@ -128,7 +128,13 @@ const StillPage = (props) => {
         <div className="page">
             <div className="form">
                 <div className="column_item">
-                    <TextField disabled={running} label="Resolution" value={resolution} onChange={onResolutionChange} select fullWidth>
+                    <TextField
+                        disabled={running}
+                        label="Resolution"
+                        value={resolution}
+                        onChange={onResolutionChange}
+                        select
+                        fullWidth>
                         <MenuItem value='half'>Half resolution : 2028x1520</MenuItem>
                         <MenuItem value='full'>Full resolution : 4056x3040</MenuItem>
                     </TextField>
@@ -139,7 +145,7 @@ const StillPage = (props) => {
                         <OutlinedInput className="input"
                             disabled={running}
                             inputRef={pathRef}
-                            inputProps={{ maxLength: 70 }}                            
+                            inputProps={{ maxLength: 70 }}
                             label='Path'
                             defaultValue={pathRef.current}
                             startAdornment={<InputAdornment position="start">still/</InputAdornment>}

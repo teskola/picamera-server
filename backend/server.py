@@ -8,7 +8,7 @@ from pprint import pformat
 from picamera2.encoders import Quality
 
 from minio_client import MinioClient
-from camera import Camera, AlreadyRunningError, NotRunningError, Resolutions
+from camera import Camera, RunningError, RunningError, Resolutions
 
 logging.basicConfig(
     format='%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s',
@@ -98,7 +98,7 @@ class CameraHandler(server.BaseHTTPRequestHandler):
             cam_response = camera.recording_start(resolution=resolution, quality=quality)
             camera.lock.release()
             if "error" in cam_response:
-                if cam_response["error"] is AlreadyRunningError:
+                if cam_response["error"] is RunningError:
                     code = 409
                     cam_response["error"] = "Already recording."
                 else:
@@ -115,7 +115,7 @@ class CameraHandler(server.BaseHTTPRequestHandler):
             response = {}
             code = 200
             if "error" in cam_response:
-                if cam_response["error"] is NotRunningError:
+                if cam_response["error"] is RunningError:
                     code = 409
                     response["error"] = "Not recording."
                 else:
@@ -146,7 +146,7 @@ class CameraHandler(server.BaseHTTPRequestHandler):
                                               delay=fields["delay"])
             camera.lock.release()
             if "error" in cam_response:
-                if cam_response["error"] is AlreadyRunningError:
+                if cam_response["error"] is RunningError:
                     code = 409
                     cam_response["error"] = "Already recording."
                 elif cam_response["error"] is (ValueError or AttributeError):
@@ -165,7 +165,7 @@ class CameraHandler(server.BaseHTTPRequestHandler):
             cam_response = camera.still_stop()
             camera.lock.release()
             if "error" in cam_response:
-                if cam_response["error"] is NotRunningError:
+                if cam_response["error"] is RunningError:
                     code = 409
                     cam_response["error"] = "No stills scheduled."
                 else:

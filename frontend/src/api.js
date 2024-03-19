@@ -44,3 +44,49 @@ export const stopStill = async () => {
     }
     
 }
+
+export const startVideo = async ({ resolution, quality }) => {
+    try {
+        const res = await fetch(
+            `http://${import.meta.env.VITE_RASPBERRY_URL}:${import.meta.env.VITE_PORT}/api/video/start`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                "resolution": resolution,
+                "quality": quality                
+            })
+        }
+        )
+        return {body: await res.json(), status: res.status}
+    }
+    catch (err) {
+        console.log(err)
+        return {status: 500}
+    }
+}
+
+export const stopVideo = async () => {
+    try {
+        const res = await fetch(
+            `http://${import.meta.env.VITE_RASPBERRY_URL}:${import.meta.env.VITE_PORT}/api/video/stop/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                "resolution": resolution,
+                "quality": quality                
+            })
+        }
+        )
+        return {body: await res.json(), status: res.status}
+    }
+    catch (err) {
+        console.log(err)
+        return {status: 500}
+    }
+}
