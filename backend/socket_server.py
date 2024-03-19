@@ -1,6 +1,7 @@
 import socketserver
 import logging
 import json
+from pprint import pformat
 from minio_client import MinioClient
 from camera import Camera, Resolutions
 from picamera2.encoders import Quality
@@ -115,6 +116,7 @@ class CameraHandler(socketserver.StreamRequestHandler):
         req = self.rfile.readline().strip()
         logging.info(f"Recieved {len(req)} bytes from {self.client_address}")
         data = json.loads(req)
+        logging.info(f"{self.client_address[1]}" + pformat(data))
         response = self.action(data)   
         self.wfile.write(json.dumps(response).encode())
 
