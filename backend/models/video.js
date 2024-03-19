@@ -3,11 +3,12 @@ const socket = require('../socket')
 const video = {
     upload: (id, name) => new Promise((resolve, reject) => {
         const conn = socket.connect()
-        const req = conn.write(JSON.stringify({ action: 'video_upload', id: id, name: name}), (err) => {
+        const req = conn.write(JSON.stringify({ action: 'video_upload', id: id, name: name}) + '\n', (err) => {
             if (err) {
                 reject(err)
             }
         });
+        
         if (req) {
             const listener = (stream) => {
                 conn.off('data', listener)
@@ -18,28 +19,30 @@ const video = {
         }
     }),
     delete: (id) => new Promise((resolve, reject) => {
-        const conm = socket.connect()
-        const req = conm.write(JSON.stringify({action: 'video_delete', id: id}), (err) => {
+        const conn = socket.connect()
+        const req = conn.write(JSON.stringify({action: 'video_delete', id: id}) + '\n', (err) => {
             if (err) {
                 reject(err)
             }
-        });
+        })
+       
         if (req) {
             const listener = (stream) => {
-                conm.off('data', listener)
-                conm.end()
+                conn.off('data', listener)
+                conn.end()
                 resolve(JSON.parse(stream.toString()))
             }
-            conm.on('data', listener)
+            conn.on('data', listener)
         }
     }),
     stop: (id) => new Promise((resolve, reject) => {
         const conn = socket.connect()
-        const req = conn.write(JSON.stringify({ action: 'video_stop', id: id }), (err) => {
+        const req = conn.write(JSON.stringify({ action: 'video_stop', id: id }) + '\n', (err) => {
             if (err) {
                 reject(err)
             }
-        });
+        })
+        
         if (req) {
             const listener = (stream) => {
                 conn.off('data', listener)
@@ -51,11 +54,11 @@ const video = {
     }),
     start: (params) => new Promise((resolve, reject) => {
         const conn = socket.connect()
-        const req = conn.write(JSON.stringify(params), (err) => {
+        const req = conn.write(JSON.stringify(params) + '\n', (err) => {
             if (err) {
                 reject(err)
             }
-        });
+        })        
         if (req) {
             const listener = (stream) => {
                 conn.off('data', listener)

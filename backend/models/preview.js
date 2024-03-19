@@ -3,7 +3,7 @@ const socket = require('../socket')
 const preview = {
     start: () => new Promise((resolve, reject) => {
         const conn = socket.connect()
-        const req = conn.write(JSON.stringify({ action: 'preview_start' }), (err) => {
+        const req = conn.write(JSON.stringify({ action: 'preview_start' }) + '\n', (err) => {
             if (err) {
                 reject(err)
             }
@@ -19,7 +19,7 @@ const preview = {
     }),
     stop: () => new Promise((resolve, reject) => {
         const conn = socket.connect()
-        const req = conn.write(JSON.stringify({ action: 'preview_stop' }), (err) => {
+        const req = conn.write(JSON.stringify({ action: 'preview_stop' }) + '\n', (err) => {
             if (err) {
                 reject(err)
             }

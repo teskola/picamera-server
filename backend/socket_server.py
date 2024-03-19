@@ -112,8 +112,7 @@ class CameraHandler(socketserver.StreamRequestHandler):
             logging.error(f'unkown command: {data["action"]}')
  
     def handle(self):
-        logging.info('hello')
-        req = self.rfile.readline().decode('utf-8')
+        req = self.rfile.readline().strip()
         logging.info(f"Recieved {len(req)} bytes from {self.client_address}")
         data = json.loads(req)
         response = self.action(data)   
