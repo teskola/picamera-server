@@ -40,7 +40,7 @@ const videoStart = async (req, res) => {
   }
   catch (err) {
     console.log(err)
-    return res.status(500).send({ error: 'Something went wrong!' })
+    return res.status(500).send()
   }
 }
 
@@ -56,7 +56,7 @@ const videoStop = async (req, res) => {
   }
   catch (err) {
     console.log(err)
-    return res.status(500).send({ error: 'Something went wrong!' })
+    return res.status(500).send()
   }
 }
 
@@ -75,7 +75,7 @@ const videoUpload = async (req, res) => {
   }
   catch (err) {
     console.log(err)
-    return res.status(500).send({ error: 'Something went wrong!' })
+    return res.status(500).send()
   }
 }
 
@@ -91,7 +91,7 @@ const videoDelete = async (req, res) => {
   }
   catch (err) {
     console.log(err)
-    return res.status(500).send({ error: 'Something went wrong!' })
+    return res.status(500).send()
   }
 }
 

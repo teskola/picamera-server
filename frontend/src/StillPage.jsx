@@ -91,10 +91,11 @@ const StillPage = (props) => {
             case 409:
                 setError()
                 setRunningError(res.body.error)
+                setRunning(res.body.status.still.running)
                 break
-            case 500:
+            default:
                 setError()
-                setRunningError(res.body.error)
+                setRunningError('Something went wrong!')
         }
         console.log(res)
 
@@ -103,15 +104,16 @@ const StillPage = (props) => {
     const onStop = async (_) => {
         const res = await stopStill()
         switch (res.status) {
-            case 200:
+            case 200:                
                 setRunningError()
-                setRunning(false)
+                setRunning(res.body.status.still.running)
                 break
             case 409:
                 setRunningError(res.body.error)
+                setRunning(res.body.status.still.running)
                 break
-            case 500:
-                setRunningError(res.body.error)
+            default:
+                setRunningError('Something went wrong!')
                 break
         }
         console.log(res)

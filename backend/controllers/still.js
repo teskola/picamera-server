@@ -8,10 +8,10 @@ const stillStart = async (req, res) => {
     const schema = Joi.object({
         interval: Joi.number().integer().min(1).max(60 * 60 * 6).required(),
         name: Joi.string().min(1).max(100).required(),
-        limit: Joi.number().min(0).integer().required(),
+        limit: Joi.number().integer().min(0).max(32768).required(),
         full_res: Joi.boolean().required(),
-        epoch: Joi.number().integer().min(Math.floor(Date.now() / 1000)).optional(),
-        delay: Joi.number().min(1).optional()
+        epoch: Joi.number().integer().min(Math.floor(Date.now() / 1000)).max(4294967296).optional(),
+        delay: Joi.number().min(1).max(32768).optional()
     }).xor('epoch', 'delay').options({ abortEarly: false })
 
     const { error } = schema.validate(req.body)
@@ -44,7 +44,7 @@ const stillStart = async (req, res) => {
     }
     catch (err) {
         console.log(err)
-        return res.status(500).send({ error: 'Something went wrong!' })
+        return res.status(500).send()
     }
 }
 
@@ -63,7 +63,7 @@ const stillStop = async (req, res) => {
     }
     catch (err) {
         console.log(err)
-        return res.status(500).send({ error: 'Something went wrong!' })
+        return res.status(500).send()
     }
 }
 
