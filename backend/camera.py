@@ -439,7 +439,6 @@ class Camera:
        
 
     def recording_stop(self) -> dict:
-        raise BufferError('hello')
         if not self.recording_running():
             logging.warn("Recording not running.")
             return {"error": {"running_error": "Not recording."},
