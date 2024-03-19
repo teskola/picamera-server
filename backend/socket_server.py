@@ -125,6 +125,7 @@ class CameraHandler(socketserver.StreamRequestHandler):
             traceback.print_exc()
             logging.error(str(e))
             self.wfile.write(b"")
+            logging.info('Response sent.')
 
 def run_server():          
        
