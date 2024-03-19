@@ -116,7 +116,7 @@ class CameraHandler(socketserver.StreamRequestHandler):
         req = self.rfile.readline().strip()
         logging.info(f"Recieved {len(req)} bytes from {self.client_address}")
         data = json.loads(req)
-        logging.info(f"{self.client_address[1]}" + pformat(data))
+        logging.info(f"{self.client_address[1]}:\n" + pformat(data))
         response = self.action(data)   
         self.wfile.write(json.dumps(response).encode())
 

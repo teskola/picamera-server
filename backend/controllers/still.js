@@ -10,7 +10,7 @@ const stillStart = async (req, res) => {
         name: Joi.string().min(1).max(100).required(),
         limit: Joi.number().integer().min(0).max(32768).required(),
         full_res: Joi.boolean().required(),
-        epoch: Joi.number().integer().min(Math.floor(Date.now() / 1000)).max(4294967296).optional(),
+        epoch: Joi.number().integer().min(Math.floor(Date.now() / 1000)).max(2147483648).optional(),
         delay: Joi.number().min(1).max(32768).optional()
     }).xor('epoch', 'delay').options({ abortEarly: false })
 
