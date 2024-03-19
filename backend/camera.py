@@ -53,7 +53,7 @@ class Still:
         self.full_res = full_res
         self.count = 0
         self.event = None
-        self.started = None
+        self.started = time.time()
         self.stopped = None
     
     def fill(self):
@@ -366,8 +366,7 @@ class Camera:
             interval=interval, 
             full_res=full_res, 
             name=name)
-        self.still.start(
-            start=time.time(),
+        self.still.start(            
             delay=delay,
             epoch=epoch,
             capture=self.capture_still, 

@@ -67,7 +67,8 @@ const StillPage = (props) => {
         setDelayMode(event.target.value)
     }
 
-    const onStart = async (_) => {
+    const onStart = async (event) => {
+        event.preventDefault()
         setRunning(true)
         const res = await startStill({
             interval: Math.floor(parseFloat(intervalRef.current.value) * unitToMultiplier(unit)),
@@ -126,105 +127,107 @@ const StillPage = (props) => {
 
     return (
         <div className="page">
-            <div className="form">
-                <div className="column_item">
-                    <TextField
-                        disabled={running}
-                        label="Resolution"
-                        value={resolution}
-                        onChange={onResolutionChange}
-                        select
-                        fullWidth>
-                        <MenuItem value='half'>Half resolution : 2028x1520</MenuItem>
-                        <MenuItem value='full'>Full resolution : 4056x3040</MenuItem>
-                    </TextField>
-                </div>
-                <div className="path">
-                    <FormControl>
-                        <InputLabel htmlFor='path'>Path</InputLabel>
-                        <OutlinedInput className="input"
+            <form onSubmit={onStart}>
+                <div className="form">
+                    <div className="column_item">
+                        <TextField
                             disabled={running}
-                            inputRef={pathRef}
-                            inputProps={{ maxLength: 70 }}
-                            label='Path'
-                            defaultValue={pathRef.current}
-                            startAdornment={<InputAdornment position="start">still/</InputAdornment>}
-                            error={hasError('name')} />
-                        <FormHelperText error={hasError('name')}>
-                            {getError('name')?.message}
-                        </FormHelperText>
-                    </FormControl>
-                    <TextField className="format" id="format" value='.jpg' variant="outlined" label="Format" disabled />
-                </div>
-                <Typography variant="caption">[YYYY] = year<br />[MM] = month<br />[DD] = day<br />[HH] = hours<br />[mm] = minutes<br />[ss] = seconds<br />[count] = image count</Typography>
-                <div className="column_item">
-                    <TextField className="input"
+                            label="Resolution"
+                            value={resolution}
+                            onChange={onResolutionChange}
+                            select
+                            fullWidth>
+                            <MenuItem value='half'>Half resolution : 2028x1520</MenuItem>
+                            <MenuItem value='full'>Full resolution : 4056x3040</MenuItem>
+                        </TextField>
+                    </div>
+                    <div className="path">
+                        <FormControl>
+                            <InputLabel htmlFor='path'>Path</InputLabel>
+                            <OutlinedInput className="input"
+                                disabled={running}
+                                inputRef={pathRef}
+                                inputProps={{ maxLength: 70 }}
+                                label='Path'
+                                defaultValue={pathRef.current}
+                                startAdornment={<InputAdornment position="start">still/</InputAdornment>}
+                                error={hasError('name')} />
+                            <FormHelperText error={hasError('name')}>
+                                {getError('name')?.message}
+                            </FormHelperText>
+                        </FormControl>
+                        <TextField className="format" id="format" value='.jpg' variant="outlined" label="Format" disabled />
+                    </div>
+                    <Typography variant="caption">[YYYY] = year<br />[MM] = month<br />[DD] = day<br />[HH] = hours<br />[mm] = minutes<br />[ss] = seconds<br />[count] = image count</Typography>
+                    <div className="column_item">
+                        <TextField className="input"
+                            disabled={running}
+                            id="interval"
+                            inputRef={intervalRef}
+                            defaultValue={intervalRef.current}
+                            variant="outlined"
+                            label="Interval"
+                            error={hasError('interval')}
+                            helperText={intervalErrorMessage()} />
+
+                        <TextField className="format" disabled={running} value={unit} onChange={onUnitChange} select>
+                            <MenuItem value={'seconds'} >seconds</MenuItem>
+                            <MenuItem value={'minutes'}>minutes</MenuItem>
+                            <MenuItem value={'hours'}>hours</MenuItem>
+                        </TextField>
+                    </div>
+                    <TextField className="column_item"
                         disabled={running}
-                        id="interval"
-                        inputRef={intervalRef}
-                        defaultValue={intervalRef.current}
+                        inputRef={limitRef}
+                        defaultValue={limitRef.current}
                         variant="outlined"
-                        label="Interval"
-                        error={hasError('interval')}
-                        helperText={intervalErrorMessage()} />
+                        label="Number of images"
+                        error={hasError('limit')}
+                        helperText={getError('limit')?.message}
+                        fullWidth />
+                    <Typography variant="caption">0 = unlimited</Typography>
+                    <div className="column_item">
+                        <Radio disabled={running} checked={delayMode === 'seconds'} onChange={onDelayModeChange} value="seconds" />
+                        <TextField
+                            error={hasError('delay') && delayMode === 'seconds'}
+                            helperText={getError('delay')?.message}
+                            fullWidth
+                            disabled={running || delayMode !== 'seconds'}
+                            id="delay" inputRef={delayRef}
+                            defaultValue={delayRef.current}
+                            variant="outlined"
+                            label="First image delay in seconds"
 
-                    <TextField className="format" disabled={running} value={unit} onChange={onUnitChange} select>
-                        <MenuItem value={'seconds'} >seconds</MenuItem>
-                        <MenuItem value={'minutes'}>minutes</MenuItem>
-                        <MenuItem value={'hours'}>hours</MenuItem>
-                    </TextField>
-                </div>
-                <TextField className="column_item"
-                    disabled={running}
-                    inputRef={limitRef}
-                    defaultValue={limitRef.current}
-                    variant="outlined"
-                    label="Number of images"
-                    error={hasError('limit')}
-                    helperText={getError('limit')?.message}
-                    fullWidth />
-                <Typography variant="caption">0 = unlimited</Typography>
-                <div className="column_item">
-                    <Radio disabled={running} checked={delayMode === 'seconds'} onChange={onDelayModeChange} value="seconds" />
-                    <TextField
-                        error={hasError('delay') && delayMode === 'seconds'}
-                        helperText={getError('delay')?.message}
-                        fullWidth
-                        disabled={running || delayMode !== 'seconds'}
-                        id="delay" inputRef={delayRef}
-                        defaultValue={delayRef.current}
-                        variant="outlined"
-                        label="First image delay in seconds"
+                        />
+                    </div>
+                    <div className="column_item">
+                        <Radio disabled={running} checked={delayMode === 'epoch'} onChange={onDelayModeChange} value="epoch" />
+                        <LocalizationProvider adapterLocale="fi" dateAdapter={AdapterMoment}>
+                            <DateTimePicker slotProps={{
+                                textField: {
+                                    error: hasError('epoch') == true && delayMode === 'epoch',
+                                    fullWidth: true,
+                                    helperText: getError('epoch')?.type === 'number.min' ? 'Selected time is in the past.' : '',
+                                },
+                            }}
+                                defaultValue={epoch}
+                                onChange={(value) => setEpoch(value)}
+                                disablePast
+                                maxDateTime={moment.unix(2147483648)}
+                                format='DD/MM/YYYY HH:mm'
+                                ampm={false}
+                                disabled={running || delayMode !== 'epoch'}
+                                label="First image at" />
+                        </LocalizationProvider>
+                    </div>
 
-                    />
                 </div>
-                <div className="column_item">
-                    <Radio disabled={running} checked={delayMode === 'epoch'} onChange={onDelayModeChange} value="epoch" />
-                    <LocalizationProvider adapterLocale="fi" dateAdapter={AdapterMoment}>
-                        <DateTimePicker slotProps={{
-                            textField: {
-                                error: hasError('epoch') == true && delayMode === 'epoch',
-                                fullWidth: true,
-                                helperText: getError('epoch')?.type === 'number.min' ? 'Selected time is in the past.' : '',
-                            },
-                        }}
-                            defaultValue={epoch}
-                            onChange={(value) => setEpoch(value)}
-                            disablePast
-                            maxDateTime={moment.unix(2147483648)}
-                            format='DD/MM/YYYY HH:mm'
-                            ampm={false}
-                            disabled={running || delayMode !== 'epoch'}
-                            label="First image at" />
-                    </LocalizationProvider>
+                <div className="buttons">
+                    <input type="submit" value="Start" disabled={running} onClick={onStart} />
+                    <FormHelperText error>{runningError}</FormHelperText>
+                    <button disabled={!running} onClick={onStop}>Stop</button>
                 </div>
-
-            </div>
-            <div className="buttons">
-                <button disabled={running} onClick={onStart}>Start</button>
-                <FormHelperText error>{runningError}</FormHelperText>
-                <button disabled={!running} onClick={onStop}>Stop</button>
-            </div>
+            </form>
         </div>
     )
 }
