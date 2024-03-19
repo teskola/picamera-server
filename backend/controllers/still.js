@@ -45,7 +45,7 @@ const stillStart = async (req, res) => {
             return res.status(409).send(response)
         }
         else {
-            console.log(err)
+            console.log(response)
             return res.status(500).send()
         }
     }
