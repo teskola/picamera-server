@@ -354,6 +354,7 @@ class Camera:
         return result
         
     def still_start(self, limit, interval, full_res, name, upload, delay : float = 1.0, epoch : int = None) -> dict:
+        raise SyntaxError
         try:
 
             if self.still is not None and self.still.running():

@@ -1,9 +1,9 @@
 const socket = require('../socket')
 
 const status = {
-    fetch: () => new Promise((resolve, reject) => {        
+    fetch: () => new Promise((resolve, reject) => {
         const conn = socket.connect()
-        const req = conn.write(JSON.stringify({ action: 'status' }) + '\n', (err) => {
+        const req = conn.write(JSON.stringify({ action: 'status' }), (err) => {
             if (err) {
                 reject(err)
             }

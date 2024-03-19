@@ -12,7 +12,7 @@ const getStatus = async (req, res) => {
   }
   catch (err) {
     console.log(err)
-    return res.status(500).send({ error: 'Something went wrong!' })
+    return res.status(500).send()
   }
 
 }

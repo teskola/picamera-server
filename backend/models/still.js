@@ -3,7 +3,7 @@ const socket = require('../socket')
 const still = {
     stop: () => new Promise((resolve, reject) => {
         const conn = socket.connect()
-        const req = conn.write(JSON.stringify({ action: 'still_stop' }) + '\n', (err) => {
+        const req = conn.write(JSON.stringify({ action: 'still_stop' }), (err) => {
             if (err) {
                 reject(err)
             }
@@ -19,7 +19,7 @@ const still = {
     }),
     start: (params) => new Promise((resolve, reject) => {
         const conn = socket.connect()
-        const req = conn.write(JSON.stringify(params) + '\n', (err) => {
+        const req = conn.write(JSON.stringify(params), (err) => {
             if (err) {
                 reject(err)
             }

@@ -8,7 +8,7 @@ class Stream {
 
     #createConnection = () => {
         const conn = socket.connect()
-        const req = conn.write(JSON.stringify({ action: 'preview_listen' }) + '\n', (err) => {
+        const req = conn.write(JSON.stringify({ action: 'preview_listen' }), (err) => {
             if (err) {
                 console.log(err)
                 throw new Error(err)
@@ -18,7 +18,7 @@ class Stream {
             console.log('Listening preview stream.')
             return conn
         }
-    }    
+    }
 
     start = (listener) => {
         preview.start()
@@ -38,4 +38,4 @@ class Stream {
 const stream = new Stream()
 
 
-module.exports =  stream 
+module.exports = stream 
