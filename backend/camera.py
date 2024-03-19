@@ -129,7 +129,8 @@ class Video:
                 "quality": quality_to_int(self.quality),
                 "started": self.started,
                 "stopped": self.stopped,
-                "size": self.size()}
+                "size": self.size(),
+                "running": self.started is not None and self.stopped is None}
          
 
     def size(self):
@@ -332,7 +333,6 @@ class Camera:
                     "still": {},
                     "preview": {}}        
         result["running"] = self.running()
-        result["video"]["running"] = self.recording_running()
         for video in self.videos:
             result["video"][video.id] = video.dict()                
 

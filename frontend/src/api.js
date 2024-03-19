@@ -77,10 +77,6 @@ export const stopVideo = async () => {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
-            body: JSON.stringify({
-                "resolution": resolution,
-                "quality": quality                
-            })
         }
         )
         return {body: await res.json(), status: res.status}

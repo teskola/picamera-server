@@ -11,6 +11,11 @@ const VideoPage = (props) => {
     const [running, setRunning] = useState(false)
     const [error, setError] = useState()
 
+    const updateState = (status) => {
+        if (status.video?.running) {
+            
+        }
+    }
 
     const onResolutionChange = (event) => {
         setResolution(event.target.value)
@@ -30,7 +35,7 @@ const VideoPage = (props) => {
                 break            
             case 409:
                 setError(res.body.error.running_error)
-                setRunning(res.body.status.still.running)
+                setRunning(res.body.status.video.running)
                 break
             default:
                 setError('Something went wrong!')
@@ -43,6 +48,21 @@ const VideoPage = (props) => {
     const onStop = async (_) => {
         setRunning(false)
         const res = await stopVideo()
+        switch (res.status) {
+            case 200:
+                setError()
+                setRunning(res.body.status.video.running)
+                break            
+            case 409:
+                setError(res.body.error.running_error)
+                setRunning(res.body.status.video.running)
+                break
+            default:
+                setError('Something went wrong!')
+                setRunning(false)
+                break
+        }
+        console.log(res)
     }
 
 
