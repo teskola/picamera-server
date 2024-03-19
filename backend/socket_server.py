@@ -113,7 +113,7 @@ class CameraHandler(socketserver.StreamRequestHandler):
  
     def handle(self):
         logging.info('hello')
-        req = self.rfile.readline().decode('utf-8').strip()
+        req = self.rfile.readline().decode('utf-8')
         logging.info(f"Recieved {len(req)} bytes from {self.client_address}")
         data = json.loads(req)
         response = self.action(data)   
