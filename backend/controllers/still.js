@@ -7,7 +7,7 @@ const stillStart = async (req, res) => {
     const { interval, name, limit, full_res, epoch, delay } = req.body
     const schema = Joi.object({
         interval: Joi.number().integer().min(1).max(60 * 60 * 6).required(),
-        name: Joi.string().min(1).max(100).required(),
+        name: Joi.string().min(1).max(70).required(),
         limit: Joi.number().integer().min(0).max(32768).required(),
         full_res: Joi.boolean().required(),
         epoch: Joi.number().integer().min(Math.floor(Date.now() / 1000)).max(2147483648).optional(),
