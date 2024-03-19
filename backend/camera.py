@@ -439,11 +439,11 @@ class Camera:
        
 
     def recording_stop(self) -> dict:
+        raise BufferError('hello')
         if not self.recording_running():
             logging.warn("Recording not running.")
             return {"error": {"running_error": "Not recording."},
-                "status": self.status(),
-                "id": id}
+                "status": self.status()}
         video = self.find_video_by_id(self.find_recording_video())
         preview_running = self.preview_running()
         self.picam2.stop_encoder()
@@ -459,8 +459,7 @@ class Camera:
             self.picam2.start()
         
         return {
-                "status": self.status(),
-                "id": id}
+                "status": self.status()}
              
              
     def capture_still(self, upload, name, full_res : bool = False, keep_alive : bool = False) -> io.BytesIO:
