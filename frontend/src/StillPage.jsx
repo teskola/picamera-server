@@ -144,7 +144,7 @@ const StillPage = (props) => {
                     </FormControl>
                     <TextField className="format" id="format" value='.jpg' variant="outlined" label="Format" disabled />
                 </div>
-                <Typography variant="caption">[year] = year<br />[month] = month<br />[day] = day<br />[HH] = hours<br />[mm] = minutes<br />[ss] = seconds<br />[count] = image count</Typography>
+                <Typography variant="caption">[YYYY] = year<br />[MM] = month<br />[DD] = day<br />[HH] = hours<br />[mm] = minutes<br />[ss] = seconds<br />[count] = image count</Typography>
                 <div className="column_item">
                     <TextField className="input"
                         disabled={running}
@@ -199,6 +199,7 @@ const StillPage = (props) => {
                             defaultValue={epoch}
                             onChange={(value) => setEpoch(value)}
                             disablePast
+                            maxDateTime={moment.unix(2147483648)}
                             format='DD/MM/YYYY HH:mm'
                             ampm={false}
                             disabled={running || delayMode !== 'epoch'}

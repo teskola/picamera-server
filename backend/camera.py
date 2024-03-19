@@ -18,7 +18,7 @@ scheduler = sched.scheduler(time.time, time.sleep)
 
 def insert_datetime(name : str) -> str:
     now = datetime.now()
-    return name.replace('[year]', str(now.year)).replace('[month]', str(now.month)).replace('[day]', str(now.date)).replace('[HH]', str(now.hour).zfill(2)).replace('[mm]', str(now.minute).zfill(2)).replace('[ss]', str(now.second).zfill(2))
+    return name.replace('[YYYY]', str(now.year)).replace('[MM]', str(now.month)).replace('[DD]', str(now.date)).replace('[HH]', str(now.hour).zfill(2)).replace('[mm]', str(now.minute).zfill(2)).replace('[ss]', str(now.second).zfill(2))
 
 def quality_to_int(quality : Quality) -> int:
     if quality == Quality.VERY_LOW:
