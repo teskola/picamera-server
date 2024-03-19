@@ -32,7 +32,7 @@ const stillStart = async (req, res) => {
 
     try {
         const response = await still.start(params)
-        console.log(response)
+        console.log('response:' + response)
         if (response) {
             if (response.error) {
                 return res.status(409).send(response)
