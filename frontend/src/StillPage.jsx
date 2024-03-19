@@ -90,7 +90,7 @@ const StillPage = (props) => {
                 break
             case 409:
                 setError()
-                setRunningError(res.body.error)
+                setRunningError(res.body.error.running_error)
                 setRunning(res.body.status.still.running)
                 break
             default:
@@ -109,7 +109,7 @@ const StillPage = (props) => {
                 setRunning(res.body.status.still.running)
                 break
             case 409:
-                setRunningError(res.body.error)
+                setRunningError(res.body.error.running_error)
                 setRunning(res.body.status.still.running)
                 break
             default:
@@ -210,7 +210,7 @@ const StillPage = (props) => {
 
             </div>
             <div className="buttons">
-                <button disabled={running} onClick={onStart}>Start</button>
+                <button disabled={false} onClick={onStart}>Start</button>
                 <FormHelperText error>{runningError}</FormHelperText>
                 <button disabled={!running} onClick={onStop}>Stop</button>
             </div>
