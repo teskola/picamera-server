@@ -34,19 +34,23 @@ const stillStart = async (req, res) => {
         const response = await still.start(params)
         console.log('response:' + response)
         if (response) {
-            if (response.error) {
-                return res.status(409).send(response)
-            }
             return res.send(response)
         } else {
             throw new Error('Null response.')
         }
 
     }
-    catch (err) {
-        console.log(err)
-        return res.status(500).send()
+    catch (response) {
+        if (response.error?.running_error) {
+            return res.status(409).send(response)
+        }
+        else {
+            console.log(err)
+            return res.status(500).send()
+        }
     }
+
+    
 }
 
 const stillStop = async (req, res) => {

@@ -373,7 +373,7 @@ class Camera:
                 upload=upload)
             return {"status": self.status()}        
         except AlreadyRunningError:
-            return {"error": "Still already running.",
+            return {"error": {"running_error": "Still already running."},
                     "status": self.status()}      
         
     def reconfig_after_stop(self):
