@@ -31,6 +31,9 @@ const still = {
                 resolve(JSON.parse(stream.toString()))
             }
             conn.on('data', listener)
+            conn.on('error', (err) => {
+                reject(err)
+            })
         }
     })
 
