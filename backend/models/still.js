@@ -20,29 +20,22 @@ const still = {
         }
     }),
     start: (params) => new Promise((resolve, reject) => {
-        try {
-            const conn = socket.connect()
-            const req = conn.write(JSON.stringify(params))
-            if (req) {
-                const listener = (stream) => {
-                    conn.off('data', listener)
-                    conn.end()
-                    result = JSON.parse(stream.toString())
-                    if (result.error) {
-                        reject(result)
-                    }
-                    else {
-                        resolve(result)
-                    }
+        const conn = socket.connect()
+        const req = conn.write(JSON.stringify(params))
+        if (req) {
+            const listener = (stream) => {
+                conn.off('data', listener)
+                conn.end()
+                result = JSON.parse(stream.toString())
+                if (result.error) {
+                    reject(result)
                 }
-                conn.on('data', listener)
+                else {
+                    resolve(result)
+                }
             }
-
+            conn.on('data', listener)
         }
-        catch (err) {
-            reject(err)
-        }
-        
     })
 
 }

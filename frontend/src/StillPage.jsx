@@ -68,6 +68,7 @@ const StillPage = (props) => {
     }
 
     const onStart = async (_) => {
+        setRunning(true)
         const res = await startStill({
             interval: Math.floor(parseFloat(intervalRef.current.value) * unitToMultiplier(unit)),
             path: pathRef.current.value,
@@ -86,6 +87,7 @@ const StillPage = (props) => {
                 break
             case 400:
                 setError(res.body.error)
+                setRunning(false)
                 setRunningError()
                 break
             case 409:
@@ -95,6 +97,7 @@ const StillPage = (props) => {
                 break
             default:
                 setError()
+                setRunning(false)
                 setRunningError('Something went wrong!')
         }
         console.log(res)
@@ -102,6 +105,7 @@ const StillPage = (props) => {
     }
 
     const onStop = async (_) => {
+        setRunning(false)
         const res = await stopStill()
         switch (res.status) {
             case 200:                
@@ -114,6 +118,7 @@ const StillPage = (props) => {
                 break
             default:
                 setRunningError('Something went wrong!')
+                setRunning(true)
                 break
         }
         console.log(res)
@@ -210,7 +215,7 @@ const StillPage = (props) => {
 
             </div>
             <div className="buttons">
-                <button disabled={false} onClick={onStart}>Start</button>
+                <button disabled={running} onClick={onStart}>Start</button>
                 <FormHelperText error>{runningError}</FormHelperText>
                 <button disabled={!running} onClick={onStop}>Stop</button>
             </div>
