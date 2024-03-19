@@ -1,6 +1,7 @@
 import socketserver
 import logging
 import json
+import traceback
 from pprint import pformat
 from minio_client import MinioClient
 from camera import Camera, Resolutions
@@ -113,12 +114,17 @@ class CameraHandler(socketserver.StreamRequestHandler):
             logging.error(f'unkown command: {data["action"]}')
  
     def handle(self):
-        req = self.request.recv(256)
-        logging.info(f"Recieved {len(req)} bytes from {self.client_address}")
-        data = json.loads(req)
-        logging.info(f"{self.client_address[1]}:\n" + pformat(data))
-        response = self.action(data)   
-        self.wfile.write(json.dumps(response).encode())
+        try:
+            req = self.request.recv(256)
+            logging.info(f"Recieved {len(req)} bytes from {self.client_address}")
+            data = json.loads(req)
+            logging.info(f"{self.client_address[1]}:\n" + pformat(data))
+            response = self.action(data)   
+            self.wfile.write(json.dumps(response).encode())
+        except Exception as e:
+            traceback.print_exc()
+            logging.error(str(e))
+            self.wfile.write()
 
 def run_server():          
        
