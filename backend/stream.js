@@ -8,7 +8,7 @@ class Stream {
 
     #createConnection = () => {
         const conn = socket.connect()
-        const req = conn.write(JSON.stringify({ action: 'preview_listen' }), (err) => {
+        const req = conn.write(JSON.stringify({ action: 'preview_listen' } + '\n'), (err) => {
             if (err) {
                 console.log(err)
                 throw new Error(err)
