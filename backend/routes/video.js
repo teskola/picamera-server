@@ -4,7 +4,7 @@ const { videoStart, videoStop, videoUpload, videoDelete } = require('../controll
 
 
 router.post('/start', videoStart)
-router.post('/stop/:id', videoStop)
+router.post('/stop/', videoStop)
 router.post('/upload/:id', videoUpload)
 router.delete('/:id', videoDelete)
 
