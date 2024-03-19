@@ -124,7 +124,7 @@ class CameraHandler(socketserver.StreamRequestHandler):
         except Exception as e:
             traceback.print_exc()
             logging.error(str(e))
-            self.wfile.write()
+            self.wfile.write(b"")
 
 def run_server():          
        
