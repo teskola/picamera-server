@@ -2,6 +2,9 @@ import { useState } from "react"
 import "../ControlTab.css"
 import { FormHelperText, MenuItem, TextField } from "@mui/material"
 import { startVideo, stopVideo } from "../../api";
+import StartButton from "../components/StartButton";
+import StopButton from "../components/StopButton";
+import VideoList from "../components/VideoList"
 
 
 const VideoPage = (props) => {
@@ -9,17 +12,18 @@ const VideoPage = (props) => {
     const [resolution, setResolution] = useState('720p')
     const [quality, setQuality] = useState(3)
     const [running, setRunning] = useState(false)
-    const [error, setError] = useState()       
+    const [error, setError] = useState()
+    const [loading, setLoading] = useState(false)
 
-    const updateState = (videos) => {           
-        const runningVideo = videos.find((e) => e.running)    
+    const updateState = (videos) => {
+        const runningVideo = videos.find((e) => e.running)
         if (runningVideo) {
             setRunning(true)
             setResolution(runningVideo.resolution)
-            setQuality(runningVideo.quality)            
+            setQuality(runningVideo.quality)
         }
         else {
-            setRunning(false)            
+            setRunning(false)
         }
     }
 
@@ -32,8 +36,9 @@ const VideoPage = (props) => {
     }
 
     const onStart = async (_) => {
-        setRunning(true)
+        setLoading(true)
         const res = await startVideo({ resolution: resolution, quality: quality })
+        setLoading(false)
         switch (res.status) {
             case 200:
                 setError()
@@ -52,8 +57,9 @@ const VideoPage = (props) => {
     }
 
     const onStop = async (_) => {
-        setRunning(false)
+        setLoading(true)
         const res = await stopVideo()
+        setLoading(false)
         switch (res.status) {
             case 200:
                 setError()
@@ -77,7 +83,7 @@ const VideoPage = (props) => {
             <div>
                 <div className="column_item">
                     <TextField
-                        disabled={running}
+                        disabled={running || loading}
                         label="Resolution"
                         onChange={onResolutionChange}
                         value={resolution}
@@ -89,7 +95,7 @@ const VideoPage = (props) => {
                 </div>
                 <div className="column_item">
                     <TextField
-                        disabled={running}
+                        disabled={running || loading}
                         label="Quality"
                         onChange={onQualityChange}
                         value={quality}
@@ -104,10 +110,13 @@ const VideoPage = (props) => {
                 </div>
             </div>
             <div className="buttons">
-                <button disabled={running} onClick={onStart}>Start</button>
-                <FormHelperText error>{error}</FormHelperText>
-                <button disabled={!running} onClick={onStop}>Stop</button>
+                <StartButton disabled={running || loading} onClick={onStart} />
+                <StopButton disabled={!running || loading} onClick={onStop} />
             </div>
+            <div className="error">
+                <FormHelperText error={error != undefined}>{loading ? 'Loading...' : error}</FormHelperText>
+            </div>
+            <VideoList />
 
         </div>
     )

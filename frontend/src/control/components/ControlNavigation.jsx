@@ -1,15 +1,10 @@
 import { IconButton } from '@mui/material';
-import { Link, redirect, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import CameraAltOutlinedIcon from '@mui/icons-material/CameraAltOutlined';
 import VideocamOutlinedIcon from '@mui/icons-material/VideocamOutlined';
 import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
-import { useEffect } from 'react';
 
-const ControlNavigation = () => {
-    useEffect(() => {
-        console.log(pathname)
-    });
-
+const ControlNavigation = () => {   
     const { pathname } = useLocation()
     const navigate = useNavigate()
     return (
