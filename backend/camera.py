@@ -55,7 +55,6 @@ class Still:
         self.event = None
         self.started = time.time()
         self.stopped = None
-        self.thread = None
     
     def fill(self):
         if self.limit > 0:
@@ -81,8 +80,7 @@ class Still:
         else:            
             self.event = scheduler.enter(delay, 1, self.tick, argument=(capture, stop, self.name, upload, ))
         logging.info(f"Still scheduler started.")
-        self.thread = Thread(target=scheduler.run).start()
-        logging.info('Return from start()')        
+        Thread(target=scheduler.run).start()
     
     def keep_alive(self):
         return self.interval < KEEP_ALIVE_LIMIT
