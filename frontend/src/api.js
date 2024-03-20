@@ -1,6 +1,8 @@
+
+
 export const startStill = async ({ interval, path, limit, full_res, epoch, delay }) => {
     try {
-        const res = await fetch(
+        const res = await fetch(                      
             `http://${import.meta.env.VITE_RASPBERRY_URL}:${import.meta.env.VITE_PORT}/api/still/start`, {
             method: 'POST',
             headers: {
@@ -16,7 +18,7 @@ export const startStill = async ({ interval, path, limit, full_res, epoch, delay
                 "delay": delay
             })
         }
-        )
+        )        
         return {body: await res.json(), status: res.status}
     }
     catch (err) {

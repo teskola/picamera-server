@@ -5,9 +5,7 @@ const still = {
         const conn = socket.connect()
         const req = conn.write(JSON.stringify({ action: 'still_stop' }))
         if (req) {
-            conn.once('data', (stream) => {
-                conn.off('data', listener)
-                conn.end()
+            conn.once('data', (stream) => {                
                 result = JSON.parse(stream.toString())
                 if (result.error) {
                     reject(result)
@@ -22,9 +20,7 @@ const still = {
         const conn = socket.connect()
         const req = conn.write(JSON.stringify(params))
         if (req) {
-            conn.once('data', (stream) => {
-                conn.off('data', listener)
-                conn.end()
+            conn.once('data', (stream) => {                
                 result = JSON.parse(stream.toString())
                 if (result.error) {
                     reject(result)

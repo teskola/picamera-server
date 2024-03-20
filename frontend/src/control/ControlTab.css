@@ -18,7 +18,7 @@
 }
 
 .format {
-    width: 163.333px;
+    width: 110px;
 }
 
 .column_item {
@@ -33,7 +33,11 @@
 }
 
 .buttons {
-    margin-top: 20px;
     display: flex;
     justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.error {
+    align-self: center;
 }

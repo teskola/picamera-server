@@ -8,6 +8,8 @@ import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import { FormControl, FormHelperText, InputAdornment, InputLabel, OutlinedInput, Radio, Typography } from "@mui/material";
 import { startStill, stopStill } from "../../api";
 import moment from "moment";
+import StartButton from "../components/StartButton";
+import StopButton from "../components/StopButton";
 
 const StillPage = (props) => {
 
@@ -22,6 +24,7 @@ const StillPage = (props) => {
     const delayRef = useRef(1)
     const [epoch, setEpoch] = useState(moment())
     const [running, setRunning] = useState(false)
+    const [loading, setLoading] = useState(false)
 
     const unitToMultiplier = (value) => {
         switch (value) {
@@ -68,7 +71,7 @@ const StillPage = (props) => {
     }
 
     const onStart = async (_) => {
-        setRunning(true)
+        setLoading(true)
         const res = await startStill({
             interval: Math.floor(parseFloat(intervalRef.current.value) * unitToMultiplier(unit)),
             path: pathRef.current.value,
@@ -78,6 +81,7 @@ const StillPage = (props) => {
             delay: delayMode === 'seconds' ? parseFloat(delayRef.current.value) : undefined
         }
         )
+        setLoading(false)
         switch (res.status) {
             case 200:
                 setError()
@@ -105,8 +109,9 @@ const StillPage = (props) => {
     }
 
     const onStop = async (_) => {
-        setRunning(false)
+        setLoading(true)
         const res = await stopStill()
+        setLoading(false)
         switch (res.status) {
             case 200:
                 setRunningError()
@@ -126,111 +131,110 @@ const StillPage = (props) => {
 
     return (
         <div className="page">
-            <div className="form">
-                <div className="column_item">
-                    <TextField
-                        disabled={running}
-                        label="Resolution"
-                        value={resolution}
-                        onChange={onResolutionChange}
-                        select
-                        fullWidth>
-                        <MenuItem value='half'>Half resolution : 2028x1520</MenuItem>
-                        <MenuItem value='full'>Full resolution : 4056x3040</MenuItem>
-                    </TextField>
-                </div>
-                <div className="path">
-                    <div className="input">
-                        <FormControl fullWidth>
-                            <InputLabel htmlFor='path'>Path</InputLabel>
-                            <OutlinedInput
-                                fullWidth
-                                disabled={running}
-                                inputRef={pathRef}
-                                inputProps={{ maxLength: 70 }}
-                                label='Path'
-                                defaultValue={pathRef.current}
-                                startAdornment={<InputAdornment position="start">still/</InputAdornment>}
-                                error={hasError('name')} />
-                            <FormHelperText error={hasError('name')}>
-                                {getError('name')?.message}
-                            </FormHelperText>
-                        </FormControl>
-                    </div>
-                    <TextField className="format" id="format" value='.jpg' variant="outlined" label="Format" disabled />
-                </div>
-                <div className="helper_text">
-                    <Typography variant="caption">[YYYY] = year<br />[MM] = month<br />[DD] = day<br />[HH] = hours<br />[mm] = minutes<br />[ss] = seconds<br />[count] = image count</Typography>
-                </div>
-                <div className="column_item">
-                    <TextField className="input"
-                        disabled={running}
-                        id="interval"
-                        inputRef={intervalRef}
-                        defaultValue={intervalRef.current}
-                        variant="outlined"
-                        label="Interval"
-                        error={hasError('interval')}
-                        helperText={intervalErrorMessage()} />
-
-                    <TextField className="format" disabled={running} value={unit} onChange={onUnitChange} select>
-                        <MenuItem value={'seconds'} >seconds</MenuItem>
-                        <MenuItem value={'minutes'}>minutes</MenuItem>
-                        <MenuItem value={'hours'}>hours</MenuItem>
-                    </TextField>
-                </div>
+            <div className="column_item">
                 <TextField
-                    disabled={running}
-                    inputRef={limitRef}
-                    defaultValue={limitRef.current}
+                    disabled={running || loading}
+                    label="Resolution"
+                    value={resolution}
+                    onChange={onResolutionChange}
+                    select
+                    fullWidth>
+                    <MenuItem value='half'>Half resolution : 2028x1520</MenuItem>
+                    <MenuItem value='full'>Full resolution : 4056x3040</MenuItem>
+                </TextField>
+            </div>
+            <div className="path">
+                <div className="input">
+                    <FormControl fullWidth error={hasError('name')}>
+                        <InputLabel htmlFor='path'>Path</InputLabel>
+                        <OutlinedInput
+                            disabled={running || loading}
+                            inputRef={pathRef}
+                            inputProps={{ maxLength: 70 }}
+                            label='Path'
+                            defaultValue={pathRef.current}
+                            startAdornment={<InputAdornment position="start">still/</InputAdornment>}
+                        />
+                        <FormHelperText>
+                            {getError('name')?.message}
+                        </FormHelperText>
+                    </FormControl>
+                </div>
+                <TextField className="format" id="format" value='.jpg' variant="outlined" label="Format" disabled />
+            </div>
+            <div className="helper_text">
+                <Typography variant="caption">[YYYY] = year<br />[MM] = month<br />[DD] = day<br />[HH] = hours<br />[mm] = minutes<br />[ss] = seconds<br />[count] = image count</Typography>
+            </div>
+            <div className="column_item">
+                <TextField className="input"
+                    disabled={running || loading}
+                    id="interval"
+                    inputRef={intervalRef}
+                    defaultValue={intervalRef.current}
                     variant="outlined"
-                    label="Number of images"
-                    error={hasError('limit')}
-                    helperText={getError('limit')?.message}
-                    fullWidth />
-                <div className="helper_text">
-                    <Typography variant="caption">0 = unlimited</Typography>
-                </div>
-                <div className="column_item">
-                    <Radio disabled={running} checked={delayMode === 'seconds'} onChange={onDelayModeChange} value="seconds" />
-                    <TextField
-                        error={hasError('delay') && delayMode === 'seconds'}
-                        helperText={getError('delay')?.message}
-                        fullWidth
-                        disabled={running || delayMode !== 'seconds'}
-                        id="delay" inputRef={delayRef}
-                        defaultValue={delayRef.current}
-                        variant="outlined"
-                        label="First image delay in seconds"
+                    label="Interval"
+                    error={hasError('interval')}
+                    helperText={intervalErrorMessage()} />
 
-                    />
-                </div>
-                <div className="column_item">
-                    <Radio disabled={running} checked={delayMode === 'epoch'} onChange={onDelayModeChange} value="epoch" />
-                    <LocalizationProvider adapterLocale="fi" dateAdapter={AdapterMoment}>
-                        <DateTimePicker slotProps={{
-                            textField: {
-                                error: hasError('epoch') == true && delayMode === 'epoch',
-                                fullWidth: true,
-                                helperText: getError('epoch')?.type === 'number.min' ? 'Selected time is in the past.' : '',
-                            },
-                        }}
-                            defaultValue={epoch}
-                            onChange={(value) => setEpoch(value)}
-                            disablePast
-                            maxDateTime={moment.unix(2147483648)}
-                            format='DD/MM/YYYY HH:mm'
-                            ampm={false}
-                            disabled={running || delayMode !== 'epoch'}
-                            label="First image at" />
-                    </LocalizationProvider>
-                </div>
+                <TextField className="format" disabled={running || loading} value={unit} onChange={onUnitChange} select>
+                    <MenuItem value={'seconds'} >seconds</MenuItem>
+                    <MenuItem value={'minutes'}>minutes</MenuItem>
+                    <MenuItem value={'hours'}>hours</MenuItem>
+                </TextField>
+            </div>
+            <TextField
+                disabled={running || loading}
+                inputRef={limitRef}
+                defaultValue={limitRef.current}
+                variant="outlined"
+                label="Number of images"
+                error={hasError('limit')}
+                helperText={getError('limit')?.message}
+                fullWidth />
+            <div className="helper_text">
+                <Typography variant="caption">0 = unlimited</Typography>
+            </div>
+            <div className="column_item">
+                <Radio disabled={running} checked={delayMode === 'seconds'} onChange={onDelayModeChange} value="seconds" />
+                <TextField
+                    error={hasError('delay') && delayMode === 'seconds'}
+                    helperText={getError('delay')?.message}
+                    fullWidth
+                    disabled={running || loading || delayMode !== 'seconds'}
+                    id="delay" inputRef={delayRef}
+                    defaultValue={delayRef.current}
+                    variant="outlined"
+                    label="First image delay in seconds"
 
-                <div className="buttons">
-                    <button disabled={running} onClick={onStart}>Start</button>
-                    <FormHelperText error>{runningError}</FormHelperText>
-                    <button disabled={!running} onClick={onStop}>Stop</button>
-                </div>
+                />
+            </div>
+            <div className="column_item">
+                <Radio disabled={running || loading} checked={delayMode === 'epoch'} onChange={onDelayModeChange} value="epoch" />
+                <LocalizationProvider adapterLocale="fi" dateAdapter={AdapterMoment}>
+                    <DateTimePicker slotProps={{
+                        textField: {
+                            error: hasError('epoch') == true && delayMode === 'epoch',
+                            fullWidth: true,
+                            helperText: getError('epoch')?.type === 'number.min' ? 'Selected time is in the past.' : '',
+                        },
+                    }}
+                        defaultValue={epoch}
+                        onChange={(value) => setEpoch(value)}
+                        disablePast
+                        maxDateTime={moment.unix(2147483648)}
+                        format='DD/MM/YYYY HH:mm'
+                        ampm={false}
+                        disabled={running || loading || delayMode !== 'epoch'}
+                        label="First image at" />
+                </LocalizationProvider>
+            </div>
+
+            <div className="buttons">
+                <StartButton disabled={running || loading} onClick={onStart} />
+                <StopButton disabled={!running || loading} onClick={onStop} />
+            </div>
+            <div className="error">
+                <FormHelperText error={runningError != undefined}>{loading ? 'Loading...' : runningError}</FormHelperText>
             </div>
 
         </div>

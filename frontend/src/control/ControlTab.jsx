@@ -3,7 +3,7 @@ import StillPage from "./pages/StillPage"
 import VideoPage from "./pages/VideoPage"
 import '../App.css'
 
-import ControlNavigation from "./ControlNavigation"
+import ControlNavigation from "./components/ControlNavigation"
 import { Routes, Route } from "react-router-dom";
 
 const ControlTab = (props) => {
