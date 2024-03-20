@@ -326,14 +326,11 @@ class Camera:
         self.picam2.stop()
         self.picam2.close()
     
-    def running(self):
-        return self._encoders_running() or (self.still is not None and self.still.running())
-    
     def status(self):
         result = {"video": [],
                     "still": {},
                     "preview": {}}        
-        result["running"] = self.running()
+        result["running"] = self.picam2.started
         for video in self.videos:
             result["video"].append(video.dict())              
         if self.still is not None:
@@ -342,7 +339,7 @@ class Camera:
             'running': self.preview_running(),
         }
         logging.info('preview returned')
-        if self.running():
+        if self.picam2.started:
             result["metadata"] = self.picam2.capture_metadata()
         logging.info('metadata returned')
         if self.picam2.camera_configuration() is not None:
@@ -479,7 +476,7 @@ class Camera:
         if self.preview_running():
             logging.warn("Preview already running.")
             return False
-        if self.current_resolution() is None or not self.running():
+        if self.current_resolution() is None or not self.picam2.started:
             self.configure_still()
         self._start_preview_encoder()
         self.picam2.start()
@@ -493,7 +490,7 @@ class Camera:
 
         self.picam2.stop_encoder(encoders=[self.encoders["preview"]])
         logging.info("Preview stopped.")
-        if not self.running():
+        if not self.picam2.started:
             self.picam2.stop()            
         return True
     
