@@ -330,6 +330,7 @@ class Camera:
         return self._encoders_running() or (self.still is not None and self.still.running())
     
     def status(self):
+        logging.info('status called')
         result = {"video": [],
                     "still": {},
                     "preview": {}}        
@@ -353,6 +354,7 @@ class Camera:
             del config["colour_space"]
             del config["transform"]
             result["configration"] = config
+        logging.info('status returned')
         return result
         
     def still_start(self, limit, interval, full_res, name, upload, delay : float = 1.0, epoch : int = None) -> dict:
@@ -372,6 +374,7 @@ class Camera:
             capture=self.capture_still, 
             stop=self.reconfig_after_stop,
             upload=upload)
+        logging.info('still started')
         return {"status": self.status()}        
         
         
