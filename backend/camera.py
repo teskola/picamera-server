@@ -336,23 +336,22 @@ class Camera:
         result["running"] = self.running()
         for video in self.videos:
             result["video"].append(video.dict())              
-        logging.info('still')
         if self.still is not None:
             result["still"] = self.still.dict()
-        logging.info('still returned')
         result["preview"] = {
             'running': self.preview_running(),
         }
-
+        logging.info('preview returned')
         if self.running():
             result["metadata"] = self.picam2.capture_metadata()
-        
+        logging.info('metadata returned')
         if self.picam2.camera_configuration() is not None:
             config = self.picam2.camera_configuration().copy()
             del config["controls"]
             del config["colour_space"]
             del config["transform"]
             result["configration"] = config
+        logging.info('config returned')
         return result
         
     def still_start(self, limit, interval, full_res, name, upload, delay : float = 1.0, epoch : int = None) -> dict:
