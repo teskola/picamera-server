@@ -18,7 +18,7 @@ minio = MinioClient()
 
 class CameraServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     allow_reuse_address = True
-    daemon_threads = True
+    daemon_threads = False
 
 class CameraHandler(socketserver.StreamRequestHandler):   
 
