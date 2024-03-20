@@ -1,0 +1,46 @@
+.video-card__container {
+    display: flex;
+    align-items: stretch;
+}
+
+.video-card__icon {
+    display: flex;
+    flex-direction: column;
+    align-self: center;
+    align-items: center;
+    margin: 10px;
+    margin-right: 20px;
+}
+
+.video-card__input {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+
+.video-card__info {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 10px;
+
+}
+
+.video-card__info--column {
+    display: flex;
+    flex-direction: column;
+}
+
+.video-card__btns_and_status {
+    display: flex;
+    flex-grow: 1;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-direction: column;
+    margin: 10px;
+}
+
+.video-card__buttons {
+    display: flex;
+    flex-direction: column;
+    align-self: flex-end;
+}

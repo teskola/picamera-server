@@ -130,8 +130,8 @@ const StillPage = (props) => {
     }
 
     return (
-        <div className="page">
-            <div className="column_item">
+        <>
+            <div className="control__column_item">
                 <TextField
                     disabled={running || loading}
                     label="Resolution"
@@ -143,30 +143,28 @@ const StillPage = (props) => {
                     <MenuItem value='full'>Full resolution : 4056x3040</MenuItem>
                 </TextField>
             </div>
-            <div className="path">
-                <div className="input">
-                    <FormControl fullWidth error={hasError('name')}>
-                        <InputLabel htmlFor='path'>Path</InputLabel>
-                        <OutlinedInput
-                            disabled={running || loading}
-                            inputRef={pathRef}
-                            inputProps={{ maxLength: 70 }}
-                            label='Path'
-                            defaultValue={pathRef.current}
-                            startAdornment={<InputAdornment position="start">still/</InputAdornment>}
-                        />
-                        <FormHelperText>
-                            {getError('name')?.message}
-                        </FormHelperText>
-                    </FormControl>
-                </div>
-                <TextField className="format" id="format" value='.jpg' variant="outlined" label="Format" disabled />
+            <div className="control-still__path">
+                <FormControl className="control-still__primary" error={hasError('name')}>
+                    <InputLabel htmlFor='path'>Path</InputLabel>
+                    <OutlinedInput
+                        disabled={running || loading}
+                        inputRef={pathRef}
+                        inputProps={{ maxLength: 70 }}
+                        label='Path'
+                        defaultValue={pathRef.current}
+                        startAdornment={<InputAdornment position="end">still/</InputAdornment>}
+                    />
+                    <FormHelperText>
+                        {getError('name')?.message}
+                    </FormHelperText>
+                </FormControl>
+                <TextField className="control-still__secondary" id="format" value='.jpg' variant="outlined" label="Format" disabled />
             </div>
-            <div className="helper_text">
+            <div className="control__helper_text">
                 <Typography variant="caption">[YYYY] = year<br />[MM] = month<br />[DD] = day<br />[HH] = hours<br />[mm] = minutes<br />[ss] = seconds<br />[count] = image count</Typography>
             </div>
-            <div className="column_item">
-                <TextField className="input"
+            <div className="control__column_item">
+                <TextField className="control-still__primary"
                     disabled={running || loading}
                     id="interval"
                     inputRef={intervalRef}
@@ -176,7 +174,7 @@ const StillPage = (props) => {
                     error={hasError('interval')}
                     helperText={intervalErrorMessage()} />
 
-                <TextField className="format" disabled={running || loading} value={unit} onChange={onUnitChange} select>
+                <TextField className="control-still__secondary" disabled={running || loading} value={unit} onChange={onUnitChange} select>
                     <MenuItem value={'seconds'} >seconds</MenuItem>
                     <MenuItem value={'minutes'}>minutes</MenuItem>
                     <MenuItem value={'hours'}>hours</MenuItem>
@@ -191,10 +189,10 @@ const StillPage = (props) => {
                 error={hasError('limit')}
                 helperText={getError('limit')?.message}
                 fullWidth />
-            <div className="helper_text">
+            <div className="control__helper_text">
                 <Typography variant="caption">0 = unlimited</Typography>
             </div>
-            <div className="column_item">
+            <div className="control__column_item">
                 <Radio disabled={running} checked={delayMode === 'seconds'} onChange={onDelayModeChange} value="seconds" />
                 <TextField
                     error={hasError('delay') && delayMode === 'seconds'}
@@ -208,7 +206,7 @@ const StillPage = (props) => {
 
                 />
             </div>
-            <div className="column_item">
+            <div className="control__column_item">
                 <Radio disabled={running || loading} checked={delayMode === 'epoch'} onChange={onDelayModeChange} value="epoch" />
                 <LocalizationProvider adapterLocale="fi" dateAdapter={AdapterMoment}>
                     <DateTimePicker slotProps={{
@@ -229,15 +227,15 @@ const StillPage = (props) => {
                 </LocalizationProvider>
             </div>
 
-            <div className="buttons">
+            <div className="control__buttons">
                 <StartButton disabled={running || loading} onClick={onStart} />
                 <StopButton disabled={!running || loading} onClick={onStop} />
             </div>
-            <div className="error">
+            <div className="control__error">
                 <FormHelperText error={runningError != undefined}>{loading ? 'Loading...' : runningError}</FormHelperText>
             </div>
 
-        </div>
+        </>
     )
 }
 

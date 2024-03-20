@@ -1,4 +1,5 @@
 import VideoCard from "./VideoCard"
+import './VideoList.css'
 
 const dummy = [
     {
@@ -79,7 +80,9 @@ const VideoList = (props) => {
     return (
         <div>            
             {dummy?.map((video) => (
+                <div className="video__list-item">
                 <VideoCard key={video.id} video={video} />
+                </div>
             ))}
         </div>
     )

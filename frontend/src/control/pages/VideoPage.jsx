@@ -79,9 +79,9 @@ const VideoPage = (props) => {
 
 
     return (
-        <div className="page">
+        <>
             <div>
-                <div className="column_item">
+                <div className="control__column_item">
                     <TextField
                         disabled={running || loading}
                         label="Resolution"
@@ -93,7 +93,7 @@ const VideoPage = (props) => {
                         <MenuItem value='1080p'>FHD  : 1920x1080 (1080p30)</MenuItem>
                     </TextField>
                 </div>
-                <div className="column_item">
+                <div className="control__column_item">
                     <TextField
                         disabled={running || loading}
                         label="Quality"
@@ -101,24 +101,24 @@ const VideoPage = (props) => {
                         value={quality}
                         select
                         fullWidth>
-                        <MenuItem value={1}>Very low</MenuItem>
-                        <MenuItem value={2}>Low</MenuItem>
-                        <MenuItem value={3}>Medium</MenuItem>
-                        <MenuItem value={4}>High</MenuItem>
-                        <MenuItem value={5}>Very high</MenuItem>
+                        <MenuItem value={1}>Very low (1)</MenuItem>
+                        <MenuItem value={2}>Low (2)</MenuItem>
+                        <MenuItem value={3}>Medium (3)</MenuItem>
+                        <MenuItem value={4}>High (4)</MenuItem>
+                        <MenuItem value={5}>Very high (5)</MenuItem>
                     </TextField>
                 </div>
             </div>
-            <div className="buttons">
+            <div className="control__buttons">
                 <StartButton disabled={running || loading} onClick={onStart} />
                 <StopButton disabled={!running || loading} onClick={onStop} />
             </div>
-            <div className="error">
+            <div className="control__error">
                 <FormHelperText error={error != undefined}>{loading ? 'Loading...' : error}</FormHelperText>
             </div>
             <VideoList />
 
-        </div>
+        </>
     )
 }
 
