@@ -72,12 +72,12 @@ const VideoCard = (props) => {
 
                     </div>
                 </div>
-                <div className='video-card__btns_and_status'>
-                    <div className='video-card__buttons'>
+                <div className='video-card__btns_status'>
+                    <div className='video-card__card__btns_status--buttons'>
                         <Button style={{ minWidth: '102px', }} startIcon={<CloudUploadIcon />}>Upload</Button>
                         <Button style={{ minWidth: '102px', }} color='error' startIcon={<DeleteOutlinedIcon />}>Delete</Button>
                     </div>
-                    <div>
+                    <div className='video-card__btns_status--status'>
                         <Typography variant='caption'>Stopped.</Typography>
                     </div>
                 </div>

@@ -30,7 +30,7 @@
     flex-direction: column;
 }
 
-.video-card__btns_and_status {
+.video-card__btns_status {
     display: flex;
     flex-grow: 1;
     align-items: flex-end;
@@ -39,8 +39,13 @@
     margin: 10px;
 }
 
-.video-card__buttons {
+.video-card__card__btns_status--buttons {
     display: flex;
     flex-direction: column;
     align-self: flex-end;
+}
+
+.video-card__btns_status--status {
+    padding: 6px 8px;
+    padding-bottom: 0;
 }
