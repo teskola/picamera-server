@@ -11,7 +11,7 @@ const ControlTab = (props) => {
         <div className="header">
             <ControlNavigation />
         </div>
-        <div>
+        <div className="control__content">
             <Routes>
                 <Route path="/" element={<StillPage/>} />
                 <Route path="/still" element={<StillPage/>} />

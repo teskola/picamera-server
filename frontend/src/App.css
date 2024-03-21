@@ -1,17 +1,19 @@
 .header {
-  height: 120px;
+  min-height: 120px;
   width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.container {
+#root {
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
-  align-items: stretch;
-  gap: 20px
+  flex-wrap: wrap;
+  margin-left: 8px;
+  margin-right: 8px;
+  gap: 20px;
 }
 
 .preview {
@@ -25,10 +27,12 @@
   display: flex;
   flex-direction: column;
   flex: 1;
-  min-width: 378.333px;
+  min-width: 400px;
   max-width: 450px;
+  height: 100vh;
 }
 
 .log {
   display: flex;
+  width: 1000px;
 }

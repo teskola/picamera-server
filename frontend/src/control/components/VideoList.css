@@ -1,3 +1,8 @@
+.video__list {
+    height: 100%;
+    overflow: auto;
+}
+
 .video__list-item {
     margin-top: 12px;
 }

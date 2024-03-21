@@ -78,7 +78,7 @@ const dummy = [
 
 const VideoList = (props) => {
     return (
-        <div>            
+        <div className="video__list">            
             {dummy?.map((video) => (
                 <div className="video__list-item">
                 <VideoCard key={video.id} video={video} />
