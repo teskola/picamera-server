@@ -14,4 +14,4 @@ const handleResponse = async ({ res, func, params }) => {
     }
 }
 
-export default handleResponse
+module.exports = handleResponse
