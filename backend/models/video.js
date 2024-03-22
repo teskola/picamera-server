@@ -34,6 +34,7 @@ const video = {
         }
     }),
     start: (params) => new Promise(async (resolve, reject) => {
+        console.log('Connect to socket: ' + (new Date().toLocaleDateString()))
         const conn = await socket.connect()
         const req = conn.write(JSON.stringify(params))
         if (req) {
