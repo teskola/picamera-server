@@ -5,6 +5,7 @@ import { startVideo, stopVideo } from "../../api";
 import StartButton from "../components/StartButton";
 import StopButton from "../components/StopButton";
 import VideoList from "../components/VideoList"
+import moment from "moment";
 
 
 const VideoPage = (props) => {
@@ -14,6 +15,7 @@ const VideoPage = (props) => {
     const [running, setRunning] = useState(false)
     const [error, setError] = useState()
     const [loading, setLoading] = useState(false)
+    const [videos, setVideos] = useState([])
 
     const updateState = (videos) => {
         const runningVideo = videos.find((e) => e.running)
@@ -25,6 +27,7 @@ const VideoPage = (props) => {
         else {
             setRunning(false)
         }
+        setVideos(videos)
     }
 
     const onResolutionChange = (event) => {
@@ -53,10 +56,11 @@ const VideoPage = (props) => {
                 setRunning(false)
                 break
         }
-        console.log(res)
+
     }
 
     const onStop = async (_) => {
+        console.log('Stop pressed: ' + moment().format('DD/MM/YYYY HH:mm:ss.SSS'))
         setLoading(true)
         const res = await stopVideo()
         setLoading(false)
@@ -116,7 +120,7 @@ const VideoPage = (props) => {
             <div className="control__error">
                 <FormHelperText error={error != undefined}>{loading ? 'Loading...' : error}</FormHelperText>
             </div>
-            <VideoList />
+            <VideoList videos={videos} />
 
         </>
     )

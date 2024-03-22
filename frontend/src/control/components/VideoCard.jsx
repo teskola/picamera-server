@@ -5,9 +5,11 @@ import { Button, Card, InputAdornment, TextField, Typography } from '@mui/materi
 import './VideoCard.css'
 import { useRef } from 'react';
 import moment from 'moment';
+import DurationClock from './DurationClock';
+import { durationString } from '../../utilities';
 
 const VideoCard = (props) => {
-    const pathRef = useRef()
+    const pathRef = useRef()    
 
     // https://stackoverflow.com/questions/15900485/correct-way-to-convert-size-in-bytes-to-kb-mb-gb-in-javascript
 
@@ -21,20 +23,6 @@ const VideoCard = (props) => {
         const i = Math.floor(Math.log(bytes) / Math.log(k))
 
         return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
-    }
-
-    const duration = () => {
-        var milliseconds = 1000 * (props.video.stopped - props.video.started)
-        var duration = moment.duration(milliseconds);
-        return moment.utc(duration.asMilliseconds()).format('HH:mm:ss')
-    }
-
-    const quality = {
-        1: "Very low",
-        2: "Low",
-        3: "Medium",
-        4: "High",
-        5: "Very High"
     }
 
     return (
@@ -65,7 +53,11 @@ const VideoCard = (props) => {
                         <div className='video-card__info--column'>
                             <Typography variant='caption'>: {moment.unix(props.video.started).format('DD/MM/YYYY HH:mm:ss')}</Typography>
                             <Typography variant='caption'>: {moment.unix(props.video.stopped).format('DD/MM/YYYY HH:mm:ss')}</Typography>
-                            <Typography variant='caption'>: {duration()}</Typography>
+                            {props.video.stopped ?
+                                <Typography variant='caption'>: {durationString({end: props.video.stopped, start: props.video.started})}
+                                </Typography> : 
+                                <DurationClock prefix=': ' start={props.video.started}/>
+                            }
                             <Typography variant='caption'>: {formatBytes(props.video.size)}</Typography>
                         </div>
 
@@ -75,7 +67,7 @@ const VideoCard = (props) => {
                 <div className='video-card__btns_status'>
                     <div className='video-card__card__btns_status--buttons'>
                         <Button style={{ minWidth: '102px', }} startIcon={<CloudUploadIcon />}>Upload</Button>
-                        <Button style={{ minWidth: '102px', }} color='error' startIcon={<DeleteOutlinedIcon />}>Delete</Button>
+                        <Button style={{ minWidth: '102px', }} onClick={props.onDelete} color='error' startIcon={<DeleteOutlinedIcon />}>Delete</Button>
                     </div>
                     <div className='video-card__btns_status--status'>
                         <Typography variant='caption'>Stopped.</Typography>

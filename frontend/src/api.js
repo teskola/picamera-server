@@ -88,3 +88,22 @@ export const stopVideo = async () => {
         return {status: 500}
     }
 }
+
+export const deleteVideo = async (id) => {
+    try {
+        const res = await fetch(
+            `http://${import.meta.env.VITE_RASPBERRY_URL}:${import.meta.env.VITE_PORT}/api/video/delete/id`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+        }
+        )
+        return {body: await res.json(), status: res.status}
+    }
+    catch (err) {
+        console.log(err)
+        return {status: 500}
+    }
+}

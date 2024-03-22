@@ -393,7 +393,7 @@ class Camera:
                     "status": self.status(),
                     "id": id}
         if self.find_recording_video() == id:
-            return {"error": "Video recording.",
+            return {"error": {"running_error": "Video recording."},
                     "status": self.status(),
                     "id": id}
         self.videos.remove(video)  
@@ -432,17 +432,21 @@ class Camera:
        
 
     def recording_stop(self) -> dict:
+        logging.info('Running check.')
         if not self.recording_running():
             logging.warn("Recording not running.")
             return {"error": {"running_error": "Not recording."},
                 "status": self.status()}
+        logging.info('Find video instance.')
         video = self.find_video_by_id(self.find_recording_video())
+        logging.info('Preview check')
         preview_running = self.preview_running()
+        logging.info('Stopping...')
         self.picam2.stop_encoder()
+        logging.info("Recording stopped.")      
         self.picam2.stop()
         video.stopped = time.time()
         video.data.seek(0)
-        logging.info("Recording stopped.")        
         self.configure_still()
 
         if preview_running:            

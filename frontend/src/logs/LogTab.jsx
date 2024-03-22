@@ -1,5 +1,13 @@
+import '../App.css'
 const LogTab = () => {
-    return (<h2>Logs</h2>)
+    return (
+        <>
+            <div className='header'></div>
+            <div>
+                <h2>Logs</h2>
+
+            </div>
+        </>)
 }
 
 export default LogTab
