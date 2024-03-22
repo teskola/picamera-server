@@ -4,7 +4,7 @@ const { v1 } = require('uuid')
 
 
 const videoStart = async (req, res) => {
-    console.log('Start received: ' + (new Date().toLocaleDateString()))
+    console.log('Start received: ' + (moment().format('DD/MM/YYYY HH:mm:ss.SSS')))
 
     const { resolution, quality } = req.body
 
@@ -25,7 +25,7 @@ const videoStart = async (req, res) => {
         resolution: resolution,
         quality: quality
     }
-    console.log('Validation done: ' + (new Date().toLocaleDateString()))
+    console.log('Validation done: ' + (moment().format('DD/MM/YYYY HH:mm:ss.SSS')))
 
     try {
         const response = await video.start(params)
