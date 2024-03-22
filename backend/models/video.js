@@ -1,5 +1,5 @@
 const socket = require('../socket')
-const { request } = require('../stream')
+const { requestStream } = require('../stream')
 
 const video = {
     upload: (id, name) => new Promise((resolve, reject) => {
@@ -18,7 +18,7 @@ const video = {
         }
     }),
     stop: () => new Promise(async (resolve, reject) => {
-        const conn = await request.getConnection()
+        const conn = await requestStream.getConnection()
         const req = conn.write(JSON.stringify({ action: 'video_stop' }))
         if (req) {
             conn.once('data', (stream) => {

@@ -55,8 +55,8 @@ class PreviewStream {
     }
 }
 
-const preview = new PreviewStream()
-const request = new RequestStream()
+const previewStream = new PreviewStream()
+const requestStream = new RequestStream()
 
 
-module.exports = {preview, request} 
+module.exports = {previewStream, requestStream} 

@@ -1,4 +1,4 @@
-const {preview} = require('../stream')
+const {previewStream} = require('../stream')
 
 const addListener = (req, res) => {
 
@@ -18,9 +18,9 @@ const addListener = (req, res) => {
         'Pragma': 'no-cache'
     })
 
-    preview.start(listener)
+    previewStream.start(listener)
     res.on('close', () => {
-        preview.stop(listener)
+        previewStream.stop(listener)
         res.end()        
     })
 }
