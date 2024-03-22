@@ -1,4 +1,4 @@
-import { handleRequest } from './handle_request';
+const { handleRequest } = require('./handle_request')
 
 const preview = {
     start: () => handleRequest({ action: 'preview_start' }),
