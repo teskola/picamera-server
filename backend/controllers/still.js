@@ -1,6 +1,7 @@
-import { object, number, string, boolean } from 'joi'
-import { start, stop } from '../models/still'
+const Joi = require('joi')
+const still = require('../models/still')
 import handleResponse from './handle_response'
+
 
 
 const stillStart = async (req, res) => {
