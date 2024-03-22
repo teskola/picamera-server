@@ -33,8 +33,8 @@ const video = {
             })
         }
     }),
-    start: (params) => new Promise((resolve, reject) => {
-        const conn = socket.connect()
+    start: (params) => new Promise(async (resolve, reject) => {
+        const conn = await socket.connect()
         const req = conn.write(JSON.stringify(params))
         if (req) {
             conn.once('data', (stream) => {
