@@ -36,7 +36,7 @@ const stillStart = async (req, res) => {
 
 const stillStop = async (req, res) => handleResponse({res: res, func: still.stop})
 
-export default {
+module.exports = {
     stillStart,
     stillStop
 }
