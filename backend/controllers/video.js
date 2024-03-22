@@ -1,7 +1,7 @@
 const Joi = require('joi')
 const video = require('../models/video')
 const { v1 } = require('uuid')
-const { handleResponse } = require('./handle_response')
+const handleResponse = require('./handle_response')
 
 
 const videoStart = async (req, res) => {
@@ -25,7 +25,8 @@ const videoStart = async (req, res) => {
         quality: quality
     }
 
-    return await handleResponse({ res: res, func: video.start, params: params })
+
+    return handleResponse({ res: res, func: video.start, params: params })
 
 }
 
