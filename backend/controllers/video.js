@@ -26,7 +26,6 @@ const videoStart = async (req, res) => {
         resolution: resolution,
         quality: quality
     }
-    console.log('Validation done: ' + (moment().format('DD/MM/YYYY HH:mm:ss.SSS')))
 
     try {
         const response = await video.start(params)
