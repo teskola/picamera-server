@@ -1,13 +1,33 @@
 const preview = require("./models/preview")
 const socket = require("./socket")
 
-class Stream {
+class RequestStream {
+    constructor() {
+        this.socket = []
+        this.#addConnection()
+    }
+    #addConnection = async () => {
+        this.socket.push(await socket.connect())
+        console.log('New request socket created.')
+    }
+
+    getConnection = async () => {
+        if (this.socket.length > 0) {
+            this.#addConnection()
+            return this.socket.pop()
+        } 
+        console.log('Socket is in use, create a new socket.')
+        return await socket.connect()
+    }
+}
+
+class PreviewStream {
     constructor() {
         this.connection = this.#createConnection()
     }
 
-    #createConnection = () => {
-        const conn = socket.connect()
+    #createConnection = async () => {
+        const conn = await socket.connect()
         const req = conn.write(JSON.stringify({ action: 'preview_listen' }), (err) => {
             if (err) {
                 console.log(err)
@@ -35,7 +55,8 @@ class Stream {
     }
 }
 
-const stream = new Stream()
+const preview = new PreviewStream()
+const request = new RequestStream()
 
 
-module.exports = stream 
+module.exports = {preview, request} 

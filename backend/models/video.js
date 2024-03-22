@@ -1,4 +1,5 @@
 const socket = require('../socket')
+const { request } = require('../stream')
 
 const video = {
     upload: (id, name) => new Promise((resolve, reject) => {
@@ -9,15 +10,15 @@ const video = {
             conn.once('data', (stream) => resolve(JSON.parse(stream.toString())))
         }
     }),
-    delete: (id) => new Promise((resolve, reject) => {
+    delete: (id) => new Promise( (resolve, reject) => {
         const conn = socket.connect()
         const req = conn.write(JSON.stringify({ action: 'video_delete', id: id }))
         if (req) {
             conn.once('data', (stream) => resolve(JSON.parse(stream.toString())))
         }
     }),
-    stop: () => new Promise((resolve, reject) => {
-        const conn = socket.connect()
+    stop: () => new Promise(async (resolve, reject) => {
+        const conn = await request.getConnection()
         const req = conn.write(JSON.stringify({ action: 'video_stop' }))
         if (req) {
             conn.once('data', (stream) => {
