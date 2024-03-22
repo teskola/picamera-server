@@ -5,4 +5,4 @@ const preview = {
     stop: () => handleRequest({ action: 'preview_stop' })
 }
 
-export default preview
+module.exports = preview
