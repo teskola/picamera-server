@@ -1,19 +1,19 @@
 const Joi = require('joi')
 const still = require('../models/still')
-import handleResponse from './handle_response'
+const handleResponse = require('./handle_response')
 
 
 
 const stillStart = async (req, res) => {
 
     const { interval, name, limit, full_res, epoch, delay } = req.body
-    const schema = object({
-        interval: number().integer().min(1).max(60 * 60 * 6).required(),
-        name: string().min(1).max(70).required(),
-        limit: number().integer().min(0).max(32768).required(),
-        full_res: boolean().required(),
-        epoch: number().integer().min(Math.floor(Date.now() / 1000)).max(2147483648).optional(),
-        delay: number().min(1).max(32768).optional()
+    const schema = Joi.object({
+        interval: Joi.number().integer().min(1).max(60 * 60 * 6).required(),
+        name: Joi.string().min(1).max(70).required(),
+        limit: Joi.number().integer().min(0).max(32768).required(),
+        full_res: Joi.boolean().required(),
+        epoch: Joi.number().integer().min(Math.floor(Date.now() / 1000)).max(2147483648).optional(),
+        delay: Joi.number().min(1).max(32768).optional()
     }).xor('epoch', 'delay').options({ abortEarly: false })
 
     const { error } = schema.validate(req.body)
@@ -30,11 +30,11 @@ const stillStart = async (req, res) => {
         delay: delay ?? null
     }
 
-    return handleResponse({res: res, func: start, params: params})  
+    return handleResponse({res: res, func: still.start, params: params})  
 
 }
 
-const stillStop = async (req, res) => handleResponse({res: res, func: stop})
+const stillStop = async (req, res) => handleResponse({res: res, func: still.stop})
 
 export default {
     stillStart,
