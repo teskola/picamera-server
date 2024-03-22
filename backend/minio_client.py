@@ -6,6 +6,7 @@ from minio import Minio
 from minio.error import S3Error
 from minio.helpers import ObjectWriteResult
 from dotenv import load_dotenv
+from urllib3.exceptions import MaxRetryError
 
 class MinioClient:
     def result_dict(self, result : ObjectWriteResult):
@@ -42,12 +43,13 @@ class MinioClient:
             return self.result_dict(result)
         except S3Error as e:
             logging.error("Image upload failed: %s", str(e))
+        except MaxRetryError as e:
+            logging.error("Image upload failed: %s", str(e))
         finally:
             data.seek(0)
             data.truncate()
     
     def upload_video(self, data : io.BytesIO, filename : str, on_complete, args : str):
-        # TODO: connection error
         # What happens if delete while uploading?
         # TODO: prevent multiple uploads of same data
         logging.info("Uploading video...")
@@ -59,6 +61,8 @@ class MinioClient:
             result.object_name, result.etag)
             return self.result_dict(result)
         except S3Error as e:
+            logging.error("Video upload failed: %s", str(e))
+        except MaxRetryError as e:
             logging.error("Video upload failed: %s", str(e))
         finally:            
             on_complete(args)

@@ -39,7 +39,6 @@ const VideoPage = (props) => {
     }
 
     const onStart = async (_) => {
-        console.log('Start pressed: ' + moment().format('DD/MM/YYYY HH:mm:ss.SSS'))
         setLoading(true)
         const res = await startVideo({ resolution: resolution, quality: quality })
         setLoading(false)
@@ -61,7 +60,6 @@ const VideoPage = (props) => {
     }
 
     const onStop = async (_) => {
-        console.log('Stop pressed: ' + moment().format('DD/MM/YYYY HH:mm:ss.SSS'))
         setLoading(true)
         const res = await stopVideo()
         setLoading(false)

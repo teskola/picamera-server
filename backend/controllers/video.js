@@ -1,11 +1,10 @@
 const Joi = require('joi')
 const video = require('../models/video')
 const { v1 } = require('uuid')
-const moment = require('moment');
+const { handleResponse } = require('./handle_response')
 
 
 const videoStart = async (req, res) => {
-    console.log('Start received: ' + (moment().format('DD/MM/YYYY HH:mm:ss.SSS')))
 
     const { resolution, quality } = req.body
 
@@ -21,99 +20,30 @@ const videoStart = async (req, res) => {
     }
 
     const params = {
-        action: 'video_start',
         id: v1(),
         resolution: resolution,
         quality: quality
     }
 
-    try {
-        const response = await video.start(params)
-        if (response) {
-            return res.send(response)
-        } else {
-            throw new Error('Null response.')
-        }
+    return handleResponse({ res: res, func: video.start, params: params })
 
-    }
-    catch (response) {
-        if (response.error?.running_error) {
-            return res.status(409).send(response)
-        }
-        else {
-            console.log(response)
-            return res.status(500).send()
-        }
-    }
 }
 
-const videoStop = async (req, res) => {
-    try {
-        const response = await video.stop()
-        if (response) {
-            return res.send(response)
-        } else {
-            throw new Error('Null response.')
-        }
-
-    }
-    catch (response) {
-        if (response.error?.running_error) {
-            return res.status(409).send(response)
-        }
-        else {
-            console.log(response)
-            return res.status(500).send()
-        }
-    }
-}
+const videoStop = async (req, res) => handleResponse({ res: res, func: video.stop })
 
 const videoUpload = async (req, res) => {
 
     const { name } = req.body
-
-    try {
-        const response = await video.upload(req.params.id, name)
-        if (response) {
-            return res.send(response)
-        } else {
-            throw new Error('Null response.')
-        }
-
+    const params = {
+        id: req.params.id,
+        name: name
     }
-    catch (response) {
-        if (response.error?.running_error) {
-            return res.status(409).send(response)
-        }
-        else {
-            console.log(response)
-            return res.status(500).send()
-        }
-    }
+
+    return handleResponse({ res: res, func: video.upload, params: params })
 
 }
 
-const videoDelete = async (req, res) => {
-    try {
-        const response = await video.delete(req.params.id)
-        if (response) {
-            return res.send(response)
-        } else {
-            throw new Error('Null response.')
-        }
-
-    }
-    catch (response) {
-        if (response.error?.running_error) {
-            return res.status(409).send(response)
-        }
-        else {
-            console.log(response)
-            return res.status(500).send()
-        }
-    }
-
-}
+const videoDelete = async (req, res) => handleResponse({ res: res, func: video.delete })
 
 
 module.exports = {

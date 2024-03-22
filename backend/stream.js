@@ -1,4 +1,4 @@
-const preview = require("./models/preview")
+const preview = require("./models/preview").default
 const socket = require("./socket")
 
 class Stream {

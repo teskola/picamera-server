@@ -3,13 +3,14 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import { Button, Card, InputAdornment, TextField, Typography } from '@mui/material';
 import './VideoCard.css'
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import moment from 'moment';
 import DurationClock from './DurationClock';
 import { durationString } from '../../utilities';
 
 const VideoCard = (props) => {
-    const pathRef = useRef()    
+    const pathRef = useRef()
+    const [deleting, setDeleting] = useState(false)
 
     // https://stackoverflow.com/questions/15900485/correct-way-to-convert-size-in-bytes-to-kb-mb-gb-in-javascript
 
@@ -25,8 +26,13 @@ const VideoCard = (props) => {
         return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
     }
 
+    const onDelete = () => {
+        setDeleting(true)
+        props.onDelete()
+    }
+
     return (
-        <Card>
+        <Card style={{ backgroundColor: deleting ? "rgba(255, 0, 0, 0.5)" : "transparent" }}>
             <div className='video-card__container'>
                 <div className='video-card__icon'>
                     <VideocamOutlinedIcon fontSize='large' />
@@ -54,9 +60,9 @@ const VideoCard = (props) => {
                             <Typography variant='caption'>: {moment.unix(props.video.started).format('DD/MM/YYYY HH:mm:ss')}</Typography>
                             <Typography variant='caption'>: {moment.unix(props.video.stopped).format('DD/MM/YYYY HH:mm:ss')}</Typography>
                             {props.video.stopped ?
-                                <Typography variant='caption'>: {durationString({end: props.video.stopped, start: props.video.started})}
-                                </Typography> : 
-                                <DurationClock prefix=': ' start={props.video.started}/>
+                                <Typography variant='caption'>: {durationString({ end: props.video.stopped, start: props.video.started })}
+                                </Typography> :
+                                <DurationClock prefix=': ' start={props.video.started} />
                             }
                             <Typography variant='caption'>: {formatBytes(props.video.size)}</Typography>
                         </div>

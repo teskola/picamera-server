@@ -1,32 +1,8 @@
-const socket = require('../socket')
+import { handleRequest } from './handle_request';
 
 const preview = {
-    start: () => new Promise((resolve, reject) => {
-        const conn = socket.connect()
-        const req = conn.write(JSON.stringify({ action: 'preview_start' }), (err) => {
-            if (err) {
-                reject(err)
-            }
-        });
-        if (req) {
-            conn.once('data', (stream) => {                
-                resolve(JSON.parse(stream.toString()))
-            })
-        }
-    }),
-    stop: () => new Promise((resolve, reject) => {
-        const conn = socket.connect()
-        const req = conn.write(JSON.stringify({ action: 'preview_stop' }), (err) => {
-            if (err) {
-                reject(err)
-            }
-        });
-        if (req) {
-            conn.once('data', (stream) => {                
-                resolve(JSON.parse(stream.toString()))
-            })
-        }
-    })
+    start: () => handleRequest({ action: 'preview_start' }),
+    stop: () => handleRequest({ action: 'preview_stop' })
 }
 
-module.exports = preview
+export default preview

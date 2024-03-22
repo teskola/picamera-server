@@ -1,37 +1,8 @@
-const socket = require('../socket')
+const { handleRequest } = require('./handle_request')
 
 const still = {
-    stop: () => new Promise((resolve, reject) => {
-        const conn = socket.connect()
-        const req = conn.write(JSON.stringify({ action: 'still_stop' }))
-        if (req) {
-            conn.once('data', (stream) => {                
-                result = JSON.parse(stream.toString())
-                if (result.error) {
-                    reject(result)
-                }
-                else {
-                    resolve(result)
-                }
-            })
-        }
-    }),
-    start: (params) => new Promise((resolve, reject) => {
-        const conn = socket.connect()
-        const req = conn.write(JSON.stringify(params))
-        if (req) {
-            conn.once('data', (stream) => {                
-                result = JSON.parse(stream.toString())
-                if (result.error) {
-                    reject(result)
-                }
-                else {
-                    resolve(result)
-                }
-            })
-        }
-    })
-
+    stop: () => handleRequest({ action: 'still_stop' }),
+    start: (params) => handleRequest({ action: 'still_start', params: params })
 }
 
 module.exports = still

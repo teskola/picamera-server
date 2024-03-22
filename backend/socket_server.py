@@ -2,7 +2,6 @@ import socketserver
 import logging
 import json
 import traceback
-import time
 from pprint import pformat
 from minio_client import MinioClient
 from camera import Camera, Resolutions
@@ -122,7 +121,6 @@ class CameraHandler(socketserver.StreamRequestHandler):
             logging.info(f"{self.client_address[1]}:\n" + pformat(data))
             response = self.action(data)   
             self.wfile.write(json.dumps(response).encode())
-            time.sleep(10)
             
         except Exception as exc:   
             logging.error(f"{str(exc)}:\n-----ERROR START--------------\n {traceback.format_exc()} \n--------ERROR STOP------------\n")
