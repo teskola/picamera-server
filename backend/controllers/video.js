@@ -24,10 +24,7 @@ const videoStart = async (req, res) => {
         resolution: resolution,
         quality: quality
     }
-
-
     return handleResponse({ res: res, func: video.start, params: params })
-
 }
 
 const videoStop = async (req, res) => handleResponse({ res: res, func: video.stop })

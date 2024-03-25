@@ -123,7 +123,7 @@ class CameraHandler(socketserver.StreamRequestHandler):
             self.wfile.write(json.dumps(response).encode())
             
         except Exception as exc:   
-            logging.error(f"{str(exc)}:\n-----ERROR START--------------\n {traceback.format_exc()} \n--------ERROR STOP------------\n")
+            logging.error(f"{str(exc)}:\n--------ERROR START--------------\n {traceback.format_exc()} \n--------ERROR STOP------------\n")
             self.wfile.write(json.dumps({"error": {type(exc).__name__: str(exc)}}).encode())
 
 def run_server():          
