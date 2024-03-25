@@ -54,6 +54,7 @@ class Still:
         self.count = 0
         self.event = None
         self.started = time.time()
+        self.previous = None
         self.stopped = None
     
     def fill(self):
@@ -71,6 +72,7 @@ class Still:
                 'running': self.running(),
                 'started': self.started,
                 'stopped': self.stopped,
+                'previous': self.previous,
                 'next': self.next()
             }
     
@@ -109,7 +111,8 @@ class Still:
             upload_name = upload_name.replace('[count]', str(self.count))
         else:
             upload_name = upload_name.replace('[count]', str(self.count).zfill(self.fill()))
-        capture(upload, upload_name, self.full_res, self.keep_alive())   
+        capture(upload, upload_name, self.full_res, self.keep_alive())
+        self.previous = time.time()   
         if self.limit != 0 and self.count == self.limit and self.keep_alive():
             self.stop(stop)
 
