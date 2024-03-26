@@ -91,25 +91,27 @@ const StillStatus = (props) => {
 
     return (
         <div className='status__container'>
-            <div className='status__title'>
-                <ScheduleIcon /><span>Still scheduler</span>
-            </div>
-            <div className="status__table">
-                <div className="status__column-key">
-                    <Typography variant='caption'>Status</Typography>
-                    <Typography variant='caption'>Resolution</Typography>
-                    <Typography variant='caption'>Count</Typography>
-                    <Typography variant='caption'>Path</Typography>
-                    <Typography variant='caption'>Last capture</Typography>
-                    <Typography variant='caption'>Next capture</Typography>
+            <div className='status__content'>
+                <div className='status__title'>
+                    <ScheduleIcon /><span>Still scheduler</span>
                 </div>
-                <div className="status__column-value">
-                    <Typography variant='caption'>{running()}</Typography>
-                    <Typography variant='caption'>{resolution()}</Typography>
-                    <Typography variant='caption'>{count()}</Typography>
-                    <Typography variant='caption'>{props.status.name ? `still/${props.status.name}.jpg` : 'N/A'}</Typography>
-                    <Typography variant='caption'>{props.status.previous ? moment(moment.unix(props.status.previous)).fromNow() : 'N/A'}</Typography>
-                    <Typography variant='caption'>{props.status.next ? moment(moment.unix(props.status.next)).fromNow() : 'N/A'}</Typography>
+                <div className="status__table">
+                    <div className="status__column-key">
+                        <Typography variant='caption'>Status</Typography>
+                        <Typography variant='caption'>Resolution</Typography>
+                        <Typography variant='caption'>Count</Typography>
+                        <Typography variant='caption'>Path</Typography>
+                        <Typography variant='caption'>Last capture</Typography>
+                        <Typography variant='caption'>Next capture</Typography>
+                    </div>
+                    <div className="status__column-value">
+                        <Typography variant='caption'>{running()}</Typography>
+                        <Typography variant='caption'>{resolution()}</Typography>
+                        <Typography variant='caption'>{count()}</Typography>
+                        <Typography variant='caption'>{props.status.name ? `still/${props.status.name}.jpg` : 'N/A'}</Typography>
+                        <Typography variant='caption'>{props.status.previous ? moment(moment.unix(props.status.previous)).fromNow() : 'N/A'}</Typography>
+                        <Typography variant='caption'>{props.status.next ? moment(moment.unix(props.status.next)).fromNow() : 'N/A'}</Typography>
+                    </div>
                 </div>
             </div>
         </div>)

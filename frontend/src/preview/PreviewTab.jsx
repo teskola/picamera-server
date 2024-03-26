@@ -86,11 +86,11 @@ const PreviewTab = (props) => {
                     <span>Recording</span>
                 </div>
                 <div className='preview-status'>
-                    <span>FPS: {frameDurationToFPS(props.status.metadata.FrameDuration)}</span>
+                    <span>FPS: {props.status?.metadata?.FrameDuration ? frameDurationToFPS(props.status.metadata.FrameDuration) : 'N/A'}</span>
                     <span>Watching: 0</span>
                 </div>
             </div>
-            <StillStatus status={props.status.still}/>
+            <StillStatus status={props.status?.still ?? {}}/>
         </>)
 }
 

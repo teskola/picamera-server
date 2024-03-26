@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import "../ControlTab.css"
 import { FormHelperText, MenuItem, TextField } from "@mui/material"
 import { startVideo, stopVideo } from "../../api";
@@ -20,17 +20,22 @@ const VideoPage = (props) => {
         updateState(props.videos)        
       }, []);
 
-    const updateState = (videos) => {
-        const runningVideo = videos.find((e) => e.running)
+    const updateState = (v) => {
+        let runningVideo
+        if (v.length > 0) {
+            runningVideo = v.find((e) => e.running)
+        }
+        
         if (runningVideo) {
             setRunning(true)
             setResolution(runningVideo.resolution)
             setQuality(runningVideo.quality)
+            
         }
         else {
             setRunning(false)
         }
-        setVideos(videos)
+        setVideos(v)
     }
 
     const onResolutionChange = (event) => {
@@ -122,7 +127,7 @@ const VideoPage = (props) => {
             <div className="control__error">
                 <FormHelperText error={error != undefined}>{loading ? 'Loading...' : error}</FormHelperText>
             </div>
-            <VideoList videos={videos} />
+            <VideoList videos={props.videos} />
 
         </>
     )

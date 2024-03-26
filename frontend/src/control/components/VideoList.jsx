@@ -10,7 +10,7 @@ const VideoList = (props) => {
 
     return (
         <ul className="video__list">
-            {props.videos?.map((video) => (
+            {props.videos.length > 0 && props.videos?.map((video) => (
                 <li key={video.id} className="video__list-item">
                     <VideoCard video={video} onDelete={onDelete} />
                 </li>
