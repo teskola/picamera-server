@@ -181,7 +181,7 @@ class CameraHandler(server.BaseHTTPRequestHandler):
     def do_GET(self):   
         if self.path == '/status':
             camera.lock.acquire()
-            cam_response = camera.status()
+            cam_response = camera.get_status()
             camera.lock.release()
             if "error" in cam_response:
                 code = 500

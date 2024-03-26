@@ -2,6 +2,7 @@ import socketserver
 import logging
 import json
 import traceback
+import threading
 from pprint import pformat
 from minio_client import MinioClient
 from camera import Camera, Resolutions
@@ -13,8 +14,12 @@ logging.basicConfig(
     level=logging.INFO,
     datefmt='%Y-%m-%d %H:%M:%S')
 
-camera = Camera()
+status_condition = threading.Condition()
+status = []
+
+camera = Camera(condition=status_condition, status=status)
 minio = MinioClient()
+
 
 class CameraServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     allow_reuse_address = True
@@ -51,7 +56,7 @@ class CameraHandler(socketserver.StreamRequestHandler):
     def action(self, data) -> dict:
         if (data["action"] == 'status'):
             camera.lock.acquire()
-            response = camera.status()
+            response = camera.get_status()
             camera.lock.release()
             return response
         if (data["action"] == 'still_start'):            
@@ -109,6 +114,15 @@ class CameraHandler(socketserver.StreamRequestHandler):
                     camera.streaming_output.condition.wait()
                     frame = camera.streaming_output.frame
                 self.wfile.write(frame)
+        if (data["action"] == 'status_listen'):
+            while True:
+                with status_condition:
+                    while not status:
+                        status_condition.wait()
+                    data = status.pop(0)
+                    self.wfile.write(json.dumps(data).encode())
+
+
 
         else:
             logging.error(f'unkown command: {data["action"]}')

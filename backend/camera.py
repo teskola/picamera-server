@@ -2,7 +2,6 @@ import logging
 import io
 import sched
 import time
-import traceback
 from datetime import datetime
 from pprint import pformat
 from threading import Condition, Lock, Thread
@@ -164,16 +163,22 @@ class Camera:
                     self.picam2.create_video_configuration(
                         main={"size": Resolutions.P480},
                         lores={"size": Resolutions.STREAM_4_3},
+                        display=None,
+                        encode=None
                     ),
                 '720p':
                     self.picam2.create_video_configuration(
                         main={"size": Resolutions.P720},
                         lores={"size": Resolutions.STREAM_16_9},
+                        display=None,
+                        encode=None
                     ),
                 '1080p':
                     self.picam2.create_video_configuration(
                         main={"size": Resolutions.P1080},
                         lores={"size": Resolutions.STREAM_16_9},
+                        display=None,
+                        encode=None
                     ),
             }
             ,
@@ -183,14 +188,18 @@ class Camera:
                     main={"size": Resolutions.HALF},
                     lores={"size": Resolutions.STREAM_4_3},
                     controls={"FrameDurationLimits": (33333, 33333)},
-                    buffer_count = 6,
+                    buffer_count = 4,
+                    display=None,
+                    encode=None
                 ),
                 'full':
                    self.picam2.create_still_configuration(
                     main={"size": Resolutions.FULL},
                     lores={"size": Resolutions.STREAM_4_3},
                     controls={"FrameDurationLimits": (100000, 100000)},
-                    buffer_count = 6
+                    buffer_count = 4,
+                    display=None,
+                    encode=None
                    )               
                 
             },
@@ -213,14 +222,16 @@ class Camera:
                     controls={"FrameDurationLimits": (33333, 33333)},
                     display=None,
                     encode=None,
-                    buffer_count = 6
+                    buffer_count = 4
                 )
             
               
                                     
         }          
    
-    def __init__(self) -> None:
+    def __init__(self, condition : Condition, status : list) -> None:
+        self.condition = condition
+        self.status = status
         self.picam2 = Picamera2()        
         self.configurations = self._create_configurations()
         self.encoders = {'preview': MJPEGEncoder(bitrate=STREAM_BITRATE), 'video': H264Encoder()}
@@ -243,7 +254,10 @@ class Camera:
                 return video.id
         raise LookupError('Recording video not found in videos list.')
         
-        
+    def notify_status_listeners(self):
+        with self.condition:
+            self.status.append(self.get_status())
+            self.condition.notify_all()
 
     def current_resolution(self):
         if self.picam2.camera_configuration() is None:
@@ -255,7 +269,7 @@ class Camera:
         logging.info(pformat(self.picam2.camera_configuration()))
         self.picam2.start()
         time.sleep(1)     
-        logging.info(pformat(self.status()))   
+        logging.info(pformat(self.get_status()))   
         logging.info(self.picam2.capture_metadata())
         """ started = time.time()
         for i in range (30):
@@ -329,7 +343,7 @@ class Camera:
         self.picam2.stop()
         self.picam2.close()
     
-    def status(self):
+    def get_status(self):
         result = {"video": [],
                     "still": {},
                     "preview": {}}        
@@ -355,7 +369,7 @@ class Camera:
 
         if self.still is not None and self.still.running():
             return {"error": {"running_error": "Still already running."},
-                    "status": self.status()}
+                    "status": self.get_status()}
         
         self.still = Still(
             limit=limit, 
@@ -368,7 +382,8 @@ class Camera:
             capture=self.capture_still, 
             stop=self.reconfig_after_stop,
             upload=upload)
-        return {"status": self.status()}        
+        self.notify_status_listeners()
+        return {"status": self.get_status()}        
         
         
     def reconfig_after_stop(self):
@@ -383,26 +398,28 @@ class Camera:
     def still_stop(self) -> dict:
         if self.still is None or not self.still.running():
             return {"error": {"running_error": "Still not running."},
-                    "status": self.status()}
+                    "status": self.get_status()}
         else:
             self.still.stop(self.reconfig_after_stop) 
-            return  {"status": self.status()}
+            self.notify_status_listeners()
+            return  {"status": self.get_status()}
          
     
     def delete_video(self, id: str):
         video = self.find_video_by_id(id)
         if video is None:
             return {"error": "Video not found.",
-                    "status": self.status(),
+                    "status": self.get_status(),
                     "id": id}
         if self.find_recording_video() == id:
             return {"error": {"running_error": "Video recording."},
-                    "status": self.status(),
+                    "status": self.get_status(),
                     "id": id}
         self.videos.remove(video)  
         del video   
         logging.info(f"Video deleted: {id}")
-        return {"status": self.status(),
+        self.notify_status_listeners()
+        return {"status": self.get_status(),
                 "id": id}
         
 
@@ -412,7 +429,7 @@ class Camera:
         if self.recording_running():
             logging.warn("Recording already running.")
             return {"error": {"running_error": "Already recording."},
-                    "status": self.status(),
+                    "status": self.get_status(),
                     "id": id}
         preview_paused = False
         if self.preview_running():
@@ -429,8 +446,9 @@ class Camera:
         logging.info(f"Started recording video: {video.id}")
         if preview_paused:
             self._start_preview_encoder()
-            logging.info("Preview resumed.")        
-        return {"status": self.status(),
+            logging.info("Preview resumed.")   
+        self.notify_status_listeners()     
+        return {"status": self.get_status(),
                 "id": id}
        
 
@@ -438,7 +456,7 @@ class Camera:
         if not self.recording_running():
             logging.warn("Recording not running.")
             return {"error": {"running_error": "Not recording."},
-                "status": self.status()}
+                "status": self.get_status()}
         video = self.find_video_by_id(self.find_recording_video())
         preview_running = self.preview_running()
         self.picam2.stop_encoder()
@@ -452,9 +470,9 @@ class Camera:
             self._start_preview_encoder()
             logging.info("Preview resumed.")
             self.picam2.start()
-        
+        self.notify_status_listeners()
         return {
-                "status": self.status()}
+                "status": self.get_status()}
              
              
     def capture_still(self, upload, name, full_res : bool = False, keep_alive : bool = False) -> io.BytesIO:
@@ -470,7 +488,8 @@ class Camera:
         request.save("main", data, format='jpeg')
         request.release()
         data.seek(0)
-        upload(data, name)       
+        upload(data, name)
+        self.notify_status_listeners()    
 
     def preview_start(self) -> bool:
         if self.preview_running():
@@ -480,7 +499,8 @@ class Camera:
             self.configure_still()
         self._start_preview_encoder()
         self.picam2.start()
-        logging.info("Preview started.")            
+        logging.info("Preview started.")       
+        self.notify_status_listeners()     
         return True   
 
     def preview_stop(self) -> bool:
@@ -491,7 +511,8 @@ class Camera:
         self.picam2.stop_encoder(encoders=[self.encoders["preview"]])
         logging.info("Preview stopped.")
         if not self.picam2.started:
-            self.picam2.stop()            
+            self.picam2.stop()   
+        self.notify_status_listeners()         
         return True
     
 
