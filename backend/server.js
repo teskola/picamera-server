@@ -6,7 +6,7 @@ const socket = require("./socket")
 
 const io = new Server(server, {
   cors: {
-    origin: ["http://192.168.1.129:5000"]
+    origin: ["http://localhost:5173"]
   }
 });
 
