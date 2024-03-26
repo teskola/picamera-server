@@ -4,7 +4,7 @@ class StatusListener {
     constructor() {
         this.connection = this.#createConnection()
         this.connection.on('data', (stream) => {
-            console.log(stream)
+            console.log(stream.toString())
         })
     }
 
