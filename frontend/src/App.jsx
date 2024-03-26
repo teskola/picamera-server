@@ -8,16 +8,16 @@ import { getStatus } from './api'
 
 
 function App() {
- 
 
   useEffect(() => {
-    const intervalId = setInterval(async () => {
+    const fetch = async () => {
       const s = await getStatus()
       console.log(s)
       setStatus(s)
-    }, 10000)
-    return () => clearInterval(intervalId)
-  }, [])
+    }
+    fetch()
+
+  }, []);  
 
   const [status, setStatus] = useState()
 
