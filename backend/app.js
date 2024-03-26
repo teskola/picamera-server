@@ -7,7 +7,6 @@ const status = require('./routes/status')
 const still = require('./routes/still')
 const video = require('./routes/video')
 const preview_route = require("./routes/preview")
-const status_listener = require('./status_listener')
 
 app.use(
     cors({
