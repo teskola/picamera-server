@@ -1,11 +1,16 @@
 const express = require("express")
 const cors = require("cors")
 const app = express();
+const http = require('http');
+const server = http.createServer(app);
+
 const status = require('./routes/status')
 const still = require('./routes/still')
 const video = require('./routes/video')
 const preview_route = require("./routes/preview")
 const status_listener = require('./status_listener')
+
+const PORT = 5000;
 
 app.use(
     cors({
@@ -21,4 +26,6 @@ app.get("/health", (req, res) => {
     res.send("OK")
 });
 
-module.exports = app
+server.listen(PORT, () => {
+    console.log(`Backend is running on port ${PORT}`);
+  });
