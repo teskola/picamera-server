@@ -17,7 +17,7 @@ io.on('connection', (socket) => {
 const conn = socket.connect()
 conn.write(JSON.stringify({ action: 'status_listen' }))
 conn.on('data', (stream) => {
-  io.emit('status', stream.toJSON())
+  io.emit('status', JSON.parse(stream.toString()))
 })
 
 const PORT = 5000;
