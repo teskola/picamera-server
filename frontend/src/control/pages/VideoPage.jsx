@@ -5,8 +5,6 @@ import { startVideo, stopVideo } from "../../api";
 import StartButton from "../components/StartButton";
 import StopButton from "../components/StopButton";
 import VideoList from "../components/VideoList"
-import moment from "moment";
-
 
 const VideoPage = (props) => {
 
@@ -15,7 +13,12 @@ const VideoPage = (props) => {
     const [running, setRunning] = useState(false)
     const [error, setError] = useState()
     const [loading, setLoading] = useState(false)
-    const [videos, setVideos] = useState([])
+    const [videos, setVideos] = useState(props.videos)
+
+    useEffect(() => {        
+        console.log(props.videos)
+        updateState(props.videos)        
+      }, []);
 
     const updateState = (videos) => {
         const runningVideo = videos.find((e) => e.running)

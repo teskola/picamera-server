@@ -1,12 +1,8 @@
-import '../App.css'
-import './PreviewTab.css'
-import StillStatus from './StillStatus'
-const PreviewTab = (props) => {
-    const STREAM_URL = `http://${import.meta.env.VITE_RASPBERRY_URL}:${import.meta.env.VITE_PORT}/api/preview/live.mjpeg`
-
-    const frameDurationToFPS = (microseconds) => {
-        return (1000000 / microseconds).toFixed(2)
-    }
+import { Typography } from '@mui/material'
+import ScheduleIcon from '@mui/icons-material/Schedule';
+import moment from 'moment';
+import './StillStatus.css'
+const StillStatus = (props) => {
 
     const dummy = {
         "video": [{
@@ -74,24 +70,48 @@ const PreviewTab = (props) => {
         }
     }
 
+    const resolution = () => {
+        if (props.status.full_res == undefined) return 'N/A'
+        if (props.status.full_res) return '4056x3040'
+        return '2028x1520'
+    }
+
+    const count = () => {
+        if (props.status.count == undefined) return 'N/A'
+        if (props.status.limit == 0) return props.status.count
+        return `${props.status.count} / ${props.status.limit}`
+    }
+
+    const running = () => {
+        if (props.status.running) {
+            return `Running since ${moment(moment.unix(props.status.started)).fromNow()}`
+        }
+        return "Stopped."
+    }
 
     return (
-        <>
-            <div className='header' />
-            <div className='video-container'>
-                <div className='video'>
-                    <img src={STREAM_URL} width="640" />
+        <div className='status__container'>
+            <div className='status__title'>
+                <ScheduleIcon /><span>Still scheduler</span>
+            </div>
+            <div className="status__table">
+                <div className="status__column-key">
+                    <Typography variant='caption'>Status</Typography>
+                    <Typography variant='caption'>Resolution</Typography>
+                    <Typography variant='caption'>Count</Typography>
+                    <Typography variant='caption'>Path</Typography>
+                    <Typography variant='caption'>Last capture</Typography>
+                    <Typography variant='caption'>Next capture</Typography>
                 </div>
-                <div className='recording-text'>
-                    <span>Recording</span>
-                </div>
-                <div className='preview-status'>
-                    <span>FPS: {frameDurationToFPS(props.status.metadata.FrameDuration)}</span>
-                    <span>Watching: 0</span>
+                <div className="status__column-value">
+                    <Typography variant='caption'>{running()}</Typography>
+                    <Typography variant='caption'>{resolution()}</Typography>
+                    <Typography variant='caption'>{count()}</Typography>
+                    <Typography variant='caption'>{props.status.name ? `still/${props.status.name}.jpg` : 'N/A'}</Typography>
+                    <Typography variant='caption'>{props.status.previous ? moment(moment.unix(props.status.previous)).fromNow() : 'N/A'}</Typography>
+                    <Typography variant='caption'>{props.status.next ? moment(moment.unix(props.status.next)).fromNow() : 'N/A'}</Typography>
                 </div>
             </div>
-            <StillStatus status={props.status.still}/>
-        </>)
+        </div>)
 }
-
-export default PreviewTab
+export default StillStatus

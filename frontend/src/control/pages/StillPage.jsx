@@ -23,7 +23,7 @@ const StillPage = (props) => {
     const limitRef = useRef(0)
     const delayRef = useRef(1)
     const [epoch, setEpoch] = useState(moment())
-    const [running, setRunning] = useState(false)
+    const [running, setRunning] = useState(props.still.running)
     const [loading, setLoading] = useState(false)
 
     const unitToMultiplier = (value) => {

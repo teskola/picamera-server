@@ -1,18 +1,28 @@
+import { useEffect, useState } from 'react'
 import './App.css'
 import ControlTab from './control/ControlTab'
 import LogTab from './logs/LogTab'
 import PreviewTab from './preview/PreviewTab'
+import { getStatus } from './api'
 
 function App() {
+
+  useEffect(async () => {
+    const s = await getStatus()
+    console.log(s)
+    setStatus(s)
+  }, []);
+
+  const [status, setStatus] = useState()
 
 
   return (
     <>
       <div className='preview'>
-        <PreviewTab />
+        <PreviewTab status={status}/>
       </div>
       <div className='control'>
-        <ControlTab />
+        <ControlTab status={status}/>
       </div>
       <div className='log'>
         <LogTab />

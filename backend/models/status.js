@@ -1,22 +1,7 @@
-const socket = require('../socket')
+const { handleRequest } = require('./handle_request')
 
 const status = {
-    fetch: () => new Promise((resolve, reject) => {
-        const conn = socket.connect()
-        const req = conn.write(JSON.stringify({ action: 'status' }), (err) => {
-            if (err) {
-                reject(err)
-            }
-        });
-        if (req) {
-            const listener = (stream) => {
-                conn.off('data', listener)
-                conn.end()
-                resolve(JSON.parse(stream.toString()))
-            }
-            conn.on('data', listener)
-        }
-    })
+    fetch: () => handleRequest({action: 'status'})
 }
 
 module.exports = status

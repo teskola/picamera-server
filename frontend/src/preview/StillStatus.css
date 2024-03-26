@@ -1,0 +1,32 @@
+.status__container {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    align-items: center;
+}
+
+.status__title {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    margin: 8px;
+    align-items: center;
+    text-align: center;
+}
+
+.status__table {
+    display: flex;
+    flex-direction: row;
+    margin-top: 10px;
+}
+
+.status__column-key {
+    display: flex;
+    flex-direction: column;
+    width: 120px;
+}
+
+.status__column-value {
+    display: flex;
+    flex-direction: column;
+}

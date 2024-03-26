@@ -1,21 +1,9 @@
 const status = require('../models/status')
+const handleResponse = require('./handle_response')
 
-const getStatus = async (req, res) => {
-  try {
-    const response = await status.fetch()
-    if (response) {
-      return res.send(response)
-    } else {
-      throw new Error('Null response.')
-    }
+const getStatus = async (req, res) => handleResponse({res: res, func: status.fetch})
 
-  }
-  catch (err) {
-    console.log(err)
-    return res.status(500).send()
-  }
 
-}
 
 module.exports = {
   getStatus

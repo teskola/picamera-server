@@ -1,3 +1,7 @@
+export const getStatus = async () => {
+    const res = await fetch(`http://${import.meta.env.VITE_RASPBERRY_URL}:${import.meta.env.VITE_PORT}/api/status`)
+    return await res.json()
+}
 
 
 export const startStill = async ({ interval, path, limit, full_res, epoch, delay }) => {
