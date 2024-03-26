@@ -104,7 +104,6 @@ const StillPage = (props) => {
                 setRunningError('Something went wrong!')
                 break
         }
-        console.log(res)
 
     }
 
@@ -126,7 +125,6 @@ const StillPage = (props) => {
                 setRunning(true)
                 break
         }
-        console.log(res)
     }
 
     return (

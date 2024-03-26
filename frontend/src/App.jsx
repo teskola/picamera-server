@@ -4,22 +4,33 @@ import ControlTab from './control/ControlTab'
 import LogTab from './logs/LogTab'
 import PreviewTab from './preview/PreviewTab'
 import { getStatus } from './api'
+import { socket } from './socket'
 
 
 
 function App() {
 
+  const [status, setStatus] = useState()
+
+  const statusListener = (data) => {
+    console.log(data)
+    setStatus(data)
+  }
+
   useEffect(() => {
     const fetch = async () => {
       const s = await getStatus()
-      console.log(s)
       setStatus(s)
     }
     fetch()
+    socket.on('status', statusListener)
 
-  }, []);  
+    return () => {
+      socket.off('status', statusListener)
+    }
 
-  const [status, setStatus] = useState()
+
+  }, []);
 
 
   return (

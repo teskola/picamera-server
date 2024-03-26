@@ -1,10 +1,11 @@
 const socket = require("./socket")
+const io = require("./server")
 
 class StatusListener {
     constructor() {
         this.connection = this.#createConnection()
         this.connection.on('data', (stream) => {
-            console.log(stream.toString())
+            io.emit('status', stream.toJSON())
         })
     }
 
@@ -22,8 +23,8 @@ class StatusListener {
         }
     }
 
-    
-    
+
+
 }
 
 const status_listener = new StatusListener()

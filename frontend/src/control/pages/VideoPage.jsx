@@ -16,7 +16,6 @@ const VideoPage = (props) => {
     const [videos, setVideos] = useState(props.videos)
 
     useEffect(() => {        
-        console.log(props.videos)
         updateState(props.videos)        
       }, []);
 
@@ -85,7 +84,6 @@ const VideoPage = (props) => {
                 setRunning(false)
                 break
         }
-        console.log(res)
     }
 
 
