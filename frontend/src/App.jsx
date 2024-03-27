@@ -9,7 +9,17 @@ import { socket } from './socket'
 
 function App() {
 
-  const [status, setStatus] = useState()
+  const defaultStatus = {
+    "video": [],
+    "still": {},
+    "preview": {
+      "running": false
+    },
+    "running": false,
+    "recording": false
+  }
+
+  const [status, setStatus] = useState(defaultStatus)
 
   const statusListener = (data) => {
     console.log(data)

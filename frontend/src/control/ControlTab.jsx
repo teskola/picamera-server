@@ -13,9 +13,9 @@ const ControlTab = (props) => {
         </div>
         <div className="control__content">
             <Routes>
-                <Route path="/" element={<StillPage status={props.status?.still ?? {}}/>} />
-                <Route path="/still" element={<StillPage status={props.status?.still ?? {}}/>} />
-                <Route path="/video" element={<VideoPage videos={props.status?.video ?? {}}/>} />
+                <Route path="/" element={<StillPage status={props.status.still}/>} />
+                <Route path="/still" element={<StillPage status={props.status.still}/>} />
+                <Route path="/video" element={<VideoPage running={props.status.recording} videos={props.status.video}/>} />
                 <Route path="/profile" element={<ProfilePage />} />
             </Routes>
         </div>

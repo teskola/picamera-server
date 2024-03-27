@@ -13,29 +13,17 @@ const VideoPage = (props) => {
     const [running, setRunning] = useState(false)
     const [error, setError] = useState()
     const [loading, setLoading] = useState(false)
-    const [videos, setVideos] = useState(props.videos)
+    const [videos, setVideos] = useState([])
 
-    useEffect(() => {        
-        updateState(props.videos)        
-      }, []);
-
-    const updateState = (v) => {
-        let runningVideo
-        if (v.length > 0) {
-            runningVideo = v.find((e) => e.running)
-        }
-        
-        if (runningVideo) {
-            setRunning(true)
+    useEffect(() => {
+        setRunning(props.running)
+        if (props.running) {
+            const runningVideo = props.videos.find((e) => e.running)
             setResolution(runningVideo.resolution)
             setQuality(runningVideo.quality)
-            
         }
-        else {
-            setRunning(false)
-        }
-        setVideos(v)
-    }
+
+      }, [props]);  
 
     const onResolutionChange = (event) => {
         setResolution(event.target.value)

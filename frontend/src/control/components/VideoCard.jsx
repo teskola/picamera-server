@@ -7,6 +7,7 @@ import { useRef, useState } from 'react';
 import moment from 'moment';
 import DurationClock from './DurationClock';
 import { durationString } from '../../utilities';
+import { deleteVideo } from '../../api';
 
 const VideoCard = (props) => {
     const pathRef = useRef()
@@ -28,7 +29,7 @@ const VideoCard = (props) => {
 
     const onDelete = () => {
         setDeleting(true)
-        props.onDelete()
+        deleteVideo(props.video.id)
     }
 
     return (
@@ -58,7 +59,7 @@ const VideoCard = (props) => {
                         </div>
                         <div className='video-card__info--column'>
                             <Typography variant='caption'>: {moment.unix(props.video.started).format('DD/MM/YYYY HH:mm:ss')}</Typography>
-                            <Typography variant='caption'>: {moment.unix(props.video.stopped).format('DD/MM/YYYY HH:mm:ss')}</Typography>
+                            <Typography variant='caption'>: {props.video.stopped ? moment.unix(props.video.stopped).format('DD/MM/YYYY HH:mm:ss') : 'N/A'}</Typography>
                             {props.video.stopped ?
                                 <Typography variant='caption'>: {durationString({ end: props.video.stopped, start: props.video.started })}
                                 </Typography> :
@@ -73,7 +74,7 @@ const VideoCard = (props) => {
                 <div className='video-card__btns_status'>
                     <div className='video-card__card__btns_status--buttons'>
                         <Button style={{ minWidth: '102px', }} startIcon={<CloudUploadIcon />}>Upload</Button>
-                        <Button style={{ minWidth: '102px', }} onClick={props.onDelete} color='error' startIcon={<DeleteOutlinedIcon />}>Delete</Button>
+                        <Button style={{ minWidth: '102px', }} onClick={onDelete} color='error' startIcon={<DeleteOutlinedIcon />}>Delete</Button>
                     </div>
                     <div className='video-card__btns_status--status'>
                         <Typography variant='caption'>Stopped.</Typography>

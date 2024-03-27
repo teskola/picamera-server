@@ -41,7 +41,7 @@ const videoUpload = async (req, res) => {
 
 }
 
-const videoDelete = async (req, res) => handleResponse({ res: res, func: video.delete })
+const videoDelete = async (req, res) => handleResponse({ res: res, func: video.delete, params: {id: req.params.id} })
 
 
 module.exports = {

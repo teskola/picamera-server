@@ -1,4 +1,4 @@
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 import "../ControlTab.css"
@@ -11,7 +11,33 @@ import moment from "moment";
 import StartButton from "../components/StartButton";
 import StopButton from "../components/StopButton";
 
+const dummy = {
+    "video": [],
+    "still": {
+      "limit": 0,
+      "interval": 3600,
+      "full_res": false,
+      "name": "testi",
+      "count": 0,
+      "running": true,
+      "started": 1711524171.1439362,
+      "stopped": null,
+      "previous": null,
+      "next": 1711524172.1439652
+    },
+    "preview": {
+      "running": true
+    },
+    "running": true,
+    "recording": false
+  }
+
 const StillPage = (props) => {
+
+    useEffect(() => {
+        setRunning(props.status.running)
+
+      }, [props.status?.running]);
 
     const pathRef = useRef('')
     const intervalRef = useRef(1)
@@ -23,7 +49,7 @@ const StillPage = (props) => {
     const limitRef = useRef(0)
     const delayRef = useRef(1)
     const [epoch, setEpoch] = useState(moment())
-    const [running, setRunning] = useState(props.still?.running)
+    const [running, setRunning] = useState(false)
     const [loading, setLoading] = useState(false)
 
     const unitToMultiplier = (value) => {

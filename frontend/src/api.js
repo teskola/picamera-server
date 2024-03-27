@@ -97,7 +97,7 @@ export const stopVideo = async () => {
 export const deleteVideo = async (id) => {
     try {
         const res = await fetch(
-            `http://${import.meta.env.VITE_RASPBERRY_URL}:${import.meta.env.VITE_PORT}/api/video/delete/id`, {
+            `http://${import.meta.env.VITE_RASPBERRY_URL}:${import.meta.env.VITE_PORT}/api/video/${id}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
