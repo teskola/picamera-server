@@ -40,7 +40,7 @@ const videoUpload = async (req, res) => {
     const {error} = schema.validate(req.body)
 
     if (error) {
-        return res.send(400).send({error: error.details})
+        return res.status(400).send({error: error.details})
     }
 
     const params = {
