@@ -112,3 +112,25 @@ export const deleteVideo = async (id) => {
         return {status: 500}
     }
 }
+
+export const uploadVideo = async (id, name) => {
+    try {
+        const res = await fetch(
+            `http://${import.meta.env.VITE_RASPBERRY_URL}:${import.meta.env.VITE_PORT}/api/video/upload/${id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                "name": name
+            })
+        }
+        )
+        return {body: await res.json(), status: res.status}
+    }
+    catch (err) {
+        console.log(err)
+        return {status: 500}
+    }
+}

@@ -32,6 +32,17 @@ const videoStop = async (req, res) => handleResponse({ res: res, func: video.sto
 const videoUpload = async (req, res) => {
 
     const { name } = req.body
+
+    const schema = Joi.object({
+        name: Joi.string().min(1).max(70).required()
+    })
+
+    const {error} = schema.validate(req.body)
+
+    if (error) {
+        return res.send(400).send({error: error.details})
+    }
+
     const params = {
         id: req.params.id,
         name: name
