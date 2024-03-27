@@ -2,7 +2,8 @@ const app = require('./app');
 const http = require('http');
 const server = http.createServer(app);
 const { Server } = require("socket.io");
-const socket = require("./socket")
+const socket = require("./socket");
+const status = require('./models/status');
 
 const io = new Server(server, {
   cors: {
@@ -10,8 +11,8 @@ const io = new Server(server, {
   }
 });
 
-io.on('connection', (socket) => {
-  console.log('a user connected');
+io.on('connection', async (socket) => {
+  socket.emit('status', await status.fetch())
 });
 
 const conn = socket.connect()

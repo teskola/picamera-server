@@ -55,9 +55,7 @@ class CameraHandler(socketserver.StreamRequestHandler):
         
     def action(self, data) -> dict:
         if (data["action"] == 'status'):
-            camera.lock.acquire()
             response = camera.get_status()
-            camera.lock.release()
             return response
         if (data["action"] == 'still_start'):            
             camera.lock.acquire()
@@ -121,9 +119,6 @@ class CameraHandler(socketserver.StreamRequestHandler):
                         status_condition.wait()
                     data = status.pop(0)
                     self.wfile.write(json.dumps(data).encode())
-
-
-
         else:
             logging.error(f'unkown command: {data["action"]}')
  

@@ -3,7 +3,6 @@ import './App.css'
 import ControlTab from './control/ControlTab'
 import LogTab from './logs/LogTab'
 import PreviewTab from './preview/PreviewTab'
-import { getStatus } from './api'
 import { socket } from './socket'
 
 
@@ -17,16 +16,13 @@ function App() {
     setStatus(data)
   }
 
-  useEffect(() => {
-    const fetch = async () => {
-      const s = await getStatus()
-      setStatus(s)
-    }
-    fetch()
+  useEffect(() => {    
     socket.on('status', statusListener)
+    socket.on('connection', statusListener)
 
     return () => {
       socket.off('status', statusListener)
+      socket.off('connection', statusListener)
     }
 
 

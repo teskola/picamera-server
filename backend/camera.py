@@ -348,28 +348,20 @@ class Camera:
                     "still": {},
                     "preview": {}}        
         result["running"] = self.picam2.started
+        result["recording"] = self.recording_running()
         for video in self.videos:
             result["video"].append(video.dict())              
         if self.still is not None:
             result["still"] = self.still.dict()
         result["preview"] = {
             'running': self.preview_running(),
-        }
-        if self.picam2.started:
-            result["metadata"] = self.picam2.capture_metadata()
-        if self.picam2.camera_configuration() is not None:
-            config = self.picam2.camera_configuration().copy()
-            del config["controls"]
-            del config["colour_space"]
-            del config["transform"]
-            result["configration"] = config
+        }        
         return result
         
     def still_start(self, limit, interval, full_res, name, upload, delay : float = 1.0, epoch : int = None) -> dict:
 
         if self.still is not None and self.still.running():
-            return {"error": {"running_error": "Still already running."},
-                    "status": self.get_status()}
+            return {"error": {"running_error": "Still already running."}}
         
         self.still = Still(
             limit=limit, 
@@ -383,7 +375,7 @@ class Camera:
             stop=self.reconfig_after_stop,
             upload=upload)
         self.notify_status_listeners()
-        return {"status": self.get_status()}        
+        return {}        
         
         
     def reconfig_after_stop(self):
@@ -397,30 +389,26 @@ class Camera:
     
     def still_stop(self) -> dict:
         if self.still is None or not self.still.running():
-            return {"error": {"running_error": "Still not running."},
-                    "status": self.get_status()}
+            return {"error": {"running_error": "Still not running."}}
         else:
             self.still.stop(self.reconfig_after_stop) 
             self.notify_status_listeners()
-            return  {"status": self.get_status()}
+            return  {}
          
     
     def delete_video(self, id: str):
         video = self.find_video_by_id(id)
         if video is None:
             return {"error": "Video not found.",
-                    "status": self.get_status(),
                     "id": id}
         if self.find_recording_video() == id:
             return {"error": {"running_error": "Video recording."},
-                    "status": self.get_status(),
                     "id": id}
         self.videos.remove(video)  
         del video   
         logging.info(f"Video deleted: {id}")
         self.notify_status_listeners()
-        return {"status": self.get_status(),
-                "id": id}
+        return {"id": id}
         
 
           
@@ -429,7 +417,6 @@ class Camera:
         if self.recording_running():
             logging.warn("Recording already running.")
             return {"error": {"running_error": "Already recording."},
-                    "status": self.get_status(),
                     "id": id}
         preview_paused = False
         if self.preview_running():
@@ -448,15 +435,13 @@ class Camera:
             self._start_preview_encoder()
             logging.info("Preview resumed.")   
         self.notify_status_listeners()     
-        return {"status": self.get_status(),
-                "id": id}
+        return {"id": id}
        
 
     def recording_stop(self) -> dict:
         if not self.recording_running():
             logging.warn("Recording not running.")
-            return {"error": {"running_error": "Not recording."},
-                "status": self.get_status()}
+            return {"error": {"running_error": "Not recording."}}
         video = self.find_video_by_id(self.find_recording_video())
         preview_running = self.preview_running()
         self.picam2.stop_encoder()
@@ -471,8 +456,7 @@ class Camera:
             logging.info("Preview resumed.")
             self.picam2.start()
         self.notify_status_listeners()
-        return {
-                "status": self.get_status()}
+        return {}
              
              
     def capture_still(self, upload, name, full_res : bool = False, keep_alive : bool = False) -> io.BytesIO:
@@ -500,7 +484,6 @@ class Camera:
         self._start_preview_encoder()
         self.picam2.start()
         logging.info("Preview started.")       
-        self.notify_status_listeners()     
         return True   
 
     def preview_stop(self) -> bool:
@@ -512,7 +495,6 @@ class Camera:
         logging.info("Preview stopped.")
         if not self.picam2.started:
             self.picam2.stop()   
-        self.notify_status_listeners()         
         return True
     
 
