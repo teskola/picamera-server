@@ -11,11 +11,9 @@ const PreviewTab = (props) => {
                 <div className='video'>
                     <img src={STREAM_URL} width="640" />
                 </div>
-                <div className='recording-text'>
-                    {props.status?.recording && <span>Recording</span>}
-                </div>                
+                {props.status?.recording && <div className='recording-text'><span>Recording</span></div>}
             </div>
-            <StillStatus status={props.status?.still ?? {}}/>
+            <StillStatus status={props.status?.still ?? {}} />
         </>)
 }
 

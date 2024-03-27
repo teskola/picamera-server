@@ -45,7 +45,7 @@ def resolution_to_str(resolution : Resolutions) -> str:
     return f"{resolution[1]}p"
 
 class Still:
-    def __init__(self, limit, interval, full_res, name) -> None:        
+    def __init__(self, limit, interval, full_res, name, notify) -> None:        
         self.name = name
         self.limit = limit
         self.interval = interval
@@ -55,6 +55,7 @@ class Still:
         self.started = time.time()
         self.previous = None
         self.stopped = None
+        self.notify = notify
     
     def fill(self):
         if self.limit > 0:
@@ -102,7 +103,7 @@ class Still:
         return self.event is not None and self.event in scheduler.queue
     
     def tick(self, capture, stop, name : str, upload):
-        if self.limit == 0 or self.count < self.limit:
+        if self.limit == 0 or self.count < self.limit - 1:
             self.event = scheduler.enter(self.interval, 1, self.tick, argument=(capture, stop, name, upload, ))               
         self.count += 1 
         upload_name = insert_datetime(name)
@@ -114,6 +115,9 @@ class Still:
         self.previous = time.time()   
         if self.limit != 0 and self.count == self.limit and self.keep_alive():
             self.stop(stop)
+        self.notify()
+        
+
 
 
 class Video:
@@ -367,7 +371,8 @@ class Camera:
             limit=limit, 
             interval=interval, 
             full_res=full_res, 
-            name=name)
+            name=name,
+            notify=self.notify_status_listeners)
         self.still.start(            
             delay=delay,
             epoch=epoch,
@@ -473,7 +478,6 @@ class Camera:
         request.release()
         data.seek(0)
         upload(data, name)
-        self.notify_status_listeners()    
 
     def preview_start(self) -> bool:
         if self.preview_running():

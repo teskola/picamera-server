@@ -52,15 +52,13 @@ const VideoPage = (props) => {
         switch (res.status) {
             case 200:
                 setError()
-                updateState(res.body.status.video)
                 break
             case 409:
                 setError(res.body.error.running_error)
-                updateState(res.body.status.video)
+                setRunning(true)
                 break
             default:
                 setError('Something went wrong!')
-                setRunning(false)
                 break
         }
 
@@ -73,15 +71,13 @@ const VideoPage = (props) => {
         switch (res.status) {
             case 200:
                 setError()
-                updateState(res.body.status.video)
                 break
             case 409:
                 setError(res.body.error.running_error)
-                updateState(res.body.status.video)
+                setRunning(false)
                 break
             default:
                 setError('Something went wrong!')
-                setRunning(false)
                 break
         }
     }

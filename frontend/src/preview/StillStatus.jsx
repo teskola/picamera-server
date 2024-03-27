@@ -2,6 +2,7 @@ import { Typography } from '@mui/material'
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import moment from 'moment';
 import './StillStatus.css'
+import TimerClock from './components/TimerClock';
 const StillStatus = (props) => {
 
     const dummy = {
@@ -109,8 +110,8 @@ const StillStatus = (props) => {
                         <Typography variant='caption'>{resolution()}</Typography>
                         <Typography variant='caption'>{count()}</Typography>
                         <Typography variant='caption'>{props.status.name ? `still/${props.status.name}.jpg` : 'N/A'}</Typography>
-                        <Typography variant='caption'>{props.status.previous ? moment(moment.unix(props.status.previous)).fromNow() : 'N/A'}</Typography>
-                        <Typography variant='caption'>{props.status.next ? moment(moment.unix(props.status.next)).fromNow() : 'N/A'}</Typography>
+                        <Typography variant='caption'>{props.status.previous ? moment.unix(props.status.previous).format('DD/MM/YYYY HH:mm:ss') : 'N/A'}</Typography>
+                        {props.status.next ? <TimerClock target={props.status.next}/> : <Typography variant='caption'>N/A</Typography>}
                     </div>
                 </div>
             </div>

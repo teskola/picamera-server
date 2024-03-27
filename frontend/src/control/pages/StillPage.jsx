@@ -79,28 +79,25 @@ const StillPage = (props) => {
             full_res: resolution === 'full',
             epoch: delayMode === 'epoch' ? epoch.unix() : undefined,
             delay: delayMode === 'seconds' ? parseFloat(delayRef.current.value) : undefined
-        }
-        )
+        })
+
         setLoading(false)
         switch (res.status) {
             case 200:
                 setError()
                 setRunningError()
-                setRunning(res.body.status.still.running)
                 break
             case 400:
                 setError(res.body.error)
-                setRunning(false)
                 setRunningError()
                 break
             case 409:
                 setError()
                 setRunningError(res.body.error.running_error)
-                setRunning(res.body.status.still.running)
+                setRunning(true)
                 break
             default:
                 setError()
-                setRunning(false)
                 setRunningError('Something went wrong!')
                 break
         }
@@ -114,15 +111,13 @@ const StillPage = (props) => {
         switch (res.status) {
             case 200:
                 setRunningError()
-                setRunning(res.body.status.still.running)
                 break
             case 409:
                 setRunningError(res.body.error.running_error)
-                setRunning(res.body.status.still.running)
+                setRunning(false)
                 break
             default:
                 setRunningError('Something went wrong!')
-                setRunning(true)
                 break
         }
     }
