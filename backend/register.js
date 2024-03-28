@@ -2,6 +2,8 @@ const pool = require("./db/pool");
 const bcrypt = require('bcryptjs');
 const Joi = require('joi');
 
+const result = await main()
+
 async function main () {
     const args = process.argv.slice(2)
 
@@ -38,8 +40,6 @@ async function main () {
         })
     })
 }
-
-const result = await main()
 
 console.log(result)
 
