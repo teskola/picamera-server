@@ -35,6 +35,8 @@ bcrypt.hash(body.password, 12, (err, hash) => {
             } else {
                 console.log(result)
             }
+            connection.end()
+            return
         })
         connection.release()
     })
