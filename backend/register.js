@@ -18,22 +18,32 @@ if (error) {
     return
 }
 
-const hashedPassword = await bcrypt.hash(body.password, 12)
-
-const newUser = {email: body.email, password: hashedPassword}
-
-
-pool.getConnection((err, connection) => {
-    if (err) {
-        console.log(err)
-        return
-    }
-    connection.query('INSERT INTO users SET ?;', newUser, (err, result) => {
+const hashPasswordAndAddUser = async () => {
+    bcrypt.hash(body.password, 12, (err, hash) => {
         if (err) {
-            console.log(err)
-        } else {
-            console.log(result)
+            return err
         }
+        const newUser = { email: body.email, password: hash }
+        pool.getConnection((err, connection) => {
+            if (err) {
+                return err
+            }
+            connection.query('INSERT INTO users SET ?;', newUser, (err, result) => {
+                if (err) {
+                    return err
+                } else {
+                    return result
+                }
+            })
+            connection.release()
+        })
     })
-    connection.release()
-})
+}
+
+const result = await hashPasswordAndAddUser()
+
+console.log(result)
+
+
+
+
