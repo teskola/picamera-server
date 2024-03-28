@@ -14,9 +14,7 @@ pool.getConnection((err, connection) => {
         (err, result) => {
             if (err) {
                 console.log(err)
-            } else {
-                console.log('Users table created.')
-            }
+            } 
         })
     }
     connection.release()

@@ -33,9 +33,14 @@ bcrypt.hash(body.password, 12, (err, hash) => {
             if (err) {
                 console.log(err)
             } else {
-                console.log(result)
+                if (result.affectedRows == 1) {
+                    console.log("User created.")
+                }
+                else {
+                    console.log("Something went wrong.")
+                }
+                process.exit()
             }
-            process.exit()
         })
         connection.release()
     })
