@@ -8,6 +8,19 @@ const still = require('./routes/still')
 const video = require('./routes/video')
 const preview_route = require("./routes/preview")
 const pool = require('./db/pool')
+pool.getConnection((err, connection) => {
+    if (err) {
+        console.log(err)
+    } else {
+        connection.query("SELECT 1", (err, result) => {
+            if (err) {
+                console.log(err)
+            } else {
+                console.log(result)
+            }
+        })
+    }
+})
 
 app.use(
     cors({
