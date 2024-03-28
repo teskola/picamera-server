@@ -3,24 +3,13 @@ const cors = require("cors")
 const app = express();
 
 
+const users = require('./routes/users')
 const status = require('./routes/status')
 const still = require('./routes/still')
 const video = require('./routes/video')
 const preview_route = require("./routes/preview")
 const pool = require('./db/pool')
-pool.getConnection((err, connection) => {
-    if (err) {
-        console.log(err)
-    } else {
-        connection.query("SELECT 1", (err, result) => {
-            if (err) {
-                console.log(err)
-            } else {
-                console.log(result)
-            }
-        })
-    }
-})
+
 
 app.use(
     cors({
@@ -28,6 +17,7 @@ app.use(
     })
 );
 app.use(express.json())
+app.use("/auth", users)
 app.use("/api/status", status)
 app.use("/api/still", still)
 app.use("/api/video", video)

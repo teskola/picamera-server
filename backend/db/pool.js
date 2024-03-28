@@ -6,4 +6,20 @@ const pool = mysql.createPool({
     database: 'cameradb'
 })
 
+pool.getConnection((err, connection) => {
+    if (err) {
+        console.log(err)
+    } else {
+        connection.query("CREATE TABLE IF NOT EXISTS users ( email VARCHAR(255) NOT NULL, password VARCHAR(60) NOT NULL, created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (email))", 
+        (err, result) => {
+            if (err) {
+                console.log(err)
+            } else {
+                console.log('Users table created.')
+            }
+        })
+    }
+    connection.release()
+})
+
 module.exports = pool
