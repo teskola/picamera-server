@@ -2,23 +2,22 @@ const pool = require("./db/pool");
 const bcrypt = require('bcryptjs');
 const Joi = require('joi');
 
-const args = process.argv.slice(2)
+async function main () {
+    const args = process.argv.slice(2)
 
-const body = { email: args[0], password: args[1] }
+    const body = { email: args[0], password: args[1] }
 
-const schema = Joi.object({
-    email: Joi.string().email().max(255).required(),
-    password: Joi.string().min(6).max(72).required(),
-});
+    const schema = Joi.object({
+        email: Joi.string().email().max(255).required(),
+        password: Joi.string().min(6).max(72).required(),
+    });
 
-const { error } = schema.validate(body)
+    const { error } = schema.validate(body)
 
-if (error) {
-    console.log(error)
-    return
-}
+    if (error) {        
+        return error
+    }
 
-const hashPasswordAndAddUser = async () => {
     bcrypt.hash(body.password, 12, (err, hash) => {
         if (err) {
             return err
@@ -40,7 +39,7 @@ const hashPasswordAndAddUser = async () => {
     })
 }
 
-const result = await hashPasswordAndAddUser()
+const result = await main()
 
 console.log(result)
 
