@@ -28,11 +28,7 @@ const VideoCard = (props) => {
         const i = Math.floor(Math.log(bytes) / Math.log(k))
 
         return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
-    }
-
-    const errorMessage = () => {
-        console.log(error)
-    }
+    }    
 
     const onCancel = () => {
         setDeleting(false)
@@ -64,6 +60,21 @@ const VideoCard = (props) => {
 
     }
 
+    const dummy = [
+        {
+          "message": "\"name\" is not allowed to be empty",
+          "path": [
+            "name"
+          ],
+          "type": "string.empty",
+          "context": {
+            "label": "name",
+            "value": "",
+            "key": "name"
+          }
+        }
+      ]
+
     return (
         <>
             <DeleteDialog open={deleting} onConfirm={onConfirm} onCancel={onCancel} />
@@ -79,7 +90,7 @@ const VideoCard = (props) => {
                             <TextField
                                 disabled={deleting || loading || !props.video.stopped}
                                 error={error}
-                                helperText={errorMessage()}
+                                helperText={error && error[0].message}
                                 inputRef={pathRef}
                                 variant="standard"
                                 style={{ width: 200 }}
